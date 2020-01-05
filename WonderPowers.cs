@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
 using Sims3.SimIFace;
 
 namespace Gamefreak130
@@ -7,6 +7,6 @@ namespace Gamefreak130
     public class WonderPowers
     {
         [Tunable]
-        public static bool kCJackB;
+        private static readonly bool kCJackB;
     }
 }
