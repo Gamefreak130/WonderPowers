@@ -20,6 +20,8 @@ using Sims3.SimIFace.RouteDestinations;
 using Sims3.UI;
 using Sims3.UI.Hud;
 using Gamefreak130.WonderPowersSpace.Helpers.UI;
+using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.Interfaces;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
@@ -72,10 +74,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			POST_WITCHINGHOUR
 		}
 
-		private const float kMaxKarma = 100f;
-
-		private const float kMinKarma = 0f;
-
 		private const int kWishFulfillmentIndex = 0;
 
 		private const int kWitchingHourIndex = 1;
@@ -97,7 +95,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		private int TotalPromisesFulfilled;
 
 		[Tunable, TunableComment("How many karma points the player starts with")]
-		private static readonly float kInitialKarmaLevel = 75f;
+		private static readonly float kInitialKarmaLevel = 0f;
 
 		[Tunable, TunableComment("How much karma is gained daily, low range")]
 		private static readonly float kKarmaDailyRationLow = 9f;
@@ -126,15 +124,13 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		private static WonderPowers sInstance = null;
 
-		private ArrayList mAllWonderPowers = new ArrayList();
+		private readonly ArrayList mAllWonderPowers = new ArrayList();
 
-		private ArrayList mActiveWonderPowers = new ArrayList();
+		private readonly ArrayList mActiveWonderPowers = new ArrayList();
 
 		private bool mDebugBadPowersOn;
 
 		private DateAndTime mlastRunTime;
-
-		private uint mBrowseWonderPowersMusicHandle;
 
 		private static bool mBadPowersOn = true;
 
@@ -145,8 +141,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		private static float sCurrentBadKarmaChance = 0f;
 
 		private static float sCurrentKarmaWishAmountModifier = 0f;
-
-		private VisualEffect mEdgeEffect;
 
 		public static float NearbySimsDistance
 		{
@@ -224,19 +218,12 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public WonderPowers()
 		{
-			//CONSIDER Disable bad karma option?
-			/*OptionsMenu.ProfileSettingsLoadedFunction = (ProfileSettingsLoaded)(object)new ProfileSettingsLoaded(OnOptionsLoaded);
-			OptionsMenu.ProfileSettingsClearedFunction = (ProfileSettingsCleared)(object)new ProfileSettingsCleared(OnOptionsReset);
-			uint value = mBadPowersOn ? 1u : 0u;
-			if (OptionsModel.GetOptionSetting("EnableBadKarma", out value))
-			{
-				mBadPowersOn = value != 0;
-			}*/
 			LoadDialogFlagsFromProfile();
 		}
 
 		private static void LoadDialogFlagsFromProfile()
 		{
+			throw new NotImplementedException();
 			byte[] section = ProfileManager.GetSection((uint)ProfileManager.GetCurrentPrimaryPlayer(), 5u);
 			if (section.Length == 2)
 			{
@@ -247,6 +234,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		private static void SaveDialogFlagsToProfile()
 		{
+			throw new NotImplementedException();
 			try
 			{
 				byte[] array = new byte[2]
@@ -337,11 +325,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 										visualEffect.SetPosAndOrient(floorPosition3, Vector3.UnitX, Vector3.UnitY);
 										visualEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
 									}
-									/*KarmaDial.Load(karma, Karma, true);
+									KarmaDial.Load(karma, Karma, true);
 									if (!bHaveShownWitchingHourDialog)
 									{
-										KarmaDial.WitchingHourCompletedFunction = (WitchingHourCompleted)(object)new WitchingHourCompleted(DisplayWitchingHourDialogPopup);
-									}*/
+										KarmaDial.WitchingHourCompletedFunction = (KarmaDial.WitchingHourCompleted)(object)new KarmaDial.WitchingHourCompleted(DisplayWitchingHourDialogPopup);
+									}
 								}
 								else
 								{
@@ -408,13 +396,14 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		{
 			if (sInstance != null)
 			{
-				//TODO Fix
-				Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(sInstance.OnShowKarmaStar, dream));
+				Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(delegate ()
+				{
+					sInstance.OnShowKarmaStar(dream);
+				}));
 				sInstance.TotalPromisesFulfilled++;
 				float num = sCurrentKarmaWishAmountModifier;
 				float num2 = kKarmaBasicWishAmount;
-				ActiveDreamNode activeDreamNode = dream as ActiveDreamNode;
-				if (activeDreamNode != null && activeDreamNode.Owner != null && activeDreamNode.IsMajorWish)
+				if (dream is ActiveDreamNode activeDreamNode && activeDreamNode.Owner != null && activeDreamNode.IsMajorWish)
 				{
 					num2 = kKarmaLifetimeWishAmount;
 				}
@@ -429,8 +418,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				ShowKarmaDial();
 			}
 			IDreamAndPromise dreamAndPromise = d as IDreamAndPromise;
-			float sCurrentKarmaWishAmountModifier2 = sCurrentKarmaWishAmountModifier;
-			float kKarmaBasicWishAmount2 = kKarmaBasicWishAmount;
 			if (dreamAndPromise is ActiveDreamNode activeDreamNode && activeDreamNode.Owner != null)
 			{
 				VisualEffect.FireOneShotEffect("wonderkarma_gain", activeDreamNode.Owner, Sim.FXJoints.HatGrip, VisualEffect.TransitionType.SoftTransition);
@@ -441,7 +428,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				TotalPromisesFulfilledKarma = 0f;
 				KarmaPromisesFulfilled = 0;
 				TotalPromisesFulfilled = 0;
-				while (KarmaDial.get_IsVisible())
+				while (KarmaDial.IsVisible)
 				{
 					Simulator.Sleep(0u);
 				}
@@ -450,15 +437,13 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public void ShowKarmaDial()
 		{
-			//IL_003c: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0046: Expected O, but got Unknown
 			float karma = GetKarma();
 			float num = karma + TotalPromisesFulfilledKarma;
 			SetKarma((int)num);
 			KarmaDial.Load(karma, Karma, false);
 			if (!bHaveShownFirstWishFulfillmentDialog && sInstance != null)
 			{
-				KarmaDial.WishFulfilledCompletedFunction = (WishFulfilledCompleted)(object)new WishFulfilledCompleted(sInstance.DisplayWishFulfilledDialogPopup);
+				KarmaDial.WishFulfilledCompletedFunction = (KarmaDial.WishFulfilledCompleted)(object)new KarmaDial.WishFulfilledCompleted(sInstance.DisplayWishFulfilledDialogPopup);
 			}
 		}
 
@@ -633,57 +618,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			return sInstance.mAllWonderPowers;
 		}
 
-		public static void OnShowWonderPowerSelectUI()
-		{
-			foreach (WonderPower wonderPower in GetWonderPowerList())
-			{
-				WonderModeMenu.SetPowerState(wonderPower.WonderPowerName, wonderPower.IsLocked, wonderPower.Cost());
-			}
-			WonderModeMenu.SetKarma(GetKarma());
-			WonderModeMenu.PowerSelected = (WonderModeMenu.PowerSelectHandler)(object)new WonderModeMenu.PowerSelectHandler(WonderPowerSelected);
-			sInstance.mBrowseWonderPowersMusicHandle = Audio.StartSound("music_mode_wondermode");
-			StartWonderModeSelectionScreenEffects();
-		}
-
-		public static void WonderPowerCanceled()
-		{
-			Audio.StopSound(sInstance.mBrowseWonderPowersMusicHandle);
-			while (GameStates.IsCurrentlySwitchingSubStates)
-			{
-				Simulator.Sleep(0u);
-			}
-			GameStates.TransitionToLiveMode();
-			StopWonderModeSelectionScreenEffects();
-		}
-
-		public static uint GetMusicHandle()
-		{
-			return sInstance.mBrowseWonderPowersMusicHandle;
-		}
-
-		public static void WonderPowerSelected(string powerName)
-		{
-			if (powerName == null)
-			{
-				WonderPowerCanceled();
-				return;
-			}
-			WonderPower byName = GetByName(powerName);
-			if (byName != null)
-			{
-				bool flag = false;
-				flag |= !byName.IsLocked;
-				if (flag & ((float)byName.Cost() <= GetKarma()))
-				{
-					byName.Run(WonderPowerActivation.ActivationType.UserSelected, null);
-				}
-				else
-				{
-					WonderModeMenu.PowerSelectFailed();
-				}
-			}
-		}
-
 		public static void BadPowersDebug(bool activate)
 		{
 			if (activate)
@@ -701,25 +635,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				{
 					sCurrentBadKarmaChance = 0f;
 				}
-			}
-		}
-
-		public static void StartWonderModeSelectionScreenEffects()
-		{
-			if (sInstance.mEdgeEffect == null)
-			{
-				sInstance.mEdgeEffect = VisualEffect.Create("wonderModeSelectionEffect");
-				sInstance.mEdgeEffect.Start();
-			}
-		}
-
-		public static void StopWonderModeSelectionScreenEffects()
-		{
-			if (sInstance.mEdgeEffect != null)
-			{
-				sInstance.mEdgeEffect.Stop();
-				sInstance.mEdgeEffect.Dispose();
-				sInstance.mEdgeEffect = null;
 			}
 		}
 
@@ -763,13 +678,13 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		private const float kTickTockYOff = 0.5f;
 
-		private static List<Sim> mAffectedSimList = new List<Sim>();
+		private static readonly List<Sim> mAffectedSimList = new List<Sim>();
 
 		protected ActivationType mHowActivated;
 
 		private ObjectGuid mScriptHandle = ObjectGuid.InvalidObjectGuid;
 
-		private WonderPower mWonderPowerType;
+		private readonly WonderPower mWonderPowerType;
 
 		private static WonderPowerActivation mCursorSelector;
 
@@ -815,9 +730,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		private InteractionInstance mDisableInteraction;
 
-		private static List<object> mNearbyGoodReactions = InitNearbySimGoodReactions();
+		private static readonly List<object> mNearbyGoodReactions = InitNearbySimGoodReactions();
 
-		private static List<object> mNearbyBadReactions = InitNearbySimBadReactions();
+		private static readonly List<object> mNearbyBadReactions = InitNearbySimBadReactions();
 
 		public static WonderPowerActivation CursorSelector
 		{
@@ -858,7 +773,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public virtual void Activate(ActivationType howActivated, GameObject target)
 		{
-			if (GameStates.IsInWorld() && (GameStates.GetInWorldSubState() is LiveModeState || GameStates.GetInWorldSubState() is WonderModeState))
+			if (GameStates.IsInWorld() && GameStates.GetInWorldSubState() is LiveModeState)
 			{
 				if (!WonderPowers.AnyPowersRunning() && mWonderPowerType != null && (!mWonderPowerType.IsLocked || howActivated != 0))
 				{
@@ -866,10 +781,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 					mHowActivated = howActivated;
 					mSelectedObject = target;
 					mScriptHandle = Simulator.AddObject(this);
-				}
-				else
-				{
-					WonderModeState.ExitWonderModeState();
 				}
 			}
 		}
@@ -903,7 +814,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			return result;
 		}
 
-		private void DisableInteractionFailedCallback(Sim _, float _)
+		private void DisableInteractionFailedCallback(Sim _, float __)
 		{
 			mDisableInteraction.Cancelled = true;
 		}
@@ -1390,13 +1301,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				{
 					bool flag = SelectTargets();
 					WonderPowers.StopWonderModeSelectionScreenEffects();
-					if (WonderPowers.GetMusicHandle() != 0)
-					{
-						Audio.StopSound(WonderPowers.GetMusicHandle());
-					}
 					if (flag)
 					{
-						WonderModeState.ExitWonderModeState();
 						if (PowerWillAffectAnything())
 						{
 							UpdateKarma();
@@ -1420,7 +1326,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		public void CleanupAfterPower()
 		{
 			EnableSave();
-			WonderModeState.ExitWonderModeState();
 			if (mSoh != null)
 			{
 				mSoh.Abort();
@@ -1519,7 +1424,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				}
 				ObjectGuid objID = new ObjectGuid(objectIds[0]);
 				Sim sim = GameObject.GetObject(objID) as Sim;
-				KarmaPrompt.SetSingle(Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("Ui/Caption/ObjectPicker:FirstLastName", sim.FirstName, sim.LastName));
+				KarmaPrompt.SetSingle(Responder.Instance.LocalizationModel.LocalizeString("Ui/Caption/ObjectPicker:FirstLastName", sim.FirstName, sim.LastName));
 			}
 			else
 			{
@@ -1925,6 +1830,74 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				}
 			}
 			return result;
+		}
+	}
+
+	public class WonderPowerStandIdle : Interaction<Sim, GameObject>
+	{
+		[DoesntRequireTuning]
+		private sealed class Definition : NewInteractionDefinition
+		{
+			private string mPowerName;
+
+			public string PowerName
+			{
+				get
+				{
+					return mPowerName;
+				}
+				set
+				{
+					mPowerName = value;
+				}
+			}
+
+			public override InteractionInstance CreateInstance(ref InteractionInstanceParameters parameters)
+			{
+				WonderPowerStandIdle wonderPowerStandIdle = new WonderPowerStandIdle();
+				wonderPowerStandIdle.Init(ref parameters);
+				return wonderPowerStandIdle;
+			}
+
+			public override string GetInteractionName(IActor _a, IGameObject _target, InteractionObjectPair iop)
+			{
+				return Localization.LocalizeString("Gameplay/WonderMode/Power:" + mPowerName, new object[0]);
+			}
+
+			/*public override string[] GetPath()
+			{
+				return new string[]
+				{
+					"Sim..."
+				};
+			}*/
+
+			public override bool Test(IActor _a, IGameObject _target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+			{
+				return true;
+			}
+		}
+
+		public static InteractionDefinition GetDefinition(string powerName)
+		{
+			return new Definition
+			{
+				PowerName = powerName
+			};
+		}
+
+		public override bool Run()
+		{
+			DoLoop(ExitReason.Finished | ExitReason.CanceledByScript, new InsideLoopFunction(UpdateIdle), null);
+			return true;
+		}
+
+		private void UpdateIdle(StateMachineClient smc, LoopData loopData)
+		{
+			if (Actor is Sim sim && sim.IsStandingIdle)
+			{
+				sim.LoopIdle();
+			}
 		}
 	}
 }

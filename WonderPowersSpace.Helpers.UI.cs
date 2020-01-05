@@ -1,128 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Sims3.Gameplay.Core;
 using Sims3.SimIFace;
 using Sims3.UI;
 using Sims3.UI.Hud;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 {
-	public class WonderModeMenu
+	public class WonderModeMenu : ModalDialog
 	{
-		/*private enum TriggerCode : uint
+		private enum ControlIds : uint
 		{
-			Up = 114345184u,
-			Down = 114345185u,
-			Left = 114345186u,
-			Right = 114345187u,
-			Select = 114345188u,
-			Cancel = 114345189u,
-			ScrollTextUp = 114345200u,
-			ScrollTextDown = 114345201u
-		}*/
 
-		public delegate void PowerSelectHandler(string power);
-
-		public static bool sIncrementalButtonIndexing = false;
-
-		public static string[] mWonderPowerNames;
-
-		public static bool[] mWonderPowerStates;
-
-		public static int[] mWonderPowerCosts;
-
-		public static float mKarma;
-
-		private static WonderModeMenu sInstance = null;
-
-		private static ScHudWonderMode wonderModeHUD;
-
-		private static bool ignoreInput;
-
-		public static PowerSelectHandler PowerSelected;
-
-		private bool mbVisible;
-
-		private uint mTriggerHandle;
-
-		private bool mbMovieLoaded;
-
-		public static bool IsVisible
-		{
-			get
-			{
-				return sInstance != null ? sInstance.mbVisible : false;
-			}
 		}
 
-		internal static WonderModeMenu Instance
-		{
-			get
-			{
-				return sInstance;
-			}
-		}
+		public const string kBrowseWonderPowersMusic = "music_mode_ltr";
+
+		//public delegate void PowerSelectHandler(string power);
+
+		private readonly bool sIncrementalButtonIndexing = false;
+
+		private readonly string[] mWonderPowerNames;
+
+		private readonly bool[] mWonderPowerStates;
+
+		private readonly int[] mWonderPowerCosts;
+
+		private float mKarma;
+
+		//private PowerSelectHandler PowerSelected;
+
+		private readonly uint mMusicHandle;
+
+		private readonly int mPreviousMusicMode;
+
+		private VisualEffect mEdgeEffect;
+
+		private static WonderModeMenu sMenu;
 
 		public static void Show()
 		{
-			if (sInstance != null)
+			if (sMenu == null)
 			{
-				bool mbMovieLoaded2 = sInstance.mbMovieLoaded;
-				sInstance.mbVisible = true;
-				SceneMgrWindow sceneWindow = UIManager.GetSceneWindow();
-				if (sceneWindow != null)
+				using (WonderModeMenu menu = new WonderModeMenu())
 				{
-					sInstance.mTriggerHandle = sceneWindow.AddModalTriggerHook("wondermenu", TriggerActivationMode.kPermanent, 17);
-					sceneWindow.TriggerDown += sInstance.OnTriggerDown;
-					sceneWindow.TriggerUp += sInstance.OnTriggerUp;
+					menu.StartModal();
 				}
-				ignoreInput = false;
-				//ScaleformManager.WonderModeInit(mWonderPowerStates[0], mWonderPowerStates[1], mWonderPowerStates[2], mWonderPowerStates[3], mWonderPowerStates[4], mWonderPowerStates[5], mWonderPowerStates[6], mWonderPowerStates[7], mWonderPowerStates[8], mWonderPowerStates[9], mWonderPowerStates[10], mWonderPowerStates[11], mWonderPowerStates[12], mWonderPowerCosts[0], mWonderPowerCosts[1], mWonderPowerCosts[2], mWonderPowerCosts[3], mWonderPowerCosts[4], mWonderPowerCosts[5], mWonderPowerCosts[6], mWonderPowerCosts[7], mWonderPowerCosts[8], mWonderPowerCosts[9], mWonderPowerCosts[10], mWonderPowerCosts[11], mWonderPowerCosts[12], (int)mKarma);
+				sMenu = null;
 			}
 		}
 
-		public static void Hide()
-		{
-			if (sInstance != null)
-			{
-				sInstance.mbVisible = false;
-				SceneMgrWindow sceneWindow = UIManager.GetSceneWindow();
-				if (sceneWindow != null)
-				{
-					sceneWindow.RemoveTriggerHook(sInstance.mTriggerHandle);
-					sceneWindow.TriggerDown -= sInstance.OnTriggerDown;
-					sceneWindow.TriggerUp -= sInstance.OnTriggerUp;
-				}
-				Unload();
-			}
-		}
-
-		public static bool CreateInstance()
-		{
-			if (sInstance == null)
-			{
-				sInstance = new WonderModeMenu();
-				return true;
-			}
-			return false;
-		}
-
-		public static void Load()
-		{
-			CreateInstance();
-			wonderModeHUD = ScHudWonderMode.Instance;
-			wonderModeHUD.MovieLoadedEvent = sInstance.MovieLoaded;
-			wonderModeHUD.MovieDoneEvent = sInstance.MovieDone;
-			wonderModeHUD.LoadSWF();
-		}
-
-		public static void Unload()
-		{
-			wonderModeHUD.UnloadSWF();
-			sInstance = null;
-		}
-
-		public static void SetPowerState(string name, bool state, int cost)
+		public void SetPowerState(string name, bool state, int cost)
 		{
 			for (int i = 0; i < mWonderPowerNames.Length; i++)
 			{
@@ -134,9 +63,216 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 			}
 		}
 
-		public static void SetKarma(float karma)
+		public void SetKarma(float karma)
 		{
 			mKarma = karma;
+		}
+
+		private WonderModeMenu() : base("WonderMode", 1, true, PauseMode.PauseSimulator, null)
+		{
+			if (mModalDialogWindow != null)
+			{
+				//ScaleformManager.WonderModeInit(mWonderPowerStates[0], mWonderPowerStates[1], mWonderPowerStates[2], mWonderPowerStates[3], mWonderPowerStates[4], mWonderPowerStates[5], mWonderPowerStates[6], mWonderPowerStates[7], mWonderPowerStates[8], mWonderPowerStates[9], mWonderPowerStates[10], mWonderPowerStates[11], mWonderPowerStates[12], mWonderPowerCosts[0], mWonderPowerCosts[1], mWonderPowerCosts[2], mWonderPowerCosts[3], mWonderPowerCosts[4], mWonderPowerCosts[5], mWonderPowerCosts[6], mWonderPowerCosts[7], mWonderPowerCosts[8], mWonderPowerCosts[9], mWonderPowerCosts[10], mWonderPowerCosts[11], mWonderPowerCosts[12], (int)mKarma);
+				mWonderPowerNames = new string[13];
+				mWonderPowerStates = new bool[13];
+				mWonderPowerCosts = new int[13];
+				mWonderPowerNames[0] = "curse";
+				mWonderPowerNames[1] = "fire";
+				mWonderPowerNames[2] = "Earthquake";
+				mWonderPowerNames[3] = "ghosts";
+				mWonderPowerNames[4] = "doom";
+				mWonderPowerNames[5] = "beauty";
+				mWonderPowerNames[6] = "goodmood";
+				mWonderPowerNames[7] = "repair";
+				mWonderPowerNames[8] = "satisfaction";
+				mWonderPowerNames[9] = "strokeOfGenius";
+				mWonderPowerNames[10] = "superLucky";
+				mWonderPowerNames[11] = "wealth";
+				mWonderPowerNames[12] = "ghostify";
+				for (int i = 0; i < 13; i++)
+				{
+					mWonderPowerCosts[i] = 0;
+				}
+				mKarma = 0f;
+				foreach (WonderPower wonderPower in WonderPowers.GetWonderPowerList())
+				{
+					SetPowerState(wonderPower.WonderPowerName, wonderPower.IsLocked, wonderPower.Cost());
+				}
+				SetKarma(WonderPowers.GetKarma());
+				PowerSelected = (PowerSelectHandler)(object)new PowerSelectHandler(WonderPowerSelected);
+				mPreviousMusicMode = (int)AudioManager.MusicMode;
+				AudioManager.SetMusicMode(MusicMode.None);
+				mMusicHandle = Audio.StartSound(kBrowseWonderPowersMusic);
+				StartWonderModeSelectionScreenEffects();
+			}
+		}
+
+		public override bool OnEnd(uint endID)
+		{
+			AudioManager.SetMusicMode((MusicMode)mPreviousMusicMode);
+			if (mMusicHandle != 0u)
+			{
+				Audio.StopSound(mMusicHandle);
+			}
+			return true;
+		}
+
+		public void WonderPowerSelected(string powerName)
+		{
+			if (powerName == null)
+			{
+				StopWonderModeSelectionScreenEffects();
+				return;
+			}
+			WonderPower byName = WonderPowers.GetByName(powerName);
+			if (byName != null)
+			{
+				bool flag = false;
+				flag |= !byName.IsLocked;
+				if (flag & (byName.Cost() <= WonderPowers.GetKarma()))
+				{
+					byName.Run(WonderPowerActivation.ActivationType.UserSelected, null);
+				}
+			}
+			EndDialog(0u);
+		}
+
+		private void StartWonderModeSelectionScreenEffects()
+		{
+			if (mEdgeEffect == null)
+			{
+				mEdgeEffect = VisualEffect.Create("wonderModeSelectionEffect");
+				mEdgeEffect.Start();
+			}
+		}
+
+		private void StopWonderModeSelectionScreenEffects()
+		{
+			if (mEdgeEffect != null)
+			{
+				mEdgeEffect.Stop();
+				mEdgeEffect.Dispose();
+				mEdgeEffect = null;
+			}
+		}
+	}
+
+	public class KarmaDial
+	{
+		public delegate void WitchingHourCompleted();
+
+		public delegate void WishFulfilledCompleted();
+
+		public static float mPreviousKarma;
+
+		public static float mCurrentKarma;
+
+		public static WitchingHourCompleted WitchingHourCompletedFunction = null;
+
+		public static WishFulfilledCompleted WishFulfilledCompletedFunction = null;
+
+		private static KarmaDial sInstance = null;
+
+		private bool mbVisible;
+
+		private bool mbMovieLoaded;
+
+		private static bool mIsMidnight = false;
+
+		private LoadCompletedCallback mMovieLoaded;
+
+		private MovieDoneCallback mMovieDone;
+
+		private GameSpeedChangedCallback mGameSpeedChanged;
+
+		public static bool IsVisible
+		{
+			get
+			{
+				return sInstance != null && sInstance.mbVisible;
+			}
+		}
+
+		internal static KarmaDial Instance
+		{
+			get
+			{
+				return sInstance;
+			}
+		}
+
+		public static void Show()
+		{
+			if (sInstance == null)
+			{
+				return;
+			}
+			if (!sInstance.mbMovieLoaded)
+			{
+				return;
+			}
+			sInstance.mbVisible = true;
+			ScaleformManager.KarmaDialInit((int)mPreviousKarma, (int)mCurrentKarma);
+			if (mIsMidnight)
+			{
+				ScaleformManager.ScaleformInvoke("KarmaDial", "_root.KarmaDial_Panel.KD_SETMIDNIGHT");
+			}
+			ScaleformManager.ScaleformInvoke("KarmaDial", "_root.KarmaDial_Panel.KD_SHOW");
+		}
+
+		private void OnGameSpeedChange(Gameflow.GameSpeed newSpeed, bool locked)
+		{
+			if (sInstance != null)
+			{
+				if (newSpeed == Gameflow.GameSpeed.Pause)
+				{
+					ScaleformManager.ScaleformInvoke("KarmaDial", "_root.KarmaDial_Panel.KD_PAUSE");
+					return;
+				}
+				ScaleformManager.ScaleformInvoke("KarmaDial", "_root.KarmaDial_Panel.KD_PLAY");
+			}
+		}
+
+		public static void Hide()
+		{
+			if (sInstance == null)
+			{
+				return;
+			}
+			Unload();
+		}
+
+		public static void Load(float prevKarma, float newKarma, bool isMidnight)
+		{
+			if (sInstance == null)
+			{
+				sInstance = new KarmaDial();
+				sInstance.mMovieLoaded = new LoadCompletedCallback(sInstance.MovieLoaded);
+				sInstance.mMovieDone = new MovieDoneCallback(sInstance.MovieDone);
+				sInstance.mGameSpeedChanged = new GameSpeedChangedCallback(sInstance.OnGameSpeedChange);
+				mPreviousKarma = prevKarma;
+				mCurrentKarma = newKarma;
+				mIsMidnight = isMidnight;
+				WitchingHourCompletedFunction = null;
+				WishFulfilledCompletedFunction = null;
+				ScaleformManager.LoadScaleformMovie("KarmaDial", sInstance.mMovieLoaded, sInstance.mMovieDone, 3);
+				Responder.Instance.GameSpeedChanged += sInstance.mGameSpeedChanged;
+			}
+		}
+
+		public static void Unload()
+		{
+			if (sInstance != null)
+			{
+				ScaleformManager.UnLoadScaleformMovie("KarmaDial");
+				Responder.Instance.GameSpeedChanged -= sInstance.mGameSpeedChanged;
+				sInstance = null;
+			}
+		}
+
+		public static void SetMidnight()
+		{
+			mIsMidnight = true;
 		}
 
 		private void MovieLoaded()
@@ -147,94 +283,21 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 
 		public void MovieDone()
 		{
+			if (!mIsMidnight)
+			{
+				WishFulfilledCompletedFunction?.Invoke();
+			}
+			else
+			{
+				WitchingHourCompletedFunction?.Invoke();
+			}
 			Hide();
 		}
 
-		/*private void OnTriggerDown(WindowBase sender, UITriggerEventArgs eventArgs)
+		private KarmaDial()
 		{
-			if (ignoreInput)
-			{
-				return;
-			}
-			switch (eventArgs.TriggerCode)
-			{
-				case 114345185u:
-					ScaleformManager.ScaleformInvoke("WonderMode", "_root.WonderMode_Panel.WMP_SELECTDOWN");
-					break;
-				case 114345184u:
-					ScaleformManager.ScaleformInvoke("WonderMode", "_root.WonderMode_Panel.WMP_SELECTUP");
-					break;
-				case 114345186u:
-					ScaleformManager.ScaleformInvoke("WonderMode", "_root.WonderMode_Panel.WMP_SELECTLEFT");
-					break;
-				case 114345187u:
-					ScaleformManager.ScaleformInvoke("WonderMode", "_root.WonderMode_Panel.WMP_SELECTRIGHT");
-					break;
-				case 114345188u:
-					{
-						ScaleformManager.ScaleformInvoke("WonderMode", "_root.WonderMode_Panel.WMP_POWERSELECTED");
-						eventArgs.Handled = true;
-						int num = -1;
-						ignoreInput = true;
-						if (ScaleformManager.WonderModeGetSelected(ref num))
-						{
-							PowerSelected(mWonderPowerNames[num]);
-						}
-						break;
-					}
-				case 114345200u:
-					ScaleformManager.ScaleformInvoke("WonderMode", "_root.WonderMode_Panel.WMP_RSUP");
-					break;
-				case 114345201u:
-					ScaleformManager.ScaleformInvoke("WonderMode", "_root.WonderMode_Panel.WMP_RSDOWN");
-					break;
-				case 114345189u:
-					if (mbVisible)
-					{
-						Hide();
-						PowerSelected(null);
-						eventArgs.Handled = true;
-					}
-					break;
-			}
-		}*/
-
-		public static void PowerSelectFailed()
-		{
-			ignoreInput = false;
-		}
-
-		/*private void OnTriggerUp(WindowBase sender, UITriggerEventArgs eventArgs)
-		{
-			switch (eventArgs.TriggerCode)
-			{
-			}
-		}*/
-
-		private WonderModeMenu()
-		{
-			mWonderPowerNames = new string[13];
-			mWonderPowerStates = new bool[13];
-			mWonderPowerCosts = new int[13];
-			mWonderPowerNames[0] = "curse";
-			mWonderPowerNames[1] = "fire";
-			mWonderPowerNames[2] = "Earthquake";
-			mWonderPowerNames[3] = "ghosts";
-			mWonderPowerNames[4] = "doom";
-			mWonderPowerNames[5] = "beauty";
-			mWonderPowerNames[6] = "goodmood";
-			mWonderPowerNames[7] = "repair";
-			mWonderPowerNames[8] = "satisfaction";
-			mWonderPowerNames[9] = "strokeOfGenius";
-			mWonderPowerNames[10] = "superLucky";
-			mWonderPowerNames[11] = "wealth";
-			mWonderPowerNames[12] = "ghostify";
-			for (int i = 0; i < 13; i++)
-			{
-				mWonderPowerCosts[i] = 0;
-			}
-			mKarma = 0f;
-			ignoreInput = false;
+			mCurrentKarma = 0f;
+			mPreviousKarma = 0f;
 		}
 	}
 }
