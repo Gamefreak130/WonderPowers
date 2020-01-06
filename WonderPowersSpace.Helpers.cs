@@ -1231,17 +1231,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 		}
 
-		/*protected void PlayShazamCursorEffect(bool isGood)
-		{
-			VisualEffect visualEffect = !isGood ? VisualEffect.Create("wonderShazamBad") : VisualEffect.Create("wonderShazamGood");
-			if (visualEffect != null)
-			{
-				Vector3 zero = Vector3.Zero;
-				visualEffect.SetPosAndOrient(zero, Vector3.UnitX, Vector3.UnitY);
-				visualEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
-			}
-		}*/
-
 		protected void PlayShazamScreenEffect(bool isGood)
 		{
 			VisualEffect visualEffect = !isGood ? VisualEffect.Create("wonderShazamScreenBad") : VisualEffect.Create("wonderShazamScreenGood");
@@ -1300,7 +1289,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				if (CanRun())
 				{
 					bool flag = SelectTargets();
-					WonderPowers.StopWonderModeSelectionScreenEffects();
 					if (flag)
 					{
 						if (PowerWillAffectAnything())
@@ -1311,10 +1299,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 						Sims3.Gameplay.Gameflow.SetGameSpeed(Sims3.SimIFace.Gameflow.GameSpeed.Normal, Sims3.Gameplay.Gameflow.SetGameSpeedContext.Gameplay);
 						Run();
 					}
-				}
-				else
-				{
-					WonderPowers.StopWonderModeSelectionScreenEffects();
 				}
 			}
 			catch (Exception)
