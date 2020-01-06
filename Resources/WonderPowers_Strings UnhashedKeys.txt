@@ -1,0 +1,8 @@
+﻿<KEY>UI/Wondermode/PopupDialog:HourOfReckoningTitle</KEY>
+<STR>UI/Wondermode/PopupDialog:HourOfReckoningTitle</STR>
+<KEY>UI/Wondermode/PopupDialog:FirstWishFulfillmentTitle</KEY>
+<STR>UI/Wondermode/PopupDialog:FirstWishFulfillmentTitle</STR>
+<KEY>Gameplay/WonderMode:PowerIsDeploying</KEY>
+<STR>Gameplay/WonderMode:PowerIsDeploying</STR>
+<KEY></KEY>
+<STR></STR>
