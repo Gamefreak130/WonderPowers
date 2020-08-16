@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Sims3.Gameplay.Core;
+using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
 using Sims3.UI.Hud;
@@ -12,20 +13,25 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 	{
 		private enum ControlIds : uint
 		{
-
+			kGoodPowerGrid = 0xd6da8d05,
+			kBadPowerGrid,
+			kSelectedPowerPreview = 0xd6da8f11,
+			kSelectedPowerPoints,
+			kSelectedPowerName = 0xd6da8f15,
+			kSelectedPowerDesc,
+			kOkayButton = 0x05ef6bd1,
+			kCancelButton
 		}
 
-		public const string kBrowseWonderPowersMusic = "music_mode_ltr";
+		private const string kBrowseWonderPowersMusic = "music_mode_karma";
 
 		//public delegate void PowerSelectHandler(string power);
 
 		private readonly bool sIncrementalButtonIndexing = false;
 
-		private readonly string[] mWonderPowerNames;
+		/*private List<WonderPower> mGoodPowers = new List<WonderPower>();
 
-		private readonly bool[] mWonderPowerStates;
-
-		private readonly int[] mWonderPowerCosts;
+		private List<WonderPower> mBadPowers = new List<WonderPower>();*/
 
 		private float mKarma;
 
@@ -35,7 +41,23 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 
 		private readonly int mPreviousMusicMode;
 
-		private VisualEffect mEdgeEffect;
+		private readonly Button mAcceptButton;
+
+		private readonly Button mCloseButton;
+
+		private readonly ItemGrid mBadPowerGrid;
+
+		private readonly ItemGrid mGoodPowerGrid;
+
+		private readonly Window mPowerPreview;
+
+		private readonly Text mPowerPoints;
+
+		private readonly Text mPowerName;
+
+		private readonly TextEdit mPowerDesc;
+
+		private readonly FillBarController mKarmaMeter;
 
 		private static WonderModeMenu sMenu;
 
@@ -51,19 +73,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 			}
 		}
 
-		public void SetPowerState(string name, bool state, int cost)
-		{
-			for (int i = 0; i < mWonderPowerNames.Length; i++)
-			{
-				if (mWonderPowerNames[i].Equals(name))
-				{
-					mWonderPowerStates[i] = state;
-					mWonderPowerCosts[i] = cost;
-				}
-			}
-		}
-
-		public void SetKarma(float karma)
+		private void SetKarma(float karma)
 		{
 			mKarma = karma;
 		}
@@ -72,40 +82,117 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 		{
 			if (mModalDialogWindow != null)
 			{
-				//ScaleformManager.WonderModeInit(mWonderPowerStates[0], mWonderPowerStates[1], mWonderPowerStates[2], mWonderPowerStates[3], mWonderPowerStates[4], mWonderPowerStates[5], mWonderPowerStates[6], mWonderPowerStates[7], mWonderPowerStates[8], mWonderPowerStates[9], mWonderPowerStates[10], mWonderPowerStates[11], mWonderPowerStates[12], mWonderPowerCosts[0], mWonderPowerCosts[1], mWonderPowerCosts[2], mWonderPowerCosts[3], mWonderPowerCosts[4], mWonderPowerCosts[5], mWonderPowerCosts[6], mWonderPowerCosts[7], mWonderPowerCosts[8], mWonderPowerCosts[9], mWonderPowerCosts[10], mWonderPowerCosts[11], mWonderPowerCosts[12], (int)mKarma);
-				mWonderPowerNames = new string[13];
-				mWonderPowerStates = new bool[13];
-				mWonderPowerCosts = new int[13];
-				mWonderPowerNames[0] = "curse";
-				mWonderPowerNames[1] = "fire";
-				mWonderPowerNames[2] = "Earthquake";
-				mWonderPowerNames[3] = "ghosts";
-				mWonderPowerNames[4] = "doom";
-				mWonderPowerNames[5] = "beauty";
-				mWonderPowerNames[6] = "goodmood";
-				mWonderPowerNames[7] = "repair";
-				mWonderPowerNames[8] = "satisfaction";
-				mWonderPowerNames[9] = "strokeOfGenius";
-				mWonderPowerNames[10] = "superLucky";
-				mWonderPowerNames[11] = "wealth";
-				mWonderPowerNames[12] = "ghostify";
-				for (int i = 0; i < 13; i++)
+				/*for (int i = 0; i < 13; i++)
 				{
 					mWonderPowerCosts[i] = 0;
 				}
-				mKarma = 0f;
-				foreach (WonderPower wonderPower in WonderPowers.GetWonderPowerList())
-				{
-					SetPowerState(wonderPower.WonderPowerName, wonderPower.IsLocked, wonderPower.Cost());
-				}
 				SetKarma(WonderPowers.GetKarma());
-				PowerSelected = (PowerSelectHandler)(object)new PowerSelectHandler(WonderPowerSelected);
+				//PowerSelected = (PowerSelectHandler)(object)new PowerSelectHandler(WonderPowerSelected);*/
 				mPreviousMusicMode = (int)AudioManager.MusicMode;
 				AudioManager.SetMusicMode(MusicMode.None);
 				mMusicHandle = Audio.StartSound(kBrowseWonderPowersMusic);
-				StartWonderModeSelectionScreenEffects();
+
+				mPowerPreview = mModalDialogWindow.GetChildByID((uint)ControlIds.kSelectedPowerPreview, true) as Window;
+				mPowerName = mModalDialogWindow.GetChildByID((uint)ControlIds.kSelectedPowerName, true) as Text;
+				mPowerPoints = mModalDialogWindow.GetChildByID((uint)ControlIds.kSelectedPowerPoints, true) as Text;
+				mPowerDesc = mModalDialogWindow.GetChildByID((uint)ControlIds.kSelectedPowerDesc, true) as TextEdit;
+				mGoodPowerGrid = mModalDialogWindow.GetChildByID((uint)ControlIds.kGoodPowerGrid, true) as ItemGrid;
+				mBadPowerGrid = mModalDialogWindow.GetChildByID((uint)ControlIds.kBadPowerGrid, true) as ItemGrid;
+				mGoodPowerGrid.ItemClicked += OnPowerSelect;
+				mBadPowerGrid.ItemClicked += OnPowerSelect;
+				PopulatePowerGrid();
+				mAcceptButton = mModalDialogWindow.GetChildByID((uint)ControlIds.kOkayButton, true) as Button;
+				mAcceptButton.Click += new UIEventHandler<UIButtonClickEventArgs>(OnAcceptClick);
+				mCloseButton = mModalDialogWindow.GetChildByID((uint)ControlIds.kCancelButton, true) as Button;
+				mCloseButton.Click += new UIEventHandler<UIButtonClickEventArgs>(OnClose);
+				mCloseButton.TooltipText = Localization.LocalizeString("Ui/Caption/ObjectPicker:Cancel");
+				mGoodPowerGrid.SelectedItem = 0;
+				SetPowerInfo(mGoodPowerGrid.SelectedTag as WonderPower);
+
+				mKarmaMeter = mModalDialogWindow.GetChildByID(5u, true) as FillBarController;
+				if (mKarmaMeter != null)
+				{
+					mKarmaMeter.Initialize(-100f, 100f, 0.5f);
+					/*if (this.mHudModel.CheatsEnabled)
+					{
+						fillBarController.EnableCheatWindow(simDesc);
+						fillBarController.CheatBarDragged += new FillBarController.CheatFillBarDragHandler(this.OnRelationshipDrag);
+					}*/
+				}
+
+				mModalDialogWindow.GetChildByID(7, true).Caption = 999.ToString();
 			}
 		}
+
+        private void OnPowerSelect(ItemGrid sender, ItemGridCellClickEvent eventArgs)
+        {
+			Audio.StartSound("ui_secondary_button");
+			WonderPower power = sender.SelectedTag as WonderPower;
+			ItemGrid gridToClear = power.IsBadPower ? mGoodPowerGrid : mBadPowerGrid;
+			gridToClear.SelectedItem = -1;
+			SetPowerInfo(power);
+        }
+
+        private void SetPowerInfo(WonderPower power)
+        {
+			if (power.Cost() <= WonderPowers.GetKarma())
+            {
+				//Color
+				mAcceptButton.Enabled = true;
+				mAcceptButton.TooltipText = Localization.LocalizeString("Ui/Caption/Global:Accept");
+            }
+			else
+            {//Color
+				mAcceptButton.Enabled = false;
+				mAcceptButton.TooltipText = LocalizeString("NotEnoughKarma");
+            }
+			(mPowerPreview.Drawable as ImageDrawable).Image = UIManager.LoadUIImage(ResourceKey.CreatePNGKey(power.WonderPowerName + "_Preview", 0u));
+			mPowerName.Caption = LocalizeString(power.WonderPowerName);
+			mPowerPoints.Caption = power.Cost() + " " + LocalizeString("Points");
+			mPowerDesc.Caption = LocalizeString(power.WonderPowerName + "Description");
+			mPowerPreview.Invalidate();
+		}
+
+        private void PopulatePowerGrid()
+        {
+			mGoodPowerGrid.Clear();
+			mBadPowerGrid.Clear();
+			ResourceKey resKey = ResourceKey.CreateUILayoutKey("WonderPowerEntry", 0u);
+			foreach (WonderPower power in WonderPowers.GetWonderPowerList())
+            {
+				Window window = UIManager.LoadLayout(resKey).GetWindowByExportID(1) as Window;
+				if (window != null)
+                {
+					StdDrawable thumbBg = window.Drawable as StdDrawable;
+					((window.GetChildByID(3604647233u, true) as Window).Drawable as ImageDrawable).Image = UIManager.LoadUIImage(ResourceKey.CreatePNGKey(power.WonderPowerName, 0u));
+					if (power.IsBadPower)
+					{
+						thumbBg[DrawableBase.ControlStates.kNormal] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("bad_power_thumb_bg", 0u));
+						thumbBg[DrawableBase.ControlStates.kHighlighted] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("bad_power_thumb_bg_hl", 0u));
+						thumbBg[DrawableBase.ControlStates.kActive] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("bad_power_thumb_bg_ac", 0u));
+						thumbBg[DrawableBase.ControlStates.kCheckedNormal] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("bad_power_thumb_bg_ac", 0u));
+						thumbBg[DrawableBase.ControlStates.kCheckedHighlighted] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("bad_power_thumb_bg_ac", 0u));
+						thumbBg[DrawableBase.ControlStates.kCheckedActive] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("bad_power_thumb_bg_ac", 0u));
+						mBadPowerGrid.AddItem(new ItemGridCellItem(window, power));
+					}
+					else
+                    {
+						thumbBg[DrawableBase.ControlStates.kNormal] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("good_power_thumb_bg", 0u));
+						thumbBg[DrawableBase.ControlStates.kHighlighted] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("good_power_thumb_bg_hl", 0u));
+						thumbBg[DrawableBase.ControlStates.kActive] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("good_power_thumb_bg_ac", 0u));
+						thumbBg[DrawableBase.ControlStates.kCheckedNormal] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("good_power_thumb_bg_ac", 0u));
+						thumbBg[DrawableBase.ControlStates.kCheckedHighlighted] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("good_power_thumb_bg_ac", 0u));
+						thumbBg[DrawableBase.ControlStates.kCheckedActive] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("good_power_thumb_bg_ac", 0u));
+						mGoodPowerGrid.AddItem(new ItemGridCellItem(window, power));
+                    }
+                }
+			}
+        }
+
+		private static string LocalizeString(string name, params object[] parameters)
+        {
+			return Localization.LocalizeString("UI/WonderMode/KarmaMenu:" + name, parameters);
+        }
 
 		public override bool OnEnd(uint endID)
 		{
@@ -117,47 +204,39 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 			return true;
 		}
 
-		public void WonderPowerSelected(string powerName)
+		private void OnAcceptClick(WindowBase sender, UIButtonClickEventArgs eventArgs)
 		{
-			if (powerName == null)
+			WonderPower power;
+			if (mGoodPowerGrid.SelectedItem != -1)
+            {
+				power = mGoodPowerGrid.SelectedTag as WonderPower;
+            }
+			else if (mBadPowerGrid.SelectedItem != -1)
+            {
+				power = mBadPowerGrid.SelectedTag as WonderPower;
+            }
+			else
 			{
-				StopWonderModeSelectionScreenEffects();
 				return;
 			}
-			WonderPower byName = WonderPowers.GetByName(powerName);
-			if (byName != null)
+
+			if (power != null && power.Cost() <= WonderPowers.GetKarma())
 			{
-				bool flag = false;
-				flag |= !byName.IsLocked;
-				if (flag & (byName.Cost() <= WonderPowers.GetKarma()))
-				{
-					byName.Run(WonderPowerActivation.ActivationType.UserSelected, null);
-				}
+				WonderPower.RunDelegate run = (WonderPower.RunDelegate)Delegate.CreateDelegate(typeof(WonderPower.RunDelegate), power.RunMethod);
+				run(WonderPowerActivation.ActivationType.UserSelected);
 			}
 			EndDialog(0u);
+			eventArgs.Handled = true;
 		}
 
-		private void StartWonderModeSelectionScreenEffects()
-		{
-			if (mEdgeEffect == null)
-			{
-				mEdgeEffect = VisualEffect.Create("wonderModeSelectionEffect");
-				mEdgeEffect.Start();
-			}
-		}
-
-		private void StopWonderModeSelectionScreenEffects()
-		{
-			if (mEdgeEffect != null)
-			{
-				mEdgeEffect.Stop();
-				mEdgeEffect.Dispose();
-				mEdgeEffect = null;
-			}
-		}
+		private void OnClose(WindowBase sender, UIButtonClickEventArgs eventArgs)
+        {
+			EndDialog(0u);
+			eventArgs.Handled = true;
+        }
 	}
 
-	public class KarmaDial
+	/*public class KarmaDial
 	{
 		public delegate void WitchingHourCompleted();
 
@@ -299,5 +378,5 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 			mCurrentKarma = 0f;
 			mPreviousKarma = 0f;
 		}
-	}
+	}*/
 }
