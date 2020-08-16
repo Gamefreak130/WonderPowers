@@ -100,5 +100,9 @@
 <STR>UI/WonderMode/KarmaMenu:WealthDescription</STR>
 <KEY>Gameplay/WonderMode:PowerIsDeploying</KEY>
 <STR>Gameplay/WonderMode:PowerIsDeploying</STR>
+<KEY>Ui/Caption/Options:KarmaMenu</KEY>
+<STR>Ui/Caption/Options:KarmaMenu</STR>
+<KEY>Ui/Caption/Options:Load</KEY>
+<STR>Ui/Caption/Options:Load</STR>
 <KEY></KEY>
 <STR></STR>

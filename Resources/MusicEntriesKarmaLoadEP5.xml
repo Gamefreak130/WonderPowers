@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" ?>
+<MusicSelection>
+  <Load>
+    <Genre name="All">
+      <Entry songkey="Sims3_EP5_Load_Loop" title="To Arrive in Appaloosa Plains"
+        artist="Christopher Lannertz" ToBeLocalized="0"/>
+    </Genre>
+  </Load>
+</MusicSelection>

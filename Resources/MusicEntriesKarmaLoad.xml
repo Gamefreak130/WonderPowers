@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<MusicSelection>
+  <Karma>
+    <Genre name="All">
+      <Entry songkey="Sims3_Lifetime_Rewards01" title="Forest Escape" 
+        artist="Steve Jablonsky" ToBeLocalized="0"/>
+      <Entry songkey="Sims3_Lifetime_Rewards02" title="Tracking Home"
+        artist="Steve Jablonsky" ToBeLocalized="0"/>
+      <Entry songkey="Sims3_Lifetime_Rewards03" title="Uncovering Ground"
+        artist="Steve Jablonsky" ToBeLocalized="0"/>
+      <Entry songkey="Sims3_Lifetime_Rewards04" title="Wonder-Landing"
+        artist="Steve Jablonsky" ToBeLocalized="0"/>
+      <Entry songkey="Sims3_Lifetime_Rewards05" title="A Little Sunshine"
+        artist="Christopher Lennertz" ToBeLocalized="0"/>
+      <Entry songkey="Sims3_Lifetime_Rewards06" title="Stroke of Genius"
+        artist="Christopher Lennertz" ToBeLocalized="0"/>
+      <Entry songkey="Sims3_Lifetime_Rewards07" title="Divine Intervention"
+        artist="Christopher Lennertz" ToBeLocalized="0"/>
+    </Genre>
+  </Karma>
+  <Load>
+    <Genre name="All">
+      <Entry songkey="Sims3_Load_Loop" title="Welcome to Sunset Valley"
+        artist="Steve Jablonsky" ToBeLocalized="0"/>
+    </Genre>
+  </Load>
+</MusicSelection>

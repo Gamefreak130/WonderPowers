@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" ?>
+<MusicSelection>
+  <Load>
+    <Genre name="All">
+      <Entry songkey="Sims3_EP1_Load_Loop" title="World Adventures"
+        artist="Steve Jablonsky" ToBeLocalized="0"/>
+      <Entry songkey="Load_Loop_China" title="Rice Noodles"
+        artist="Pieter Schlosser" ToBeLocalized="0"/>
+      <Entry songkey="Load_Loop_Egypt" title="Les Pyramides"
+        artist="Pieter Schlosser" ToBeLocalized="0"/>
+      <Entry songkey="Load_Loop_France" title="La Baguette"
+        artist="Pieter Schlosser" ToBeLocalized="0"/>
+    </Genre>
+  </Load>
+</MusicSelection>

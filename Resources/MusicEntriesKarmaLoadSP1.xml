@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" ?>
+<MusicSelection>
+  <Load>
+    <Genre name="All">
+      <Entry songkey="Sims3_SP1_Load_Loop" title="Home"
+        artist="Steve Jablonsky" ToBeLocalized="0"/>
+    </Genre>
+  </Load>
+</MusicSelection>

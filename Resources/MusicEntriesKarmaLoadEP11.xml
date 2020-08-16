@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" ?>
+<MusicSelection>
+  <Load>
+    <Genre name="All">
+      <Entry songkey="Sims3_EP11_Load_Loop" title="Into the Future"
+        artist="Ling Hsuan Sophie Lu" ToBeLocalized="0"/>
+    </Genre>
+  </Load>
+</MusicSelection>

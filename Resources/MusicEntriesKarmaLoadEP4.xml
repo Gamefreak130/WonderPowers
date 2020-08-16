@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" ?>
+<MusicSelection>
+  <Load>
+    <Genre name="All">
+      <Entry songkey="EP4_Load_Loop02" title="First Generation"
+        artist="Steve Jablonsky" ToBeLocalized="0"/>
+      <Entry songkey="EP4_Load_Loop01" title="Second Generation"
+        artist="Steve Jablonsky" ToBeLocalized="0"/>
+    </Genre>
+  </Load>
+</MusicSelection>

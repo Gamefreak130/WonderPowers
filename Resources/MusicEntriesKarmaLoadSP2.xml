@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" ?>
+<MusicSelection>
+  <Load>
+    <Genre name="All">
+      <Entry songkey="SP2_Load_Loop" title="Fast Lane"
+        artist="Steve Jablonsky" ToBeLocalized="0"/>
+    </Genre>
+  </Load>
+</MusicSelection>

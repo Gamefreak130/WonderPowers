@@ -24,6 +24,7 @@ using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Interfaces;
 using System.Reflection;
 using Sims3.Gameplay.CAS;
+using System.Xml;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
@@ -2008,6 +2009,83 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
         {
 			//TODO pick lot for strike
 			Sims3.Gameplay.Objects.Miscellaneous.Meteor.TriggerMeteorEvent(PlumbBob.SelectedActor.Position);
+		}
+	}
+
+	internal static class OptionsInjector
+    {
+		private static bool mOptionsInjectionHandled;
+
+		internal static bool InjectOptions()
+		{
+			try
+			{
+				if (OptionsDialog.sDialog != null)
+				{
+					if (!mOptionsInjectionHandled)
+					{
+						OptionsDialog.sDialog.mMusicData.Add(new Dictionary<string, List<OptionsDialog.SongData>>());
+						OptionsDialog.sDialog.mMusicData.Add(new Dictionary<string, List<OptionsDialog.SongData>>());
+						Button button = OptionsDialog.sDialog.mModalDialogWindow.GetChildByID(2822726298u, true) as Button;
+						button.Click += OnMusicSelectionClicked;
+						button = OptionsDialog.sDialog.mModalDialogWindow.GetChildByID(2822726299u, true) as Button;
+						button.Click += OnMusicSelectionClicked;
+						ParseXml("MusicEntriesKarmaLoad");
+						foreach (uint num in Enum.GetValues(typeof(ProductVersion)))
+						{
+							if (GameUtils.IsInstalled((ProductVersion)num))
+							{
+								string name = ((ProductVersion)num).ToString();
+								ParseXml("MusicEntriesKarmaLoad" + name);
+							}
+						}
+						mOptionsInjectionHandled = true;
+					}
+				}
+				else
+				{
+					mOptionsInjectionHandled = false;
+				}
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
+		}
+
+		private static void OnMusicSelectionClicked(WindowBase sender, UIButtonClickEventArgs eventArgs)
+		{
+			if (sender.ID == 2822726298u)
+			{
+				OptionsDialog.sDialog.mButtonHolderWindow.Visible = false;
+				OptionsDialog.sDialog.mCurrentFilterIndex = (OptionsDialog.MusicTypeIndex)5;
+			}
+			if (sender.ID == 2822726299u)
+			{
+				OptionsDialog.sDialog.mButtonHolderWindow.Visible = false;
+				OptionsDialog.sDialog.mCurrentFilterIndex = (OptionsDialog.MusicTypeIndex)6;
+			}
+			OptionsDialog.sDialog.UpdateTable();
+		}
+
+		private static void ParseXml(string xmlFileName)
+		{
+			if (Simulator.LoadXML(xmlFileName) is XmlDocument xml && xml.GetElementsByTagName("MusicSelection")[0] is XmlElement xmlElement)
+			{
+				OptionsDialog.sDialog.LoadSongData(xmlElement, "Karma", 5);
+				OptionsDialog.sDialog.LoadSongData(xmlElement, "Load", 6);
+				if (OptionsDialog.sDialog.mItemGridGenreButtons.Count > 0)
+				{
+					OptionsDialog.sDialog.mItemGridGenreButtons.SelectedItem = 0;
+					string text = OptionsDialog.sDialog.mItemGridGenreButtons.InternalGrid.CellTags[0, 0] as string;
+					if (!string.IsNullOrEmpty(text))
+					{
+						OptionsDialog.sDialog.mCurrentGenre = text;
+						OptionsDialog.sDialog.UpdateTable();
+					}
+				}
+			}
 		}
 	}
 }

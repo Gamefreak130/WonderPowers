@@ -101,7 +101,26 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Gamefreak130.WonderPowers.xml" />
+    <Content Include="Resources\KarmaPowers.xml" />
+    <Content Include="Resources\MusicEntriesKarmaLoad.xml" />
+    <Content Include="Resources\MusicEntriesKarmaLoadEP1.xml" />
+    <Content Include="Resources\MusicEntriesKarmaLoadEP11.xml" />
+    <Content Include="Resources\MusicEntriesKarmaLoadEP2.xml" />
+    <Content Include="Resources\MusicEntriesKarmaLoadEP3.xml" />
+    <Content Include="Resources\MusicEntriesKarmaLoadEP4.xml" />
+    <Content Include="Resources\MusicEntriesKarmaLoadEP5.xml" />
+    <Content Include="Resources\MusicEntriesKarmaLoadEP7.xml" />
+    <Content Include="Resources\MusicEntriesKarmaLoadEP8.xml" />
+    <Content Include="Resources\MusicEntriesKarmaLoadEP9.xml" />
+    <Content Include="Resources\MusicEntriesKarmaLoadSP1.xml" />
+    <Content Include="Resources\MusicEntriesKarmaLoadSP2.xml" />
     <Content Include="Resources\WonderPowers_Strings UnhashedKeys.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\S3_025C95B6_00000000_A72BB6B7B4B9DD84_HUDRewardTraitsPanel%25%25+LAYO.layout" />
+    <None Include="Resources\S3_025C95B6_00000000_BE899B75F7F9536D_OptionsDialog%25%25+LAYO.layout" />
+    <None Include="Resources\S3_025C95B6_00000000_DC721D2C07F01139_WonderPowerEntry%25%25+LAYO.layout" />
+    <None Include="Resources\S3_025C95B6_00000000_F77F23C857AA652D_WonderMode%25%25+LAYO.layout" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
