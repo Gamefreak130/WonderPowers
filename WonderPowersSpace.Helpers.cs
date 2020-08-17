@@ -25,6 +25,8 @@ using Sims3.Gameplay.Interfaces;
 using System.Reflection;
 using Sims3.Gameplay.CAS;
 using System.Xml;
+using Sims3.Gameplay.UI;
+using Sims3.Gameplay.MapTags;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
@@ -2005,10 +2007,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 	public class ActivationMethods
     {
-		public static void MeteorStrikeActivation(WonderPowerActivation.ActivationType activationType)
+		public static void MeteorStrikeActivation(WonderPowerActivation.ActivationType _)
         {
-			//TODO pick lot for strike
-			Sims3.Gameplay.Objects.Miscellaneous.Meteor.TriggerMeteorEvent(PlumbBob.SelectedActor.Position);
+			//TEST pick lot for strike
+			Lot lot = Sims3.Store.Objects.HotairBalloon.ChooseLot(PlumbBob.SelectedActor, (ICollection<Lot>)LotManager.AllLotsWithoutCommonExceptions);
+			Sims3.Gameplay.Objects.Miscellaneous.Meteor.TriggerMeteorEvent(lot.GetRandomPosition(false, true));
 		}
 	}
 
