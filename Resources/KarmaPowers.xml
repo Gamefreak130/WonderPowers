@@ -4,7 +4,6 @@
     <ProductVersion>BaseGame</ProductVersion>
     <PowerName></PowerName>
     <IsBad></IsBad>
-    <BadPowerSpawnChance>0</BadPowerSpawnChance>
     <Cost></Cost>
     <EffectMethod></EffectMethod>
   </Power>
@@ -23,7 +22,6 @@
   <Power>
     <PowerName>CryHavoc</PowerName>
     <IsBad>True</IsBad>
-    <BadPowerSpawnChance>90</BadPowerSpawnChance>
     <Cost>20</Cost>
     <EffectMethod>CryHavocActivation</EffectMethod>
   </Power>
@@ -49,7 +47,6 @@
     <ProductVersion>EP5</ProductVersion>
     <PowerName>FeralPossession</PowerName>
     <IsBad>True</IsBad>
-    <BadPowerSpawnChance>90</BadPowerSpawnChance>
     <Cost>25</Cost>
     <EffectMethod>FeralPossessionActivation</EffectMethod>
   </Power>
@@ -104,7 +101,6 @@
   <Power>
     <PowerName>Earthquake</PowerName>
     <IsBad>True</IsBad>
-    <BadPowerSpawnChance>90</BadPowerSpawnChance>
     <Cost>60</Cost>
     <EffectMethod>EarthquakeActivation</EffectMethod>
   </Power>
@@ -118,7 +114,6 @@
     <!--<ProductVersion>EP11</ProductVersion>-->
     <PowerName>Fire</PowerName>
     <IsBad>True</IsBad>
-    <BadPowerSpawnChance>10</BadPowerSpawnChance>
     <Cost>75</Cost>
     <EffectMethod>FireActivation</EffectMethod>
   </Power>
@@ -126,7 +121,6 @@
     <ProductVersion>EP2</ProductVersion>
     <PowerName>MeteorStrike</PowerName>
     <IsBad>True</IsBad>
-    <BadPowerSpawnChance>10</BadPowerSpawnChance>
     <Cost>90</Cost>
     <EffectMethod>MeteorStrikeActivation</EffectMethod>
   </Power>

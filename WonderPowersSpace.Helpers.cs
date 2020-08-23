@@ -47,12 +47,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			private set;
 		}
 
-		public int ChanceToSpawnAsBadPower
-		{
-			get;
-			private set;
-		}
-
 		private MethodInfo mRunMethod;
 
 		private int mCost;
@@ -69,11 +63,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
         {
         }
 
-		public WonderPower(string name, bool isBad, int badChance, int cost, MethodInfo runMethod)
+		public WonderPower(string name, bool isBad, int cost, MethodInfo runMethod)
 		{
 			WonderPowerName = name;
 			IsBadPower = isBad;
-			ChanceToSpawnAsBadPower = badChance;
 			mCost = cost;
 			mRunMethod = runMethod;
 			WonderPowers.Add(this);
@@ -137,10 +130,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 							if (!string.IsNullOrEmpty(runMethod))
 							{
 								bool isBad = row.GetBool("IsBad");
-								int badChance = row.GetInt("BadPowerSpawnChance");
 								int cost = row.GetInt("Cost");
 								MethodInfo methodInfo = WonderPowers.FindMethod(runMethod);
-								new WonderPower(name, isBad, badChance, cost, methodInfo);
+								new WonderPower(name, isBad, cost, methodInfo);
 								list.Add(name);
 							}
 						}
@@ -166,7 +158,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
         public void AssignTo(WonderPower s)
         {
 			s.IsBadPower = IsBadPower;
-			s.ChanceToSpawnAsBadPower = ChanceToSpawnAsBadPower;
 			s.mCost = mCost;
 			s.mRunMethod = mRunMethod;
 		}
@@ -384,7 +375,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 							if (a <= b)
 							{
 								smWitchingHourState = WitchingHourState.PRE_WITCHINGHOUR;
-								Sims3.Gameplay.Gameflow.SetGameSpeed(Sims3.SimIFace.Gameflow.GameSpeed.Normal, Sims3.Gameplay.Gameflow.SetGameSpeedContext.Gameplay);
+                                Gameflow.SetGameSpeed(Normal, Gameflow.SetGameSpeedContext.Gameplay);
 								LotManager.SetAutoGameSpeed();
 							}
 							break;
@@ -601,7 +592,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 		}
 
-		private WonderPower CheckTriggerBadPower()
+		/*private WonderPower CheckTriggerBadPower()
 		{
 			float @float = RandomUtil.GetFloat(100f);
 			if (@float < sCurrentBadKarmaChance || sCurrentBadKarmaChance >= 100f || DebugBadPowersOn)
@@ -632,7 +623,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				}
 			}
 			return null;
-		}
+		}*/
 
 		private void AddWonderPower(WonderPower s)
 		{
@@ -659,7 +650,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				sInstance = new WonderPowers();
 				//Simulator.AddObject(sInstance);
 			}
-			if (Sims3.Gameplay.Gameflow.sGameLoadedFromWorldFile)
+			if (Gameflow.sGameLoadedFromWorldFile)
 			{
 				sCurrentKarmaLevel = kInitialKarmaLevel;
 				sCurrentBadKarmaChance = 0f;
