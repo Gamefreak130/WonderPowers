@@ -27,6 +27,8 @@ using Sims3.Gameplay.CAS;
 using System.Xml;
 using Sims3.Gameplay.UI;
 using Sims3.Gameplay.MapTags;
+using Gameflow = Sims3.Gameplay.Gameflow;
+using static Sims3.SimIFace.Gameflow.GameSpeed;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
@@ -51,11 +53,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			private set;
 		}
 
-		public MethodInfo RunMethod
-        {
-			get;
-			private set;
-        }
+		private MethodInfo mRunMethod;
 
 		private int mCost;
 
@@ -77,7 +75,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			IsBadPower = isBad;
 			ChanceToSpawnAsBadPower = badChance;
 			mCost = cost;
-			RunMethod = runMethod;
+			mRunMethod = runMethod;
 			WonderPowers.Add(this);
 		}
 
@@ -87,7 +85,14 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		}
 
 		[Persistable(false)]
-		public delegate void RunDelegate(WonderPowerActivation.ActivationType howActivated);//, GameObject target);
+		private delegate void RunDelegate(bool isBacklash);//, GameObject target);
+
+		public void Run(object isBacklash)
+        {
+			Gameflow.SetGameSpeed(Normal, Gameflow.SetGameSpeedContext.Gameplay);
+			RunDelegate run = (RunDelegate)Delegate.CreateDelegate(typeof(RunDelegate), mRunMethod);
+			run((bool)isBacklash);
+		}
 
 		public int Cost()
         {
@@ -163,7 +168,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			s.IsBadPower = IsBadPower;
 			s.ChanceToSpawnAsBadPower = ChanceToSpawnAsBadPower;
 			s.mCost = mCost;
-			s.RunMethod = RunMethod;
+			s.mRunMethod = mRunMethod;
 		}
     }
 
@@ -231,7 +236,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public readonly List<WonderPower> mAllWonderPowers = new List<WonderPower>();
 
-		private readonly List<WonderPowerActivation> mActiveWonderPowers = new List<WonderPowerActivation>();
+		//private readonly List<WonderPowerActivation> mActiveWonderPowers = new List<WonderPowerActivation>();
 
 		private bool mDebugBadPowersOn;
 
@@ -388,15 +393,15 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 							mWitchingVfx = VisualEffect.Create("wonderKarma_lot");
 							if (mWitchingVfx != null)
 							{
-								Vector3 floorPosition = WonderPowerActivation.GetFloorPosition(true, LotManager.ActiveLot);
-								mWitchingVfx.SetPosAndOrient(floorPosition, Vector3.UnitX, Vector3.UnitY);
+								//Vector3 floorPosition = WonderPowerActivation.GetFloorPosition(true, LotManager.ActiveLot);
+								//mWitchingVfx.SetPosAndOrient(floorPosition, Vector3.UnitX, Vector3.UnitY);
 								mWitchingVfx.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
 							}
 							mWitchingFloorVfx = VisualEffect.Create("wonderKarma_lotFloor");
 							if (mWitchingFloorVfx != null)
 							{
-								Vector3 floorPosition2 = WonderPowerActivation.GetFloorPosition(false, LotManager.ActiveLot);
-								mWitchingFloorVfx.SetPosAndOrient(floorPosition2, Vector3.UnitX, Vector3.UnitY);
+								//Vector3 floorPosition2 = WonderPowerActivation.GetFloorPosition(false, LotManager.ActiveLot);
+								//mWitchingFloorVfx.SetPosAndOrient(floorPosition2, Vector3.UnitX, Vector3.UnitY);
 								mWitchingFloorVfx.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
 							}
 							smWitchingHourState = WitchingHourState.WITCHINGHOUR;
@@ -405,14 +410,14 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 							if ((DebugBadPowersOn && b.Hour != mlastRunTime.Hour) || b.DayOfWeek != mlastRunTime.DayOfWeek)
 							{
 								bool flag = false;
-								if (!AnyPowersRunning() && BadPowersOn)
+								/*if (!AnyPowersRunning() && BadPowersOn)
 								{
 									mWitchingHourPower = CheckTriggerBadPower();
 									if (mWitchingHourPower != null)
 									{
 										flag = true;
 									}
-								}
+								}*/
 								if (!flag)
 								{
 									float karma = Karma;
@@ -424,8 +429,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 									VisualEffect visualEffect = VisualEffect.Create("wonderkarma_lot_out");
 									if (visualEffect != null)
 									{
-										Vector3 floorPosition3 = WonderPowerActivation.GetFloorPosition(true, LotManager.ActiveLot);
-										visualEffect.SetPosAndOrient(floorPosition3, Vector3.UnitX, Vector3.UnitY);
+										//Vector3 floorPosition3 = WonderPowerActivation.GetFloorPosition(true, LotManager.ActiveLot);
+										//visualEffect.SetPosAndOrient(floorPosition3, Vector3.UnitX, Vector3.UnitY);
 										visualEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
 									}
 									/*KarmaDial.Load(karma, Karma, true);
@@ -439,15 +444,15 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 									VisualEffect visualEffect2 = VisualEffect.Create("wonderKarma_lotbad");
 									if (visualEffect2 != null)
 									{
-										Vector3 floorPosition4 = WonderPowerActivation.GetFloorPosition(true, LotManager.ActiveLot);
-										visualEffect2.SetPosAndOrient(floorPosition4, Vector3.UnitX, Vector3.UnitY);
+										//Vector3 floorPosition4 = WonderPowerActivation.GetFloorPosition(true, LotManager.ActiveLot);
+										//visualEffect2.SetPosAndOrient(floorPosition4, Vector3.UnitX, Vector3.UnitY);
 										visualEffect2.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
 									}
 									VisualEffect visualEffect3 = VisualEffect.Create("wonderKarma_lotbad");
 									if (visualEffect3 != null)
 									{
-										Vector3 floorPosition5 = WonderPowerActivation.GetFloorPosition(false, LotManager.ActiveLot);
-										visualEffect3.SetPosAndOrient(floorPosition5, Vector3.UnitX, Vector3.UnitY);
+										//Vector3 floorPosition5 = WonderPowerActivation.GetFloorPosition(false, LotManager.ActiveLot);
+										//visualEffect3.SetPosAndOrient(floorPosition5, Vector3.UnitX, Vector3.UnitY);
 										visualEffect3.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
 									}
 								}
@@ -472,8 +477,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 						case WitchingHourState.POST_WITCHINGHOUR:
 							if (mWitchingHourPower != null)
 							{
-								WonderPower.RunDelegate run = Delegate.CreateDelegate(typeof(WonderPower.RunDelegate), mWitchingHourPower.RunMethod) as WonderPower.RunDelegate;
-								run(WonderPowerActivation.ActivationType.KarmaTrigger);
+								mWitchingHourPower.Run(true);
 								mWitchingHourPower = null;
 							}
 							smWitchingHourState = WitchingHourState.NONE;
@@ -664,10 +668,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		
 		internal static void WorldLoadShutdown()
 		{
-			foreach (WonderPowerActivation mActiveWonderPower in sInstance.mActiveWonderPowers)
+			/*foreach (WonderPowerActivation mActiveWonderPower in sInstance.mActiveWonderPowers)
 			{
 				mActiveWonderPower.CleanupAfterPower();
-			}
+			}*/
 			sInstance.mAllWonderPowers.Clear();
 			sCurrentKarmaLevel = kInitialKarmaLevel;
 			sCurrentBadKarmaChance = 0f;
@@ -756,7 +760,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 		}
 
-		public static void AddActivePower(WonderPowerActivation activePower)
+		/*public static void AddActivePower(WonderPowerActivation activePower)
 		{
 			sInstance.mActiveWonderPowers.Add(activePower);
 		}
@@ -769,18 +773,12 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		public static bool AnyPowersRunning()
 		{
 			return sInstance.mActiveWonderPowers.Count > 0;
-		}
+		}*/
 	}
 
-	[Persistable(false)]
+	/*[Persistable(false)]
 	public abstract class WonderPowerActivation : ScriptObject
 	{
-		public enum ActivationType
-		{
-			UserSelected,
-			KarmaTrigger
-		}
-
 		protected enum SelectionType
 		{
 			SELECT_SIM,
@@ -1082,7 +1080,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 					actor.BuffManager.AddElement(BuffNames.WonderScared, Origin.None);
 					ActiveTopic.AddToSim(actor, "Buff Wonder Scared");
 				}
-			}*/
+			}*
 		}
 
 		public static List<object> InitNearbySimGoodReactions()
@@ -1513,7 +1511,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				}
 				mTargetSelected = true;
 			}
-		}*/
+		}*
 
 		private void UpdateUiText(bool validSelection, ulong[] objectIds)
 		{
@@ -1576,7 +1574,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 					sim.RoutingComponent.KillRoute(false);
 				}
 			}
-			return sim;*/
+			return sim;*
 		}
 
 		/*private void SelectObjectCallback(UITriggerEventArgs eventArgs)
@@ -1600,7 +1598,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				}
 				mTargetSelected = true;
 			}
-		}*/
+		}*
 
 		protected GameObject SelectObject()
 		{
@@ -1629,7 +1627,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				}
 			}
 			mCursorSelector = null;
-			return mSelectedObject as GameObject;*/
+			return mSelectedObject as GameObject;*
 		}
 
 		/*protected virtual Sim SelectActiveSim(CASAgeGenderFlags age, CASAgeGenderFlags gender)
@@ -1705,7 +1703,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				}
 			}
 			return result;
-		}*/
+		}*
 
 		public virtual bool OnTriggerDown(UITriggerEventArgs eventArgs)
 		{
@@ -1935,7 +1933,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			return result;
 		}
-	}
+	}*/
 
 	public class WonderPowerStandIdle : Interaction<Sim, GameObject>
 	{
@@ -2005,13 +2003,38 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		}
 	}
 
-	public class ActivationMethods
+	public static class ActivationMethods
     {
-		public static void MeteorStrikeActivation(WonderPowerActivation.ActivationType _)
+		public static void MeteorStrikeActivation(bool isBacklash)
         {
-			//TEST pick lot for strike
-			Lot lot = Sims3.Store.Objects.HotairBalloon.ChooseLot(PlumbBob.SelectedActor, (ICollection<Lot>)LotManager.AllLotsWithoutCommonExceptions);
-			Sims3.Gameplay.Objects.Miscellaneous.Meteor.TriggerMeteorEvent(lot.GetRandomPosition(false, true));
+			Lot selectedLot;
+			if (isBacklash)
+			{
+				List<Lot> list = LotManager.AllLotsWithoutCommonExceptions as List<Lot>;
+				list.RemoveAll((lot) => lot.CommercialLotSubType == CommercialLotSubType.kEP1_HiddenTomb);
+				selectedLot = RandomUtil.GetRandomObjectFromList(list);
+			}
+			else
+			{
+				List<IMapTagPickerInfo> list = new List<IMapTagPickerInfo>();
+				foreach (Lot lot in LotManager.AllLotsWithoutCommonExceptions)
+				{
+					if (lot.CommercialLotSubType != CommercialLotSubType.kEP1_HiddenTomb)
+					{
+						list.Add(new MapTagPickerLotInfo(lot, lot.IsPlayerHomeLot ? MapTagType.HomeLot
+															: lot.IsResidentialLot ? MapTagType.NeighborLot
+															: MapTagType.Venue));
+					}
+				}
+				// TODO custom strings
+				IMapTagPickerInfo info = MapTagPickerUncancellable.Show(list, CarOwnable.kPickDestinationTitleLocKey, CarOwnable.kPickDestinationConfirmLocKey);
+				selectedLot = LotManager.GetLot(info.LotId);
+			}
+			if (selectedLot != null)
+			{
+				Audio.StartSound("sting_meteor_forshadow");
+				Sims3.Gameplay.Objects.Miscellaneous.Meteor.TriggerMeteorEvent(selectedLot.GetRandomPosition(false, true));
+			}
 		}
 	}
 

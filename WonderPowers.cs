@@ -102,6 +102,8 @@ namespace Gamefreak130.Common
 namespace Gamefreak130
 {
     //TODO Cleanup LAYO
+    //TODO Check code for unused blocks, notimplementedexceptions
+    //CONSIDER Powers implement IWeightable for karmic backlash selection
     public static class WonderPowers
     {
         [Tunable]

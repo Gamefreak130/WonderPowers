@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Sims3.Gameplay.Core;
+using Sims3.Gameplay.Tutorial;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
@@ -201,31 +202,30 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 			{
 				Audio.StopSound(mMusicHandle);
 			}
+
+			if (endID == 1)
+			{
+				WonderPower power = null;
+				if (mGoodPowerGrid.SelectedItem != -1)
+				{
+					power = mGoodPowerGrid.SelectedTag as WonderPower;
+				}
+				else if (mBadPowerGrid.SelectedItem != -1)
+				{
+					power = mBadPowerGrid.SelectedTag as WonderPower;
+				}
+
+				if (power != null && power.Cost() <= WonderPowers.GetKarma())
+				{
+					Simulator.AddObject(new OneShotFunctionWithParams(power.Run, false));
+				}
+			}
 			return true;
 		}
 
 		private void OnAcceptClick(WindowBase sender, UIButtonClickEventArgs eventArgs)
 		{
-			WonderPower power;
-			if (mGoodPowerGrid.SelectedItem != -1)
-            {
-				power = mGoodPowerGrid.SelectedTag as WonderPower;
-            }
-			else if (mBadPowerGrid.SelectedItem != -1)
-            {
-				power = mBadPowerGrid.SelectedTag as WonderPower;
-            }
-			else
-			{
-				return;
-			}
-
-			if (power != null && power.Cost() <= WonderPowers.GetKarma())
-			{
-				WonderPower.RunDelegate run = (WonderPower.RunDelegate)Delegate.CreateDelegate(typeof(WonderPower.RunDelegate), power.RunMethod);
-				run(WonderPowerActivation.ActivationType.UserSelected);
-			}
-			EndDialog(0u);
+			EndDialog(1u);
 			eventArgs.Handled = true;
 		}
 
@@ -379,4 +379,55 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 			mPreviousKarma = 0f;
 		}
 	}*/
+
+	public class MapTagPickerUncancellable : MapTagPickerDialog
+    {
+		private MapTagPickerUncancellable(List<IMapTagPickerInfo> mapTagPickerInfos, string titleText, string confirmText, string alternateConfirmText, bool forceShowCost, float exclusivityMultiplier, bool toggleForwardingEventsToGame, ModalDialog.PauseMode pauseMode, bool modal) 
+			: base(mapTagPickerInfos, titleText, confirmText, alternateConfirmText, forceShowCost, exclusivityMultiplier, toggleForwardingEventsToGame, pauseMode, modal)
+        {
+			mCancelButton.Visible = false;
+        }
+
+		new public static IMapTagPickerInfo Show(List<IMapTagPickerInfo> mapTagPickerInfos, string titleText, string confirmText)
+		{
+			return Show(mapTagPickerInfos, titleText, confirmText, false);
+		}
+
+		new public static IMapTagPickerInfo Show(List<IMapTagPickerInfo> mapTagPickerInfos, string titleText, string confirmText, bool forceShowCost)
+		{
+            return Show(mapTagPickerInfos, titleText, confirmText, forceShowCost, 0f, out _);
+        }
+
+		new public static IMapTagPickerInfo Show(List<IMapTagPickerInfo> mapTagPickerInfos, string titleText, string confirmText, bool forceShowCost, float exclusivityMultiplier, out bool hasExclusiveAccess)
+		{
+			return Show(mapTagPickerInfos, titleText, confirmText, null, forceShowCost, exclusivityMultiplier, true, out hasExclusiveAccess);
+		}
+
+		new public static IMapTagPickerInfo Show(List<IMapTagPickerInfo> mapTagPickerInfos, string titleText, string confirmText, string alternateConfirmText, bool forceShowCost, float exclusivityMultiplier, bool toggleForwardingEventsToGame, out bool hasExclusiveAccess)
+		{
+			hasExclusiveAccess = false;
+			PopupMenu.CloseOptions();
+			if ((IntroTutorial.IsRunning && !IntroTutorial.AreYouExitingTutorial()) || !UIUtils.IsOkayToStartModalDialog())
+			{
+				return null;
+			}
+			UserToolUtils.OnClose();
+			Responder.Instance.HudModel.RestoreUIVisibility();
+			if (EnableModalDialogs && sDialog == null)
+			{
+				MapTagFilterType sLastFilterType = MapViewController.sLastFilterType;
+				MapViewController.sLastFilterType = (MapTagFilterType)4294967295U;
+				MapTagController.Instance.MapTagFilter = (MapTagFilterType)4294967295U;
+				sDialog = new MapTagPickerUncancellable(mapTagPickerInfos, titleText, confirmText, alternateConfirmText, forceShowCost, exclusivityMultiplier, toggleForwardingEventsToGame, PauseMode.PauseSimulator, false);
+				sDialog.StartModal();
+				IMapTagPickerInfo result = sDialog.mResult;
+				hasExclusiveAccess = sDialog.mHasExclusiveAccess;
+				sDialog = null;
+				MapViewController.sLastFilterType = sLastFilterType;
+				Responder.Instance.HudModel.RefreshMapTags();
+				return result;
+			}
+			return null;
+		}
+	}
 }
