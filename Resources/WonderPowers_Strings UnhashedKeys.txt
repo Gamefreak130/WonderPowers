@@ -104,5 +104,9 @@
 <STR>Ui/Caption/Options:KarmaMenu</STR>
 <KEY>Ui/Caption/Options:Load</KEY>
 <STR>Ui/Caption/Options:Load</STR>
+<KEY>Gameplay/WonderMode:MeteorDestinationTitle</KEY>
+<STR>Gameplay/WonderMode:MeteorDestinationTitle</STR>
+<KEY>Gameplay/WonderMode:MeteorDestinationConfirm</KEY>
+<STR>Gameplay/WonderMode:MeteorDestinationConfirm</STR>
 <KEY></KEY>
 <STR></STR>

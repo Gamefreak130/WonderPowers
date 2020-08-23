@@ -739,8 +739,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		{
 			return sInstance.mAllWonderPowers;
 		}
-
-		public static void BadPowersDebug(bool activate)
+		
+		/*public static void BadPowersDebug(bool activate)
 		{
 			if (activate)
 			{
@@ -758,6 +758,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 					sCurrentBadKarmaChance = 0f;
 				}
 			}
+		}*/
+
+		internal static string LocalizeString(string name, params object[] parameters)
+		{
+			return Localization.LocalizeString("Gameplay/WonderMode:" + name, parameters);
 		}
 
 		/*public static void AddActivePower(WonderPowerActivation activePower)
@@ -2026,8 +2031,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 															: MapTagType.Venue));
 					}
 				}
-				// TODO custom strings
-				IMapTagPickerInfo info = MapTagPickerUncancellable.Show(list, CarOwnable.kPickDestinationTitleLocKey, CarOwnable.kPickDestinationConfirmLocKey);
+				string title = WonderPowers.LocalizeString("MeteorDestinationTitle");
+				string confirm = WonderPowers.LocalizeString("MeteorDestinationConfirm");
+				IMapTagPickerInfo info = MapTagPickerUncancellable.Show(list, title, confirm);
 				selectedLot = LotManager.GetLot(info.LotId);
 			}
 			if (selectedLot != null)
