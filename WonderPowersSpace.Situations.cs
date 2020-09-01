@@ -9,6 +9,7 @@ using Sims3.Gameplay;
 using Queries = Sims3.Gameplay.Queries;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.ActorSystems;
+using Sims3.Gameplay.Utilities;
 
 namespace Gamefreak130.WonderPowersSpace.Situations
 {
@@ -35,7 +36,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 //TODO Add fog effect to lot
                 //TODO Change sound, make 3d sound based on lot position
                 //Audio.StartSound("sting_death", new Function(() => Parent.SetState(new EndSituation(Parent))));
-                Sims3.Gameplay.Utilities.AlarmManager.Global.AddAlarm(180f, Sims3.Gameplay.Utilities.TimeUnit.Minutes, delegate { Parent.Exit(); }, "DEBUG", Sims3.Gameplay.Utilities.AlarmType.AlwaysPersisted, null);
+                AlarmManager.Global.AddAlarm(180f, TimeUnit.Minutes, delegate { Parent.Exit(); }, "DEBUG", AlarmType.AlwaysPersisted, null);
                 Camera.FocusOnLot(Lot.LotId, 2f); //2f is standard lerpTime
                 Parent.mFighters = new List<Sim>(Lot.GetSims()).FindAll((sim) => IsValidFighter(sim));
 
@@ -92,6 +93,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 sim.RemoveRole(this);
                 Sim.MakeSimGoHome(sim, false, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior));
             }
+            Helpers.WonderPowers.IsPowerRunning = false; //TEST
             base.CleanUp(); 
         }
 

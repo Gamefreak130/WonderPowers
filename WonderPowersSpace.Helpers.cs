@@ -31,6 +31,7 @@ using Gameflow = Sims3.Gameplay.Gameflow;
 using static Sims3.SimIFace.Gameflow.GameSpeed;
 using static Sims3.Gameplay.GlobalFunctions;
 using Gamefreak130.WonderPowersSpace.Situations;
+using Sims3.Gameplay.Objects.Miscellaneous;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
@@ -85,6 +86,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		public void Run(object isBacklash)
         {
 			Gameflow.SetGameSpeed(Normal, Gameflow.SetGameSpeedContext.Gameplay);
+			// Activation of any power will disable the karma menu
+			// Re-enabling is left to the powers' individual run methods when activation is complete
+			WonderPowers.IsPowerRunning = true;
 			RunDelegate run = (RunDelegate)Delegate.CreateDelegate(typeof(RunDelegate), mRunMethod);
 			run((bool)isBacklash);
 		}
@@ -223,6 +227,22 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		private static WonderPowers sInstance;
 
 		public readonly List<WonderPower> mAllWonderPowers = new List<WonderPower>();
+
+		[PersistableStatic]
+		private static bool sIsPowerRunning;
+
+		public static bool IsPowerRunning 
+		{
+			get => sIsPowerRunning;
+			set
+            {
+				if (RewardTraitsPanel.Instance?.GetChildByID(799350305u, true) is Button button)
+				{
+					button.Enabled = !value;
+					sIsPowerRunning = value;
+				}
+			}
+		}
 
 		//private readonly List<WonderPowerActivation> mActiveWonderPowers = new List<WonderPowerActivation>();
 
@@ -2015,7 +2035,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			if (selectedLot != null)
 			{
 				Audio.StartSound("sting_meteor_forshadow");
-				Sims3.Gameplay.Objects.Miscellaneous.Meteor.TriggerMeteorEvent(selectedLot.GetRandomPosition(false, true));
+				Meteor.TriggerMeteorEvent(selectedLot.GetRandomPosition(false, true));
+				//TEST
+				AlarmManager.Global.AddAlarm(Meteor.kMeteorLifetime + 3, TimeUnit.Minutes, delegate { WonderPowers.IsPowerRunning = false; }, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted, null);
 			}
 		}
 	}

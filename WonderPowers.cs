@@ -101,6 +101,8 @@ namespace Gamefreak130
 {
     //TODO Cleanup LAYO
     //TODO Check code for unused blocks, zero references, notimplementedexceptions
+    //TODO Find way to dynamically load XML for custom powers
+    //TODO Clear statics on quit to menu, persist on travel
     //CONSIDER Powers implement IWeightable for karmic backlash selection
     public static class WonderPowers
     {
@@ -151,10 +153,13 @@ namespace Gamefreak130
         {
             if (Sims3.UI.Hud.RewardTraitsPanel.Instance?.GetChildByID(799350305u, true) is Button button)
             {
-                button.Click += delegate(WindowBase sender, UIButtonClickEventArgs eventArgs) {
+                button.Click += (sender, eventArgs) =>
+                {
                     Simulator.AddObject(new OneShotFunctionTask(WonderPowersSpace.Helpers.UI.WonderModeMenu.Show));
                     eventArgs.Handled = true;
                 };
+                //TEST save + reload, travel, etc. while powers running
+                button.Enabled = !WonderPowersSpace.Helpers.WonderPowers.IsPowerRunning;
             }
             return ListenerAction.Remove;
         }
