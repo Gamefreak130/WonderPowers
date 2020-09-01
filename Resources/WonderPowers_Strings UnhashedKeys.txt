@@ -108,6 +108,10 @@
 <STR>Gameplay/WonderMode:MeteorDestinationTitle</STR>
 <KEY>Gameplay/WonderMode:MeteorDestinationConfirm</KEY>
 <STR>Gameplay/WonderMode:MeteorDestinationConfirm</STR>
+<KEY>Gameplay/WonderMode:CurseDialogTitle</KEY>
+<STR>Gameplay/WonderMode:CurseDialogTitle</STR>
+<KEY>Gameplay/Excel/Buffs/BuffOrigins:D30E840A88FBA523</KEY>
+<STR>Gameplay/Excel/Buffs/BuffOrigins:D30E840A88FBA523</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuff</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuffDescription</KEY>

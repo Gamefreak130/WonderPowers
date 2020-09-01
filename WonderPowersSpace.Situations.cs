@@ -35,10 +35,11 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             {
                 //TODO Add fog effect to lot
                 //TODO Change sound, make 3d sound based on lot position
+                //CONSIDER Animation for Sims on exit?
                 //Audio.StartSound("sting_death", new Function(() => Parent.SetState(new EndSituation(Parent))));
                 AlarmManager.Global.AddAlarm(180f, TimeUnit.Minutes, delegate { Parent.Exit(); }, "DEBUG", AlarmType.AlwaysPersisted, null);
                 Camera.FocusOnLot(Lot.LotId, 2f); //2f is standard lerpTime
-                Parent.mFighters = new List<Sim>(Lot.GetSims()).FindAll((sim) => IsValidFighter(sim));
+                Parent.mFighters = new List<Sim>(Lot.GetAllActors()).FindAll((sim) => IsValidFighter(sim));
 
                 while (Parent.mFighters.Count < TunableSettings.kCryHavocMinSims)
                 {
@@ -77,7 +78,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 bool flag = base.Run();
                 if (flag)
                 {
-                    Actor.BuffManager.AddElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid, Origin.None);
+                    Actor.BuffManager.AddElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid, (Origin)ResourceUtils.HashString64("FromWonderPower"));
                 }
                 return flag;
             }
@@ -93,7 +94,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 sim.RemoveRole(this);
                 Sim.MakeSimGoHome(sim, false, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior));
             }
-            Helpers.WonderPowers.IsPowerRunning = false; //TEST
+            Helpers.WonderPowers.IsPowerRunning = false;
             base.CleanUp(); 
         }
 
