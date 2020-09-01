@@ -35,7 +35,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 //TODO Add fog effect to lot
                 //TODO Change sound, make 3d sound based on lot position
                 //Audio.StartSound("sting_death", new Function(() => Parent.SetState(new EndSituation(Parent))));
-                Sims3.Gameplay.Utilities.AlarmManager.Global.AddAlarm(180f, Sims3.Gameplay.Utilities.TimeUnit.Minutes, delegate { Parent.SetState(new EndSituation(Parent)); }, "DEBUG", Sims3.Gameplay.Utilities.AlarmType.AlwaysPersisted, null);
+                Sims3.Gameplay.Utilities.AlarmManager.Global.AddAlarm(180f, Sims3.Gameplay.Utilities.TimeUnit.Minutes, delegate { Parent.Exit(); }, "DEBUG", Sims3.Gameplay.Utilities.AlarmType.AlwaysPersisted, null);
                 Camera.FocusOnLot(Lot.LotId, 2f); //2f is standard lerpTime
                 Parent.mFighters = new List<Sim>(Lot.GetSims()).FindAll((sim) => IsValidFighter(sim));
 
@@ -55,28 +55,6 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             }
 
             private bool IsValidFighter(Sim sim) => sim != null && sim.SimDescription.TeenOrAbove && !sim.IsHorse && sim.CanBeSocializedWith;
-        }
-
-        public class EndSituation : ChildSituation<CryHavocSituation>
-        {
-            public EndSituation()
-            {
-            }
-
-            public EndSituation(CryHavocSituation parent) : base(parent)
-            { 
-            }
-
-            public override void Init(CryHavocSituation parent)
-            {
-                foreach (Sim sim in parent.mFighters)
-                {
-                    sim.BuffManager.RemoveElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid);
-                    sim.RemoveRole(parent);
-                    Sim.MakeSimGoHome(sim, false, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior));
-                }
-                Exit();
-            }
         }
 
         public class GoToLotAndFight : GoToLot
@@ -106,6 +84,17 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
         private List<Sim> mFighters;
 
+        public override void CleanUp() 
+        {
+            foreach (Sim sim in mFighters)
+            {
+                sim.BuffManager.RemoveElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid);
+                sim.RemoveRole(this);
+                Sim.MakeSimGoHome(sim, false, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior));
+            }
+            base.CleanUp(); 
+        }
+
         public override void OnReset(Sim sim)
         {
             sim.BuffManager.RemoveElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid);
@@ -113,7 +102,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             sim.RemoveRole(this);
             if (mFighters.Count == 0)
             {
-                SetState(new EndSituation(this));
+                Exit();
             }
         }
 
@@ -123,7 +112,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             participant.RemoveRole(this);
             if (mFighters.Count == 0)
             {
-                SetState(new EndSituation(this));
+                Exit();
             }
         }
     }
