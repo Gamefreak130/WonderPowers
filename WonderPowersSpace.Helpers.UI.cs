@@ -64,7 +64,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 
 		public static void Show()
 		{
-			if (sMenu == null)
+			if (sMenu is null)
 			{
 				using (WonderModeMenu menu = new WonderModeMenu())
 				{
@@ -74,12 +74,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 			}
 		}
 
-		private void SetKarma(float karma)
-		{
-			mKarma = karma;
-		}
+        private void SetKarma(float karma) => mKarma = karma;
 
-		private WonderModeMenu() : base("WonderMode", 1, true, PauseMode.PauseSimulator, null)
+        private WonderModeMenu() : base("WonderMode", 1, true, PauseMode.PauseSimulator, null)
 		{
 			if (mModalDialogWindow != null)
 			{
@@ -138,12 +135,12 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
         {
 			if (power.Cost() <= WonderPowers.GetKarma())
             {
-				//Color
+				//TODO Color
 				mAcceptButton.Enabled = true;
 				mAcceptButton.TooltipText = Localization.LocalizeString("Ui/Caption/Global:Accept");
             }
 			else
-            {//Color
+            {//TODO Color
 				mAcceptButton.Enabled = false;
 				mAcceptButton.TooltipText = LocalizeString("NotEnoughKarma");
             }
@@ -190,10 +187,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 			}
         }
 
-		private static string LocalizeString(string name, params object[] parameters)
-        {
-			return Localization.LocalizeString("UI/WonderMode/KarmaMenu:" + name, parameters);
-        }
+		private static string LocalizeString(string name, params object[] parameters) => Localization.LocalizeString("UI/WonderMode/KarmaMenu:" + name, parameters);
 
 		public override bool OnEnd(uint endID)
 		{
@@ -383,25 +377,17 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 	public class MapTagPickerUncancellable : MapTagPickerDialog
     {
 		private MapTagPickerUncancellable(List<IMapTagPickerInfo> mapTagPickerInfos, string titleText, string confirmText, string alternateConfirmText, bool forceShowCost, float exclusivityMultiplier, bool toggleForwardingEventsToGame, ModalDialog.PauseMode pauseMode, bool modal) 
-			: base(mapTagPickerInfos, titleText, confirmText, alternateConfirmText, forceShowCost, exclusivityMultiplier, toggleForwardingEventsToGame, pauseMode, modal)
-        {
-			mCancelButton.Visible = false;
-        }
+			: base(mapTagPickerInfos, titleText, confirmText, alternateConfirmText, forceShowCost, exclusivityMultiplier, toggleForwardingEventsToGame, pauseMode, modal) 
+			=> mCancelButton.Visible = false;
 
-		new public static IMapTagPickerInfo Show(List<IMapTagPickerInfo> mapTagPickerInfos, string titleText, string confirmText)
-		{
-			return Show(mapTagPickerInfos, titleText, confirmText, false);
-		}
+		new public static IMapTagPickerInfo Show(List<IMapTagPickerInfo> mapTagPickerInfos, string titleText, string confirmText) 
+			=> Show(mapTagPickerInfos, titleText, confirmText, false);
 
-		new public static IMapTagPickerInfo Show(List<IMapTagPickerInfo> mapTagPickerInfos, string titleText, string confirmText, bool forceShowCost)
-		{
-            return Show(mapTagPickerInfos, titleText, confirmText, forceShowCost, 0f, out _);
-        }
+		new public static IMapTagPickerInfo Show(List<IMapTagPickerInfo> mapTagPickerInfos, string titleText, string confirmText, bool forceShowCost) 
+			=> Show(mapTagPickerInfos, titleText, confirmText, forceShowCost, 0f, out _);
 
-		new public static IMapTagPickerInfo Show(List<IMapTagPickerInfo> mapTagPickerInfos, string titleText, string confirmText, bool forceShowCost, float exclusivityMultiplier, out bool hasExclusiveAccess)
-		{
-			return Show(mapTagPickerInfos, titleText, confirmText, null, forceShowCost, exclusivityMultiplier, true, out hasExclusiveAccess);
-		}
+		new public static IMapTagPickerInfo Show(List<IMapTagPickerInfo> mapTagPickerInfos, string titleText, string confirmText, bool forceShowCost, float exclusivityMultiplier, out bool hasExclusiveAccess) 
+			=> Show(mapTagPickerInfos, titleText, confirmText, null, forceShowCost, exclusivityMultiplier, true, out hasExclusiveAccess);
 
 		new public static IMapTagPickerInfo Show(List<IMapTagPickerInfo> mapTagPickerInfos, string titleText, string confirmText, string alternateConfirmText, bool forceShowCost, float exclusivityMultiplier, bool toggleForwardingEventsToGame, out bool hasExclusiveAccess)
 		{
@@ -413,7 +399,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 			}
 			UserToolUtils.OnClose();
 			Responder.Instance.HudModel.RestoreUIVisibility();
-			if (EnableModalDialogs && sDialog == null)
+			if (EnableModalDialogs && sDialog is null)
 			{
 				MapTagFilterType sLastFilterType = MapViewController.sLastFilterType;
 				MapViewController.sLastFilterType = (MapTagFilterType)4294967295U;

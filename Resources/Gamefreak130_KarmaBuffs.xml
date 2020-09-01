@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Gamefreak130_KarmaBuffs>
+  <BuffList>
+    <BuffName></BuffName>
+    <BuffDescription></BuffDescription>
+    <BuffHelpText></BuffHelpText>
+    <FirstPersonDescription>Gamefreak130_AdviceBuffFirstPersonDescription</FirstPersonDescription>
+    <Category>Misc</Category>
+    <PermaMoodlet>False</PermaMoodlet>
+    <PermaMoodletColor></PermaMoodletColor>
+    <AxisEffected>None</AxisEffected>
+    <PolarityOverride>NoOverride</PolarityOverride>
+    <EffectValue>0</EffectValue>
+    <DelayTimer>0</DelayTimer>
+    <TimeoutLength></TimeoutLength>
+    <SKU>BaseGame</SKU>
+    <SolveCommodity></SolveCommodity>
+    <AttemptAutoSolve>False</AttemptAutoSolve>
+    <SolveTime></SolveTime>
+    <Stackable>False</Stackable>
+    <IsExtreme>False</IsExtreme>
+    <FacialIdle></FacialIdle>
+    <IncreasedEffectiveness></IncreasedEffectiveness>
+    <ReducedEffectiveness></ReducedEffectiveness>
+    <Hex></Hex>
+    <CustomClassName></CustomClassName>
+    <ThumbFilename></ThumbFilename>
+    <Topic></Topic>
+    <ShowBallon>True</ShowBallon>
+    <Travel>False</Travel>
+    <DisallowedOccults></DisallowedOccults>
+    <JazzStateSuffix></JazzStateSuffix>
+    <Version>1.0</Version>
+    <SpeciesAvailability>All</SpeciesAvailability>
+  </BuffList>
+  <BuffList>
+    <Hex>Gamefreak130_CryHavocBuff=0x9DFC9F7522618833</Hex>
+    <BuffName>Gamefreak130_CryHavocBuff</BuffName>
+    <BuffDescription>Gamefreak130_CryHavocBuffDescription</BuffDescription>
+    <ThumbFilename>cryhavoc</ThumbFilename>
+    <EffectValue>-20</EffectValue>
+    <AxisEffected>Angry</AxisEffected>
+    <PermaMoodlet>True</PermaMoodlet>
+    <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffCryHavoc, Gamefreak130.WonderPowers</CustomClassName>
+  </BuffList>
+</Gamefreak130_KarmaBuffs>

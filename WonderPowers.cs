@@ -1,4 +1,5 @@
-﻿using Gamefreak130.WonderPowersSpace.Helpers;
+﻿using Gamefreak130.Common;
+using Gamefreak130.WonderPowersSpace.Helpers;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
@@ -75,12 +76,9 @@ namespace Gamefreak130.Common
 
     public class BuffBooter
     {
-        public string mXmlResource;
+        private readonly string mXmlResource;
 
-        public BuffBooter(string xmlResource)
-        {
-            mXmlResource = xmlResource;
-        }
+        public BuffBooter(string xmlResource) => mXmlResource = xmlResource;
 
         public void LoadBuffData()
         {
@@ -121,17 +119,10 @@ namespace Gamefreak130
         private static void OnStartupApp(object sender, EventArgs e)
         {
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            bool flag = false;
-            foreach (Assembly assembly in assemblies)
-            {
-                if (assembly.FullName.Contains("Gamefreak130.LTRMenuMusicReplacement"))
-                {
-                    flag = true;
-                }
-            }
+            bool flag = Array.Exists(assemblies, (assembly) => assembly.FullName.Contains("Gamefreak130.LTRMenuMusicReplacement"));
             if (!flag)
             {
-                Simulator.AddObject(new Common.RepeatingFunctionTask(OptionsInjector.InjectOptions));
+                Simulator.AddObject(new RepeatingFunctionTask(OptionsInjector.InjectOptions));
             }
         }
 
@@ -139,6 +130,7 @@ namespace Gamefreak130
         {
             WonderPowersSpace.Helpers.WonderPowers.PreWorldLoadStartup();
             WonderPower.LoadPowers("KarmaPowers");
+            new BuffBooter("Gamefreak130_KarmaBuffs").LoadBuffData();
         }
 
         private static void OnPostLoad()

@@ -29,6 +29,8 @@ using Sims3.Gameplay.UI;
 using Sims3.Gameplay.MapTags;
 using Gameflow = Sims3.Gameplay.Gameflow;
 using static Sims3.SimIFace.Gameflow.GameSpeed;
+using static Sims3.Gameplay.GlobalFunctions;
+using Gamefreak130.WonderPowersSpace.Situations;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
@@ -116,25 +118,23 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		{
 			List<string> list = new List<string>();
 			XmlDbData xmlDbData = XmlDbData.ReadData(xml);
-			if (xmlDbData != null)
+			XmlDbTable xmlDbTable = null;
+			xmlDbData?.Tables.TryGetValue("Power", out xmlDbTable);
+			if (xmlDbTable != null)
 			{
-				xmlDbData.Tables.TryGetValue("Power", out XmlDbTable xmlDbTable);
-				if (xmlDbTable != null)
+				foreach (XmlDbRow row in xmlDbTable.Rows)
 				{
-					foreach (XmlDbRow row in xmlDbTable.Rows)
+					string name = row.GetString("PowerName");
+					if (row.TryGetEnum("ProductVersion", out ProductVersion version, ProductVersion.Undefined) && GameUtils.IsInstalled(version) && !string.IsNullOrEmpty(name))
 					{
-						string name = row.GetString("PowerName");
-						if (row.TryGetEnum("ProductVersion", out ProductVersion version, ProductVersion.Undefined) && GameUtils.IsInstalled(version) && !string.IsNullOrEmpty(name))
+						string runMethod = row.GetString("EffectMethod");
+						if (!string.IsNullOrEmpty(runMethod))
 						{
-							string runMethod = row.GetString("EffectMethod");
-							if (!string.IsNullOrEmpty(runMethod))
-							{
-								bool isBad = row.GetBool("IsBad");
-								int cost = row.GetInt("Cost");
-								MethodInfo methodInfo = WonderPowers.FindMethod(runMethod);
-								new WonderPower(name, isBad, cost, methodInfo);
-								list.Add(name);
-							}
+							bool isBad = row.GetBool("IsBad");
+							int cost = row.GetInt("Cost");
+							MethodInfo methodInfo = WonderPowers.FindMethod(runMethod);
+							new WonderPower(name, isBad, cost, methodInfo);
+							list.Add(name);
 						}
 					}
 				}
@@ -150,10 +150,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 		}
 
-        public bool Equals(WonderPower s)
-        {
-			return WonderPowerName == s.WonderPowerName;
-        }
+        public bool Equals(WonderPower s) => WonderPowerName == s.WonderPowerName;
 
         public void AssignTo(WonderPower s)
         {
@@ -638,14 +635,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 		}
 
-		private void RemoveWonderPower(WonderPower s)
+        private void RemoveWonderPower(WonderPower s) => mAllWonderPowers.Remove(s);
+
+        internal static void PreWorldLoadStartup()
 		{
-			mAllWonderPowers.Remove(s);
-		}
-		
-		internal static void PreWorldLoadStartup()
-		{
-			if (sInstance == null)
+			if (sInstance is null)
 			{
 				sInstance = new WonderPowers();
 				//Simulator.AddObject(sInstance);
@@ -670,15 +664,13 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			sInstance = null;
 		}
 
-		public static void Add(WonderPower s)
-		{
-			sInstance.AddWonderPower(s);
-		}
+        public static void Add(WonderPower s) => sInstance.AddWonderPower(s);
 
-		public static void Remove(WonderPower s)
-		{
-			sInstance.RemoveWonderPower(s);
-		}
+        public static void Remove(WonderPower s) => sInstance.RemoveWonderPower(s);
+
+		public static bool HasEnoughKarma(int karma) => sInstance != null && sInstance.Karma - karma >= 0f;
+
+		public static float GetKarma() => sInstance.Karma;
 
 		public static void SetKarma(int karma)
 		{
@@ -686,11 +678,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				sInstance.Karma = karma;
 			}
-		}
-
-		public static float GetKarma()
-		{
-			return sInstance.Karma;
 		}
 
 		public static void OnPowerUsed(WonderPower power)
@@ -709,16 +696,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 		}
 
-		public static bool HasEnoughKarma(int karma)
-		{
-			return sInstance != null && sInstance.Karma - karma >= 0f;
-		}
-
 		public static WonderPower GetByName(string name)
 		{
 			foreach (WonderPower mAllWonderPower in sInstance.mAllWonderPowers)
 			{
-				if (mAllWonderPower != null && name.Equals(mAllWonderPower.WonderPowerName, StringComparison.InvariantCultureIgnoreCase))
+				if (name.Equals(mAllWonderPower?.WonderPowerName, StringComparison.InvariantCultureIgnoreCase))
 				{
 					return mAllWonderPower;
 				}
@@ -726,12 +708,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			return null;
 		}
 
-		public static List<WonderPower> GetWonderPowerList()
-		{
-			return sInstance.mAllWonderPowers;
-		}
-		
-		/*public static void BadPowersDebug(bool activate)
+        public static List<WonderPower> GetWonderPowerList() => sInstance.mAllWonderPowers;
+
+        /*public static void BadPowersDebug(bool activate)
 		{
 			if (activate)
 			{
@@ -751,12 +730,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 		}*/
 
-		internal static string LocalizeString(string name, params object[] parameters)
-		{
-			return Localization.LocalizeString("Gameplay/WonderMode:" + name, parameters);
-		}
+        internal static string LocalizeString(string name, params object[] parameters) => Localization.LocalizeString("Gameplay/WonderMode:" + name, parameters);
 
-		/*public static void AddActivePower(WonderPowerActivation activePower)
+        /*public static void AddActivePower(WonderPowerActivation activePower)
 		{
 			sInstance.mActiveWonderPowers.Add(activePower);
 		}
@@ -770,7 +746,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		{
 			return sInstance.mActiveWonderPowers.Count > 0;
 		}*/
-	}
+    }
 
 	/*[Persistable(false)]
 	public abstract class WonderPowerActivation : ScriptObject
@@ -2001,13 +1977,22 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 	public static class ActivationMethods
     {
+		public static void CryHavocActivation(bool _)
+        {
+			Sim sim = PlumbBob.SelectedActor;
+			Lot lot = sim.LotCurrent.IsWorldLot 
+				? GetClosestObject((List<Lot>)LotManager.AllLotsWithoutCommonExceptions, sim) 
+				: sim.LotCurrent;
+
+			new CryHavocSituation(lot);
+		}
+
 		public static void MeteorStrikeActivation(bool isBacklash)
         {
 			Lot selectedLot;
 			if (isBacklash)
 			{
-				List<Lot> list = LotManager.AllLotsWithoutCommonExceptions as List<Lot>;
-				list.RemoveAll((lot) => lot.CommercialLotSubType == CommercialLotSubType.kEP1_HiddenTomb);
+				List<Lot> list = (LotManager.AllLotsWithoutCommonExceptions as List<Lot>).FindAll((lot) => lot.CommercialLotSubType != CommercialLotSubType.kEP1_HiddenTomb);
 				selectedLot = RandomUtil.GetRandomObjectFromList(list);
 			}
 			else

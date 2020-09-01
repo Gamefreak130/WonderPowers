@@ -108,5 +108,9 @@
 <STR>Gameplay/WonderMode:MeteorDestinationTitle</STR>
 <KEY>Gameplay/WonderMode:MeteorDestinationConfirm</KEY>
 <STR>Gameplay/WonderMode:MeteorDestinationConfirm</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuff</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuff</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuffDescription</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuffDescription</STR>
 <KEY></KEY>
 <STR></STR>
