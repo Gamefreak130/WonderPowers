@@ -1,5 +1,6 @@
 ﻿using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
+using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Objects;
@@ -19,6 +20,8 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 instance.Init(ref parameters);
                 return instance;
             }
+
+            public override string GetInteractionName(Sim actor, Lot target, InteractionObjectPair iop) => base.GetInteractionName(actor, target, new InteractionObjectPair(Singleton, target));
         }
 
         public override bool Run()
@@ -42,6 +45,8 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 instance.Init(ref parameters);
                 return instance;
             }
+
+            public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop) => base.GetInteractionName(actor, target, new InteractionObjectPair(Singleton, target));
         }
 
         public override bool Run()
