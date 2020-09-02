@@ -32,6 +32,7 @@ using static Sims3.SimIFace.Gameflow.GameSpeed;
 using static Sims3.Gameplay.GlobalFunctions;
 using Gamefreak130.WonderPowersSpace.Situations;
 using Sims3.Gameplay.Objects.Miscellaneous;
+using Responder = Sims3.UI.Responder;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
@@ -2007,6 +2008,55 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			new CryHavocSituation(lot);
 		}
 
+		public static void CurseActivation(bool isBacklash)
+        {
+			Sim selectedSim = null;
+			if (isBacklash)
+            {
+				selectedSim = RandomUtil.GetRandomObjectFromList(Household.ActiveHousehold.Sims);
+            }
+			else
+            {
+				List<ObjectPicker.HeaderInfo> list = new List<ObjectPicker.HeaderInfo>
+                {
+                    new ObjectPicker.HeaderInfo("Ui/Caption/ObjectPicker:Name", "Ui/Tooltip/ObjectPicker:Name", 500)
+                };
+				List<ObjectPicker.RowInfo> list2 = new List<ObjectPicker.RowInfo>();
+				foreach (Sim sim in PlumbBob.SelectedActor.LotCurrent.GetSims())
+                {
+					ObjectPicker.RowInfo item = new ObjectPicker.RowInfo(sim, new List<ObjectPicker.ColumnInfo>
+					{
+						new ObjectPicker.ThumbAndTextColumn(sim.GetThumbnailKey(), sim.FullName)
+					});
+					list2.Add(item);
+                }
+				List<ObjectPicker.TabInfo> list3 = new List<ObjectPicker.TabInfo>
+				{
+					new ObjectPicker.TabInfo("shop_all_r2", Localization.LocalizeString("Ui/Tooltip/CAS/LoadSim:Header"), list2)
+				};
+				while (selectedSim == null)
+				{
+					selectedSim = ObjectPickerDialog.Show(true, ModalDialog.PauseMode.PauseSimulator, WonderPowers.LocalizeString("CurseDialogTitle"), Localization.LocalizeString("Ui/Caption/ObjectPicker:OK"), Localization.LocalizeString("Ui/Caption/ObjectPicker:Cancel"), list3, list, 1)?[0].Item as Sim;
+				}
+			}
+
+			//TODO visual effect
+			//CONSIDER anim?
+			//Audio.StartSound("karma_glissdown");
+			Camera.FocusOnSim(selectedSim);
+			if (selectedSim.IsSelectable)
+			{
+				PlumbBob.SelectActor(selectedSim);
+			}
+			foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(selectedSim))
+            {
+				selectedSim.Motives.SetValue(motive, -95f);
+            }
+			//TODO custom buff
+			selectedSim.BuffManager.AddElement(BuffNames.UnicornsIre, (Origin)ResourceUtils.HashString64("FromWonderPower"));
+			WonderPowers.IsPowerRunning = false;
+        }
+
 		public static void MeteorStrikeActivation(bool isBacklash)
         {
 			Lot selectedLot;
@@ -2032,13 +2082,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				IMapTagPickerInfo info = MapTagPickerUncancellable.Show(list, title, confirm);
 				selectedLot = LotManager.GetLot(info.LotId);
 			}
-			if (selectedLot != null)
-			{
-				Audio.StartSound("sting_meteor_forshadow");
-				Meteor.TriggerMeteorEvent(selectedLot.GetRandomPosition(false, true));
-				//TEST
-				AlarmManager.Global.AddAlarm(Meteor.kMeteorLifetime + 3, TimeUnit.Minutes, delegate { WonderPowers.IsPowerRunning = false; }, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted, null);
-			}
+
+			Audio.StartSound("sting_meteor_forshadow");
+			Meteor.TriggerMeteorEvent(selectedLot.GetRandomPosition(false, true));
+			AlarmManager.Global.AddAlarm(Meteor.kMeteorLifetime + 3, TimeUnit.Minutes, delegate { WonderPowers.IsPowerRunning = false; }, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted, null);
 		}
 	}
 
