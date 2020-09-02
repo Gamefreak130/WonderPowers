@@ -33,6 +33,9 @@ using static Sims3.Gameplay.GlobalFunctions;
 using Gamefreak130.WonderPowersSpace.Situations;
 using Sims3.Gameplay.Objects.Miscellaneous;
 using Responder = Sims3.UI.Responder;
+using Queries = Sims3.Gameplay.Queries;
+using Sims3.Gameplay.Objects;
+using Gamefreak130.WonderPowersSpace.Interactions;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
@@ -2010,40 +2013,22 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static void CurseActivation(bool isBacklash)
         {
-			Sim selectedSim = null;
+			Sim selectedSim;
 			if (isBacklash)
-            {
-				selectedSim = RandomUtil.GetRandomObjectFromList(Household.ActiveHousehold.Sims);
-            }
+			{
+				selectedSim = RandomUtil.GetRandomObjectFromList(Household.ActiveHousehold.Sims.FindAll((sim) => sim.SimDescription.ChildOrAbove));
+			}
 			else
-            {
-				List<ObjectPicker.HeaderInfo> list = new List<ObjectPicker.HeaderInfo>
-                {
-                    new ObjectPicker.HeaderInfo("Ui/Caption/ObjectPicker:Name", "Ui/Tooltip/ObjectPicker:Name", 500)
-                };
-				List<ObjectPicker.RowInfo> list2 = new List<ObjectPicker.RowInfo>();
-				foreach (Sim sim in PlumbBob.SelectedActor.LotCurrent.GetSims())
-                {
-					ObjectPicker.RowInfo item = new ObjectPicker.RowInfo(sim, new List<ObjectPicker.ColumnInfo>
-					{
-						new ObjectPicker.ThumbAndTextColumn(sim.GetThumbnailKey(), sim.FullName)
-					});
-					list2.Add(item);
-                }
-				List<ObjectPicker.TabInfo> list3 = new List<ObjectPicker.TabInfo>
-				{
-					new ObjectPicker.TabInfo("shop_all_r2", Localization.LocalizeString("Ui/Tooltip/CAS/LoadSim:Header"), list2)
-				};
-				while (selectedSim == null)
-				{
-					selectedSim = ObjectPickerDialog.Show(true, ModalDialog.PauseMode.PauseSimulator, WonderPowers.LocalizeString("CurseDialogTitle"), Localization.LocalizeString("Ui/Caption/ObjectPicker:OK"), Localization.LocalizeString("Ui/Caption/ObjectPicker:Cancel"), list3, list, 1)?[0].Item as Sim;
-				}
+			{
+				List<SimDescription> targets = (PlumbBob.SelectedActor.LotCurrent.GetSims() as List<Sim>)
+												.ConvertAll((sim) => sim.SimDescription)
+												.FindAll((description) => description.ChildOrAbove);
+				selectedSim = SelectTarget(targets, WonderPowers.LocalizeString("CurseDialogTitle")).CreatedSim;
 			}
 
-			//TODO visual effect
-			//CONSIDER anim?
-			//Audio.StartSound("karma_glissdown");
-			Camera.FocusOnSim(selectedSim);
+            //CONSIDER animation, visual effect?
+            Audio.StartSound("sting_job_demote");
+            Camera.FocusOnSim(selectedSim);
 			if (selectedSim.IsSelectable)
 			{
 				PlumbBob.SelectActor(selectedSim);
@@ -2055,6 +2040,40 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			//TODO custom buff
 			selectedSim.BuffManager.AddElement(BuffNames.UnicornsIre, (Origin)ResourceUtils.HashString64("FromWonderPower"));
 			WonderPowers.IsPowerRunning = false;
+        }
+
+		public static void DivineInterventionActivation(bool _)
+        {
+			List<SimDescription> targets = new List<Urnstone>(Queries.GetObjects<Urnstone>())
+												.ConvertAll((urnstone) => urnstone.DeadSimsDescription)
+												.FindAll((description) => description != null);
+			Urnstone selectedUrnstone = Urnstone.FindGhostsGrave(SelectTarget(targets, WonderPowers.LocalizeString("DivineInterventionDialogTitle")));
+			if (selectedUrnstone != null)
+            {
+				Audio.StartSound("sting_lifetime_opp_success");
+				if (selectedUrnstone.MyGhost == null || !selectedUrnstone.MyGhost.IsSelectable)
+                {
+					Sim actor = PlumbBob.SelectedActor;
+					Vector3 position = actor.Position;
+					Vector3 forwardVector = actor.ForwardVector;
+					if (FindGoodLocationNearby(selectedUrnstone, ref position, ref forwardVector))
+					{
+						selectedUrnstone.GhostSpawn(false, position, actor.LotCurrent, false);
+					}
+					else
+					{
+						selectedUrnstone.GhostSpawn(false);
+					}
+				}
+				Sim ghost = selectedUrnstone.MyGhost;
+				DivineInterventionResurrect instance = new DivineInterventionResurrect.Definition().CreateInstance(ghost, ghost, new InteractionPriority(InteractionPriorityLevel.MaxDeath), false, false) as DivineInterventionResurrect;
+				ghost.InteractionQueue.AddNext(instance);
+            }
+			else
+            {
+				//TODO Refund or something
+				WonderPowers.IsPowerRunning = false;
+            }
         }
 
 		public static void MeteorStrikeActivation(bool isBacklash)
@@ -2086,6 +2105,36 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			Audio.StartSound("sting_meteor_forshadow");
 			Meteor.TriggerMeteorEvent(selectedLot.GetRandomPosition(false, true));
 			AlarmManager.Global.AddAlarm(Meteor.kMeteorLifetime + 3, TimeUnit.Minutes, delegate { WonderPowers.IsPowerRunning = false; }, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted, null);
+		}
+
+		private static SimDescription SelectTarget(List<SimDescription> sims, string title)
+		{
+			SimDescription target = null;
+			if (sims != null && sims.Count > 0)
+			{
+				List<ObjectPicker.HeaderInfo> list = new List<ObjectPicker.HeaderInfo>
+				{
+					new ObjectPicker.HeaderInfo("Ui/Caption/ObjectPicker:Name", "Ui/Tooltip/ObjectPicker:Name", 500)
+				};
+				List<ObjectPicker.RowInfo> list2 = new List<ObjectPicker.RowInfo>();
+				foreach (SimDescription description in sims)
+				{
+					ObjectPicker.RowInfo item = new ObjectPicker.RowInfo(description, new List<ObjectPicker.ColumnInfo>
+					{
+						new ObjectPicker.ThumbAndTextColumn(description.GetThumbnailKey(ThumbnailSize.Large, 0), description.FullName)
+					});
+					list2.Add(item);
+				}
+				List<ObjectPicker.TabInfo> list3 = new List<ObjectPicker.TabInfo>
+				{
+					new ObjectPicker.TabInfo("shop_all_r2", Localization.LocalizeString("Ui/Tooltip/CAS/LoadSim:Header"), list2)
+				};
+				while (target == null)
+				{
+					target = ObjectPickerDialog.Show(true, ModalDialog.PauseMode.PauseSimulator, title, Localization.LocalizeString("Ui/Caption/ObjectPicker:OK"), Localization.LocalizeString("Ui/Caption/ObjectPicker:Cancel"), list3, list, 1)?[0].Item as SimDescription;
+				}
+			}
+			return target;
 		}
 	}
 

@@ -98,6 +98,7 @@
     <Compile Include="WonderPowers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WonderPowersSpace.Helpers.UI.cs" />
+    <Compile Include="WonderPowersSpace.Interactions.cs" />
     <Compile Include="WonderPowersSpace.Situations.cs" />
     <Compile Include="WonderPowersSpace.TunableSettings.cs" />
   </ItemGroup>

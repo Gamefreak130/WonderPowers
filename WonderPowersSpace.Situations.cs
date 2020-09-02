@@ -10,6 +10,7 @@ using Queries = Sims3.Gameplay.Queries;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Utilities;
+using Gamefreak130.WonderPowersSpace.Interactions;
 
 namespace Gamefreak130.WonderPowersSpace.Situations
 {
@@ -57,31 +58,6 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             }
 
             private bool IsValidFighter(Sim sim) => sim != null && sim.SimDescription.TeenOrAbove && !sim.IsHorse && sim.CanBeSocializedWith;
-        }
-
-        public class GoToLotAndFight : GoToLot
-        {
-            new public class Definition : GoToLot.Definition
-            {
-                public override bool Test(Sim actor, Lot target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
-
-                public override InteractionInstance CreateInstance(ref InteractionInstanceParameters parameters)
-                {
-                    InteractionInstance instance = new GoToLotAndFight() { CancellableByPlayer = parameters.CancellableByPlayer };
-                    instance.Init(ref parameters);
-                    return instance;
-                }
-            }
-
-            public override bool Run()
-            {
-                bool flag = base.Run();
-                if (flag)
-                {
-                    Actor.BuffManager.AddElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid, (Origin)ResourceUtils.HashString64("FromWonderPower"));
-                }
-                return flag;
-            }
         }
 
         private List<Sim> mFighters;
