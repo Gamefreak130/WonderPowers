@@ -40,7 +40,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 //Audio.StartSound("sting_death", new Function(() => Parent.SetState(new EndSituation(Parent))));
                 AlarmManager.Global.AddAlarm(180f, TimeUnit.Minutes, delegate { Parent.Exit(); }, "DEBUG", AlarmType.AlwaysPersisted, null);
                 Camera.FocusOnLot(Lot.LotId, 2f); //2f is standard lerpTime
-                Parent.mFighters = new List<Sim>(Lot.GetAllActors()).FindAll((sim) => IsValidFighter(sim));
+                Parent.mFighters = new List<Sim>(Lot.GetAllActors()).FindAll(IsValidFighter);
 
                 while (Parent.mFighters.Count < TunableSettings.kCryHavocMinSims)
                 {
@@ -48,7 +48,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                     if (otherSims.Count == 0) { break; }
                     Parent.mFighters.Add(GetClosestObject(otherSims, Lot, IsValidFighter));
                 }
-
+                PruneFighters();
                 foreach (Sim sim in Parent.mFighters)
                 {
                     sim.AssignRole(Parent);
@@ -58,6 +58,23 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             }
 
             private bool IsValidFighter(Sim sim) => sim != null && sim.SimDescription.TeenOrAbove && !sim.IsHorse && sim.CanBeSocializedWith;
+
+            private void PruneFighters()
+            {
+                Predicate<Sim>[] predicates = {
+                    (sim) => sim.IsPet,
+                    (sim) => sim.SimDescription.Teen,
+                    (sim) => sim.IsHuman && sim.SimDescription.AdultOrAbove
+                };
+                
+                foreach (Predicate<Sim> predicate in predicates)
+                {
+                    if (Parent.mFighters.FindAll(predicate).Count == 1)
+                    {
+                        Parent.mFighters.RemoveAt(Parent.mFighters.FindIndex(predicate));
+                    }
+                }
+            }
         }
 
         private List<Sim> mFighters;

@@ -1,6 +1,10 @@
 ﻿using Gamefreak130.Common;
 using Gamefreak130.WonderPowersSpace.Helpers;
+using Sims3.Gameplay.Actors;
+using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.EventSystem;
+using Sims3.Gameplay.Interactions;
+using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
@@ -93,6 +97,27 @@ namespace Gamefreak130.Common
             {
                 Sims3.Gameplay.ActorSystems.BuffManager.ParseBuffData(xmlDbData, true);
             }
+        }
+    }
+
+    public static class Methods
+    {
+        public static void ForceSocial(Sim actor, Sim target, string socialName, InteractionPriorityLevel priority, bool isCancellable)
+        {
+            SocialInteractionA.Definition definition = null;
+            foreach (InteractionObjectPair iop in target.Interactions)
+            {
+                if (iop.InteractionDefinition is SocialInteractionA.Definition social && social.ActionKey == socialName)
+                {
+                    definition = social;
+                }
+            }
+            if (definition == null)
+            {
+                definition = new SocialInteractionA.Definition(socialName, new string[0], null, false);
+            }
+            InteractionInstance instance = definition.CreateInstance(target, actor, new InteractionPriority(priority), false, isCancellable);
+            actor.InteractionQueue.Add(instance);
         }
     }
 }

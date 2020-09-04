@@ -30,7 +30,8 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
                     Sim target = RandomUtil.GetRandomObjectFromList(actor.LotCurrent.GetAllActors());
                     if (CanFight(actor, target))
                     {
-                        Sim.ForceSocial(actor, target, RandomUtil.GetRandomStringFromList(actor.IsPet ? TunableSettings.kCryHavocPetInteractions : TunableSettings.kCryHavocSimInteractions), InteractionPriorityLevel.CriticalNPCBehavior, false);
+                        string social = RandomUtil.GetRandomStringFromList(actor.IsPet ? TunableSettings.kCryHavocPetInteractions : TunableSettings.kCryHavocSimInteractions);
+                        Common.Methods.ForceSocial(actor, target, social, InteractionPriorityLevel.CriticalNPCBehavior, false);
                     }
                 }
                 actor.AddAlarm(1f, TimeUnit.Seconds, delegate { CruiseForBruise(actor); }, "Gamefreak130 wuz here -- Cry Havoc alarm", AlarmType.DeleteOnReset);
