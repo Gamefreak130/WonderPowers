@@ -120,10 +120,10 @@
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuffDescription</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuffDescription</STR>
-<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuff</KEY>
-<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuff</STR>
-<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuffDescription</KEY>
-<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuffDescription</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CursedBuff</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CursedBuff</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CursedBuffDescription</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CursedBuffDescription</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuffDescription</KEY>

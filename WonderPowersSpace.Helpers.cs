@@ -2027,7 +2027,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 
             //CONSIDER visual effect?
-            Audio.StartSound("sting_job_demote");
             Camera.FocusOnSim(selectedSim);
 			if (selectedSim.IsSelectable)
 			{
@@ -2035,14 +2034,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(selectedSim))
             {
-				selectedSim.Motives.SetValue(motive, -95f);
+				selectedSim.Motives.SetValue(motive, motive == CommodityKind.Bladder ? -100 : -95);
             }
-			if (selectedSim.BuffManager.AddElement(BuffNames.UnicornsIre, (Origin)ResourceUtils.HashString64("FromWonderPower")))
-            {
-				BuffInstance instance = selectedSim.BuffManager.GetElement(BuffNames.UnicornsIre);
-				instance.mBuffName = Localization.LocalizeString("Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuff");
-				instance.mDescription = Localization.LocalizeString("Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuffDescription");
-            }
+			selectedSim.BuffManager.AddElement(ResourceUtils.HashString64("Gamefreak130_CursedBuff"), (Origin)ResourceUtils.HashString64("FromWonderPower"));
 			WonderPowers.IsPowerRunning = false;
         }
 

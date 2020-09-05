@@ -38,9 +38,18 @@
     <BuffName>Gamefreak130_CryHavocBuff</BuffName>
     <BuffDescription>Gamefreak130_CryHavocBuffDescription</BuffDescription>
     <ThumbFilename>cryhavoc</ThumbFilename>
-    <EffectValue>-20</EffectValue>
+    <EffectValue>-30</EffectValue>
     <AxisEffected>Angry</AxisEffected>
     <PermaMoodlet>True</PermaMoodlet>
     <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffCryHavoc, Gamefreak130.WonderPowers</CustomClassName>
+  </BuffList>
+  <BuffList>
+    <Hex>Gamefreak130_CursedBuff=0x310515051FB65BA6</Hex>
+    <BuffName>Gamefreak130_CursedBuff</BuffName>
+    <BuffDescription>Gamefreak130_CursedBuffDescription</BuffDescription>
+    <ThumbFilename>curse</ThumbFilename>
+    <EffectValue>-20</EffectValue>
+    <AxisEffected>Stressed</AxisEffected>
+    <TimeoutLength>120</TimeoutLength>
   </BuffList>
 </Gamefreak130_KarmaBuffs>
