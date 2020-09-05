@@ -112,6 +112,8 @@
 <STR>Gameplay/WonderMode:CurseDialogTitle</STR>
 <KEY>Gameplay/WonderMode:DivineInterventionDialogTitle</KEY>
 <STR>Gameplay/WonderMode:DivineInterventionDialogTitle</STR>
+<KEY>Gameplay/WonderMode:DoomDialogTitle</KEY>
+<STR>Gameplay/WonderMode:DoomDialogTitle</STR>
 <KEY>Gameplay/Excel/Buffs/BuffOrigins:D30E840A88FBA523</KEY>
 <STR>Gameplay/Excel/Buffs/BuffOrigins:D30E840A88FBA523</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuff</KEY>
@@ -122,5 +124,9 @@
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuffDescription</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuffDescription</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuffDescription</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuffDescription</STR>
 <KEY></KEY>
 <STR></STR>

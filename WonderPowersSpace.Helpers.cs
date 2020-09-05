@@ -2026,7 +2026,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				selectedSim = SelectTarget(targets, WonderPowers.LocalizeString("CurseDialogTitle")).CreatedSim;
 			}
 
-            //CONSIDER animation, visual effect?
+            //CONSIDER visual effect?
             Audio.StartSound("sting_job_demote");
             Camera.FocusOnSim(selectedSim);
 			if (selectedSim.IsSelectable)
@@ -2039,7 +2039,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             }
 			if (selectedSim.BuffManager.AddElement(BuffNames.UnicornsIre, (Origin)ResourceUtils.HashString64("FromWonderPower")))
             {
-				BuffUnicornsIre.BuffInstanceUnicornsIre instance = selectedSim.BuffManager.GetElement(BuffNames.UnicornsIre) as BuffUnicornsIre.BuffInstanceUnicornsIre;
+				BuffInstance instance = selectedSim.BuffManager.GetElement(BuffNames.UnicornsIre);
 				instance.mBuffName = Localization.LocalizeString("Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuff");
 				instance.mDescription = Localization.LocalizeString("Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuffDescription");
             }
@@ -2082,8 +2082,34 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static void DoomActivation(bool isBacklash)
         {
-			throw new NotImplementedException();
-        }
+			Sim selectedSim;
+			if (isBacklash)
+			{
+				selectedSim = RandomUtil.GetRandomObjectFromList(Household.ActiveHousehold.Sims.FindAll((sim) => sim.SimDescription.ChildOrAbove));
+			}
+			else
+			{
+				List<SimDescription> targets = (PlumbBob.SelectedActor.LotCurrent.GetSims() as List<Sim>)
+												.ConvertAll((sim) => sim.SimDescription)
+												.FindAll((description) => description.ChildOrAbove);
+				selectedSim = SelectTarget(targets, WonderPowers.LocalizeString("DoomDialogTitle")).CreatedSim;
+			}
+
+			//CONSIDER animation, visual effect?
+			Audio.StartSound("sting_job_demote");
+			Camera.FocusOnSim(selectedSim);
+			if (selectedSim.IsSelectable)
+			{
+				PlumbBob.SelectActor(selectedSim);
+			}
+			if (selectedSim.BuffManager.AddElement(BuffNames.UnicornsIre, (Origin)ResourceUtils.HashString64("FromWonderPower")))
+			{
+				BuffInstance instance = selectedSim.BuffManager.GetElement(BuffNames.UnicornsIre);
+				instance.mBuffName = Localization.LocalizeString("Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff");
+				instance.mDescription = Localization.LocalizeString("Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuffDescription");
+			}
+			WonderPowers.IsPowerRunning = false;
+		}
 
 		public static void MeteorStrikeActivation(bool isBacklash)
         {
