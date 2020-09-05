@@ -52,4 +52,14 @@
     <AxisEffected>Stressed</AxisEffected>
     <TimeoutLength>120</TimeoutLength>
   </BuffList>
+  <BuffList>
+    <Hex>Gamefreak130_DoomBuff=0xE6E44C7930BDD3F3</Hex>
+    <BuffName>Gamefreak130_DoomBuff</BuffName>
+    <BuffDescription>Gamefreak130_DoomBuffDescription</BuffDescription>
+    <ThumbFilename>doom</ThumbFilename>
+    <EffectValue>-40</EffectValue>
+    <AxisEffected>Angry</AxisEffected>
+    <TimeoutLength>480</TimeoutLength>
+    <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffDoom, Gamefreak130.WonderPowers</CustomClassName>
+  </BuffList>
 </Gamefreak130_KarmaBuffs>

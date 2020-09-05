@@ -43,4 +43,13 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
             && x.BuffManager.HasElement(kBuffCryHavocGuid) && y.BuffManager.HasElement(kBuffCryHavocGuid)
             && x.IsPet == y.IsPet && ((x.SimDescription.Teen && y.SimDescription.Teen) || (x.SimDescription.YoungAdultOrAbove && y.SimDescription.YoungAdultOrAbove));
     }
+
+    public class BuffDoom : BuffUnicornsIre
+    {
+        public const ulong kBuffDoomGuid = 0xE6E44C7930BDD3F3;
+
+        public BuffDoom(BuffData data) : base(data)
+        {
+        }
+    }
 }

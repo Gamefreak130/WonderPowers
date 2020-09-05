@@ -2096,12 +2096,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				PlumbBob.SelectActor(selectedSim);
 			}
-			if (selectedSim.BuffManager.AddElement(BuffNames.UnicornsIre, (Origin)ResourceUtils.HashString64("FromWonderPower")))
-			{
-				BuffInstance instance = selectedSim.BuffManager.GetElement(BuffNames.UnicornsIre);
-				instance.mBuffName = Localization.LocalizeString("Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff");
-				instance.mDescription = Localization.LocalizeString("Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuffDescription");
-			}
+			selectedSim.BuffManager.AddElement(Buffs.BuffDoom.kBuffDoomGuid, (Origin)ResourceUtils.HashString64("FromWonderPower"));
 			WonderPowers.IsPowerRunning = false;
 		}
 
