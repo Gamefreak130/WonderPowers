@@ -2037,8 +2037,12 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             {
 				selectedSim.Motives.SetValue(motive, -95f);
             }
-			//TODO custom buff
-			selectedSim.BuffManager.AddElement(BuffNames.UnicornsIre, (Origin)ResourceUtils.HashString64("FromWonderPower"));
+			if (selectedSim.BuffManager.AddElement(BuffNames.UnicornsIre, (Origin)ResourceUtils.HashString64("FromWonderPower")))
+            {
+				BuffUnicornsIre.BuffInstanceUnicornsIre instance = selectedSim.BuffManager.GetElement(BuffNames.UnicornsIre) as BuffUnicornsIre.BuffInstanceUnicornsIre;
+				instance.mBuffName = Localization.LocalizeString("Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuff");
+				instance.mDescription = Localization.LocalizeString("Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuffDescription");
+            }
 			WonderPowers.IsPowerRunning = false;
         }
 
@@ -2074,6 +2078,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				//TODO Refund or something
 				WonderPowers.IsPowerRunning = false;
             }
+        }
+
+		public static void DoomActivation(bool isBacklash)
+        {
+			throw new NotImplementedException();
         }
 
 		public static void MeteorStrikeActivation(bool isBacklash)

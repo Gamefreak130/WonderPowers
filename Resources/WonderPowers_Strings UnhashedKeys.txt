@@ -118,5 +118,9 @@
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuffDescription</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuffDescription</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuff</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuff</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuffDescription</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CurseBuffDescription</STR>
 <KEY></KEY>
 <STR></STR>
