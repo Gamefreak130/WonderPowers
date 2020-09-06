@@ -40,7 +40,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 //Audio.StartSound("sting_death", new Function(() => Parent.SetState(new EndSituation(Parent))));
                 AlarmManager.Global.AddAlarm(180f, TimeUnit.Minutes, delegate { Parent.Exit(); }, "DEBUG", AlarmType.AlwaysPersisted, null);
                 Camera.FocusOnLot(Lot.LotId, 2f); //2f is standard lerpTime
-                Parent.mFighters = new List<Sim>(Lot.GetAllActors()).FindAll(IsValidFighter);
+                Parent.mFighters = Lot.GetAllActors().FindAll(IsValidFighter);
 
                 while (Parent.mFighters.Count < TunableSettings.kCryHavocMinSims)
                 {
