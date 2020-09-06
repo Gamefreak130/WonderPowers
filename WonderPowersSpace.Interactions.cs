@@ -6,6 +6,7 @@ using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Objects;
 using Sims3.SimIFace;
+using static Sims3.SimIFace.ResourceUtils;
 
 namespace Gamefreak130.WonderPowersSpace.Interactions
 {
@@ -30,7 +31,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             bool flag = base.Run();
             if (flag)
             {
-                Actor.BuffManager.AddElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid, (Origin)ResourceUtils.HashString64("FromWonderPower"));
+                Actor.BuffManager.AddElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid, (Origin)HashString64("FromWonderPower"));
             }
             return flag;
         }
@@ -52,11 +53,17 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            Camera.FocusOnSim(Actor);
-            bool flag = base.Run();
-            Actor.UpdateWalkStyle();
-            Helpers.WonderPowers.IsPowerRunning = false;
-            return flag;
+            try
+            {
+                Camera.FocusOnSim(Actor);
+                bool flag = base.Run();
+                Actor.UpdateWalkStyle();
+                return flag;
+            }
+            finally
+            {
+                Helpers.WonderPowers.TogglePowerRunning();
+            }
         }
     }
 

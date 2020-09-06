@@ -38,6 +38,8 @@ using Sims3.Gameplay.Objects;
 using Gamefreak130.WonderPowersSpace.Interactions;
 using Sims3.Gameplay.ActiveCareer.ActiveCareers;
 using Sims3.SimIFace.Enums;
+using Sims3.Gameplay.Controllers;
+using static Sims3.SimIFace.ResourceUtils;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
@@ -91,12 +93,20 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public void Run(object isBacklash)
         {
-			Gameflow.SetGameSpeed(Normal, Gameflow.SetGameSpeedContext.Gameplay);
-			// Activation of any power will disable the karma menu
-			// Re-enabling is left to the powers' individual run methods when activation is complete
-			WonderPowers.IsPowerRunning = true;
-			RunDelegate run = (RunDelegate)Delegate.CreateDelegate(typeof(RunDelegate), mRunMethod);
-			run((bool)isBacklash);
+			try
+			{
+				Gameflow.SetGameSpeed(Normal, Gameflow.SetGameSpeedContext.Gameplay);
+				// Activation of any power will disable the karma menu
+				// Re-enabling is left to the powers' individual run methods when activation is complete
+				WonderPowers.TogglePowerRunning();
+				RunDelegate run = (RunDelegate)Delegate.CreateDelegate(typeof(RunDelegate), mRunMethod);
+				run((bool)isBacklash);
+			}
+			catch
+            {
+				StyledNotification.Show(new StyledNotification.Format(WonderPowers.LocalizeString("PowerError"), StyledNotification.NotificationStyle.kSystemMessage));
+				WonderPowers.TogglePowerRunning();
+            }
 		}
 
 		public int Cost()
@@ -234,25 +244,26 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public readonly List<WonderPower> mAllWonderPowers = new List<WonderPower>();
 
-		[PersistableStatic]
-		private static bool sIsPowerRunning;
+		private bool mIsPowerRunning;
 
-		public static bool IsPowerRunning 
+		public static bool IsPowerRunning
 		{
-			get => sIsPowerRunning;
-			set
+			get => sInstance.mIsPowerRunning;
+			private set
             {
 				if (RewardTraitsPanel.Instance?.GetChildByID(799350305u, true) is Button button)
 				{
 					button.Enabled = !value;
-					sIsPowerRunning = value;
+					sInstance.mIsPowerRunning = value;
 				}
 			}
 		}
 
-		//private readonly List<WonderPowerActivation> mActiveWonderPowers = new List<WonderPowerActivation>();
+        public static void TogglePowerRunning() => IsPowerRunning = !IsPowerRunning;
 
-		private bool mDebugBadPowersOn;
+        //private readonly List<WonderPowerActivation> mActiveWonderPowers = new List<WonderPowerActivation>();
+
+        private bool mDebugBadPowersOn;
 
 		private DateAndTime mlastRunTime;
 
@@ -2037,8 +2048,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             {
 				selectedSim.Motives.SetValue(motive, motive == CommodityKind.Bladder ? -100 : -95);
             }
-			selectedSim.BuffManager.AddElement(ResourceUtils.HashString64("Gamefreak130_CursedBuff"), (Origin)ResourceUtils.HashString64("FromWonderPower"));
-			WonderPowers.IsPowerRunning = false;
+			selectedSim.BuffManager.AddElement(HashString64("Gamefreak130_CursedBuff"), (Origin)HashString64("FromWonderPower"));
+			WonderPowers.TogglePowerRunning();
         }
 
 		public static void DivineInterventionActivation(bool _)
@@ -2071,7 +2082,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			else
             {
 				//TODO Refund or something
-				WonderPowers.IsPowerRunning = false;
+				WonderPowers.TogglePowerRunning();
             }
         }
 
@@ -2095,8 +2106,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				PlumbBob.SelectActor(selectedSim);
 			}
-			selectedSim.BuffManager.AddElement(Buffs.BuffDoom.kBuffDoomGuid, (Origin)ResourceUtils.HashString64("FromWonderPower"));
-			WonderPowers.IsPowerRunning = false;
+			selectedSim.BuffManager.AddElement(Buffs.BuffDoom.kBuffDoomGuid, (Origin)HashString64("FromWonderPower"));
+			WonderPowers.TogglePowerRunning();
 		}
 
 		public static void EarthquakeActivation(bool _)
@@ -2111,15 +2122,13 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			Camera.FocusOnLot(lot.LotId, 2f); //2f is standard lerptime
 			Audio.StartSound("earthquake");
 			CameraController.Shake(FireFightingJob.kEarthquakeCameraShakeIntensity, FireFightingJob.kEarthquakeCameraShakeDuration);
-			lot.AddAlarm(FireFightingJob.kEarthquakeTimeUntilTNS, TimeUnit.Minutes, delegate {
-				WonderPowers.IsPowerRunning = false;
-			}, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted);
+			lot.AddAlarm(FireFightingJob.kEarthquakeTimeUntilTNS, TimeUnit.Minutes, WonderPowers.TogglePowerRunning, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted);
 
 			foreach (Sim sim in lot.GetAllActors())
             {
 				if (sim.IsPet)
                 {
-					PetStartleBehavior.StartlePet(sim, StartleType.Invalid, (Origin)ResourceUtils.HashString64("FromWonderPower"), lot, true, PetStartleReactionType.NoReaction, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior));
+					PetStartleBehavior.StartlePet(sim, StartleType.Invalid, (Origin)HashString64("FromWonderPower"), lot, true, PetStartleReactionType.NoReaction, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior));
                 }
 				else
                 {
@@ -2153,8 +2162,64 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		/*public static void FireActivation(bool isBacklash)
         {
+			Lot selectedLot;
+			if (isBacklash)
+			{
+				Sim actor = PlumbBob.SelectedActor;
+				selectedLot = actor.LotCurrent.IsWorldLot
+					? GetClosestObject((List<Lot>)LotManager.AllLotsWithoutCommonExceptions, actor)
+					: actor.LotCurrent;
+			}
+			else
+			{
+				selectedLot = SelectTarget(WonderPowers.LocalizeString("FireDestinationTitle"), WonderPowers.LocalizeString("FireDestinationConfirm"));
+			}
 
-        }*/
+			//TODO
+			//Audio.StartSound("sting_firestorm");
+			int numFires = RandomUtil.GetInt(TunableSettings.kFireMin, TunableSettings.kFireMax);
+			List<GameObject> objects = selectedLot.GetObjects<GameObject>((@object) => !(@object is Sim) && @object.GetFireType() != FireType.DoesNotBurn && !@object.Charred);
+			List<Sim> sims = selectedLot.GetSims((sim) => sim.IsHuman && sim.SimDescription.ChildOrAbove);
+			selectedLot.AddAlarm(1f, TimeUnit.Minutes, delegate {
+				Camera.FocusOnLot(selectedLot.LotId, 2f); //2f is standard lerptime
+
+				// For each fire spawned, there is a 25% chance it will ignite a burnable object,
+				// A 25% chance it will ignite a valid sim on the lot,
+			    // And a 50% chance it will spawn directly on the ground
+				for (int i = 0; i < numFires; i++)
+				{
+					VisualEffect effect;
+					if (RandomUtil.CoinFlip())
+					{
+						if (RandomUtil.CoinFlip() && objects.Count != 0)
+						{
+							GameObject @object = RandomUtil.GetRandomObjectFromList(objects);
+							FireManager.AddFire(@object.PositionOnFloor, true);
+							effect = VisualEffect.Create("ep2DetonateMedium");
+							effect.SetPosAndOrient(@object.Position, @object.ForwardVector, @object.UpVector);
+							effect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
+							objects.Remove(@object);
+							continue;
+						}
+						else if (sims.Count != 0)
+                        {
+							Sim sim = RandomUtil.GetRandomObjectFromList(sims);
+							sim.BuffManager.AddElement(BuffNames.OnFire, (Origin)HashString64("FromWonderPower"));
+							sims.Remove(sim);
+							continue;
+                        }
+					}
+					Vector3 pos = selectedLot.GetRandomPosition(true, true);
+					FireManager.AddFire(pos, true);
+				}
+				selectedLot.AddAlarmRepeating(1f, TimeUnit.Minutes, delegate {
+					if (selectedLot.FireManager == null || selectedLot.FireManager.NoFire)
+					{
+						WonderPowers.TogglePowerRunning();
+					}
+				}, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted);
+			}, "Gamefreak130 wuz here -- Activation alarm", AlarmType.AlwaysPersisted);
+		}*/
 
 		public static void MeteorStrikeActivation(bool isBacklash)
         {
@@ -2166,25 +2231,12 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			else
 			{
-				List<IMapTagPickerInfo> list = new List<IMapTagPickerInfo>();
-				foreach (Lot lot in LotManager.AllLotsWithoutCommonExceptions)
-				{
-					if (lot.CommercialLotSubType != CommercialLotSubType.kEP1_HiddenTomb)
-					{
-						list.Add(new MapTagPickerLotInfo(lot, lot.IsPlayerHomeLot ? MapTagType.HomeLot
-															: lot.IsResidentialLot ? MapTagType.NeighborLot
-															: MapTagType.Venue));
-					}
-				}
-				string title = WonderPowers.LocalizeString("MeteorDestinationTitle");
-				string confirm = WonderPowers.LocalizeString("MeteorDestinationConfirm");
-				IMapTagPickerInfo info = MapTagPickerUncancellable.Show(list, title, confirm);
-				selectedLot = LotManager.GetLot(info.LotId);
+				selectedLot = SelectTarget(WonderPowers.LocalizeString("MeteorDestinationTitle"), WonderPowers.LocalizeString("MeteorDestinationConfirm"));
 			}
 
 			Audio.StartSound("sting_meteor_forshadow");
 			Meteor.TriggerMeteorEvent(selectedLot.GetRandomPosition(false, true));
-			AlarmManager.Global.AddAlarm(Meteor.kMeteorLifetime + 3, TimeUnit.Minutes, delegate { WonderPowers.IsPowerRunning = false; }, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted, null);
+			AlarmManager.Global.AddAlarm(Meteor.kMeteorLifetime + 3, TimeUnit.Minutes, WonderPowers.TogglePowerRunning, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted, null);
 		}
 
 		private static SimDescription SelectTarget(List<SimDescription> sims, string title)
@@ -2215,6 +2267,22 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				}
 			}
 			return target;
+		}
+
+		private static Lot SelectTarget(string title, string confirm)
+        {
+			List<IMapTagPickerInfo> list = new List<IMapTagPickerInfo>();
+			foreach (Lot lot in LotManager.AllLotsWithoutCommonExceptions)
+			{
+				if (lot.CommercialLotSubType != CommercialLotSubType.kEP1_HiddenTomb)
+				{
+					list.Add(new MapTagPickerLotInfo(lot, lot.IsPlayerHomeLot ? MapTagType.HomeLot
+														: lot.IsResidentialLot ? MapTagType.NeighborLot
+														: MapTagType.Venue));
+				}
+			}
+			IMapTagPickerInfo info = MapTagPickerUncancellable.Show(list, title, confirm);
+			return LotManager.GetLot(info.LotId);
 		}
 	}
 

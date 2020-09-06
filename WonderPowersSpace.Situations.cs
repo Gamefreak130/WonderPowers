@@ -81,17 +81,23 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
         public override void CleanUp() 
         {
-            foreach (Sim sim in mFighters)
+            try
             {
-                if (sim != null)
+                foreach (Sim sim in mFighters)
                 {
-                    sim.BuffManager.RemoveElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid);
-                    sim.RemoveRole(this);
-                    Sim.MakeSimGoHome(sim, false, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior));
+                    if (sim != null)
+                    {
+                        sim.BuffManager.RemoveElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid);
+                        sim.RemoveRole(this);
+                        Sim.MakeSimGoHome(sim, false, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior));
+                    }
                 }
+                base.CleanUp();
             }
-            Helpers.WonderPowers.IsPowerRunning = false;
-            base.CleanUp(); 
+            finally
+            {
+                Helpers.WonderPowers.TogglePowerRunning();
+            }
         }
 
         public override void OnReset(Sim sim)
