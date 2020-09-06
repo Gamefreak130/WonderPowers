@@ -36,6 +36,8 @@ using Responder = Sims3.UI.Responder;
 using Queries = Sims3.Gameplay.Queries;
 using Sims3.Gameplay.Objects;
 using Gamefreak130.WonderPowersSpace.Interactions;
+using Sims3.Gameplay.ActiveCareer.ActiveCareers;
+using Sims3.SimIFace.Enums;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
@@ -2020,13 +2022,12 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			else
 			{
-				List<SimDescription> targets = (PlumbBob.SelectedActor.LotCurrent.GetSims() as List<Sim>)
-												.ConvertAll((sim) => sim.SimDescription)
-												.FindAll((description) => description.ChildOrAbove);
+				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ChildOrAbove).ConvertAll((sim) => sim.SimDescription);
 				selectedSim = SelectTarget(targets, WonderPowers.LocalizeString("CurseDialogTitle")).CreatedSim;
 			}
 
             //CONSIDER visual effect?
+			//TODO Add glissdown
             Camera.FocusOnSim(selectedSim);
 			if (selectedSim.IsSelectable)
 			{
@@ -2083,9 +2084,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			else
 			{
-				List<SimDescription> targets = (PlumbBob.SelectedActor.LotCurrent.GetSims() as List<Sim>)
-												.ConvertAll((sim) => sim.SimDescription)
-												.FindAll((description) => description.ChildOrAbove);
+				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ChildOrAbove).ConvertAll((sim) => sim.SimDescription);
 				selectedSim = SelectTarget(targets, WonderPowers.LocalizeString("DoomDialogTitle")).CreatedSim;
 			}
 
@@ -2099,6 +2098,56 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			selectedSim.BuffManager.AddElement(Buffs.BuffDoom.kBuffDoomGuid, (Origin)ResourceUtils.HashString64("FromWonderPower"));
 			WonderPowers.IsPowerRunning = false;
 		}
+
+		public static void EarthquakeActivation(bool _)
+        {
+			Sim actor = PlumbBob.SelectedActor;
+			Lot lot = actor.LotCurrent.IsWorldLot
+				? GetClosestObject((List<Lot>)LotManager.AllLotsWithoutCommonExceptions, actor)
+				: actor.LotCurrent;
+
+			//TODO Add EOR earthquake sting
+			Audio.StartSound("earthquake");
+			CameraController.Shake(FireFightingJob.kEarthquakeCameraShakeIntensity, FireFightingJob.kEarthquakeCameraShakeDuration);
+			lot.AddAlarm(FireFightingJob.kEarthquakeTimeUntilTNS, TimeUnit.Minutes, delegate {
+				WonderPowers.IsPowerRunning = false;
+			}, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted);
+
+			foreach (Sim sim in lot.GetAllActors())
+            {
+				if (sim.IsPet)
+                {
+					PetStartleBehavior.StartlePet(sim, StartleType.Invalid, (Origin)ResourceUtils.HashString64("FromWonderPower"), lot, true, PetStartleReactionType.NoReaction, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior));
+                }
+				else
+                {
+					InteractionInstance instance = new PanicReact.Definition().CreateInstance(sim, sim, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior), false, false);
+					sim.InteractionQueue.AddNext(instance);
+                }
+            }
+
+			List<GameObject> breakableObjects = lot.GetObjects<GameObject>((@object) => @object.Repairable is RepairableComponent component && !component.Broken);
+			for (int i = 0; i < TunableSettings.kEarthquakeMaxBroken; i++)
+            {
+				if (breakableObjects.Count == 0) { break; }
+				GameObject @object = RandomUtil.GetRandomObjectFromList(breakableObjects);
+				@object.Repairable.BreakObject();
+				breakableObjects.Remove(@object);
+            }
+			int maxTrash = RandomUtil.GetInt(1, TunableSettings.kEarthquakeMaxTrash);
+			for (int i = 0; i < maxTrash; i++)
+            {
+				Vector3 randomPosition = lot.GetRandomPosition(true, true);
+				TrashPile trashPile = CreateObjectOutOfWorld("TrashPileIndoor") as TrashPile;
+				World.FindGoodLocationParams fglParams = new World.FindGoodLocationParams(randomPosition);
+				if (PlaceAtGoodLocation(trashPile, fglParams, true))
+                {
+					trashPile.AddToWorld();
+					continue;
+                }
+				i--;
+            }
+        }
 
 		public static void MeteorStrikeActivation(bool isBacklash)
         {

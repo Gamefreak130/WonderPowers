@@ -1,4 +1,5 @@
-﻿using Sims3.Gameplay.Actors;
+﻿using Sims3.Gameplay.ActiveCareer.ActiveCareers;
+using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
@@ -56,6 +57,25 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             Actor.UpdateWalkStyle();
             Helpers.WonderPowers.IsPowerRunning = false;
             return flag;
+        }
+    }
+
+    public class PanicReact : Interaction<Sim, Sim>
+    {
+        public class Definition : InteractionDefinition<Sim, Sim, PanicReact>
+        {
+            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
+
+            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => Helpers.WonderPowers.LocalizeString("PanicReact");
+        }
+
+        public override bool Run()
+        {
+            EnterStateMachine("ReactToFire", "Enter", "x");
+            AnimateSim("Panic");
+            bool result = DoTimedLoop(FireFightingJob.kEarthquakeTimeUntilTNS);
+            AnimateSim("Exit");
+            return result;
         }
     }
 }

@@ -128,5 +128,7 @@
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuffDescription</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuffDescription</STR>
+<KEY>Gameplay/WonderMode:PanicReact</KEY>
+<STR>Gameplay/WonderMode:PanicReact</STR>
 <KEY></KEY>
 <STR></STR>
