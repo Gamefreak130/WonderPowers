@@ -2,13 +2,16 @@
 using Gamefreak130.WonderPowersSpace.Helpers;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
+using Sims3.Gameplay.Objects;
 using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace Gamefreak130.Common
@@ -78,6 +81,95 @@ namespace Gamefreak130.Common
         }
     }
 
+    public static class Tunings
+    {
+        internal static InteractionTuning Inject(Type oldType, Type oldTarget, Type newType, Type newTarget, bool clone)
+        {
+            InteractionTuning interactionTuning = null;
+            InteractionTuning result;
+            try
+            {
+                interactionTuning = AutonomyTuning.GetTuning(newType.FullName, newTarget.FullName);
+                bool flag = interactionTuning == null;
+                if (flag)
+                {
+                    interactionTuning = AutonomyTuning.GetTuning(oldType, oldType.FullName, oldTarget);
+                    bool flag2 = interactionTuning == null;
+                    if (flag2)
+                    {
+                        result = null;
+                        return result;
+                    }
+                    if (clone)
+                    {
+                        interactionTuning = CloneTuning(interactionTuning);
+                    }
+                    AutonomyTuning.AddTuning(newType.FullName, newTarget.FullName, interactionTuning);
+                }
+                InteractionObjectPair.sTuningCache.Remove(new Pair<Type, Type>(newType, newTarget));
+            }
+            catch (Exception)
+            {
+            }
+            result = interactionTuning;
+            return result;
+        }
+
+        private static InteractionTuning CloneTuning(InteractionTuning oldTuning) => new InteractionTuning
+        {
+            mFlags = oldTuning.mFlags,
+            ActionTopic = oldTuning.ActionTopic,
+            AlwaysChooseBest = oldTuning.AlwaysChooseBest,
+            Availability = CloneAvailability(oldTuning.Availability),
+            CodeVersion = oldTuning.CodeVersion,
+            FullInteractionName = oldTuning.FullInteractionName,
+            FullObjectName = oldTuning.FullObjectName,
+            mChecks = Methods.CloneList(oldTuning.mChecks),
+            mTradeoff = CloneTradeoff(oldTuning.mTradeoff),
+            PosturePreconditions = oldTuning.PosturePreconditions,
+            ScoringFunction = oldTuning.ScoringFunction,
+            ScoringFunctionOnlyAppliesToSpecificCommodity = oldTuning.ScoringFunctionOnlyAppliesToSpecificCommodity,
+            ScoringFunctionString = oldTuning.ScoringFunctionString,
+            ShortInteractionName = oldTuning.ShortInteractionName,
+            ShortObjectName = oldTuning.ShortObjectName
+        };
+
+        private static Tradeoff CloneTradeoff(Tradeoff old) => new Tradeoff
+        {
+            mFlags = old.mFlags,
+            mInputs = Methods.CloneList(old.mInputs),
+            mName = old.mName,
+            mNumParameters = old.mNumParameters,
+            mOutputs = Methods.CloneList(old.mOutputs),
+            mVariableRestrictions = old.mVariableRestrictions,
+            TimeEstimate = old.TimeEstimate
+        };
+
+        private static Availability CloneAvailability(Availability old) => new Availability
+        {
+            mFlags = old.mFlags,
+            AgeSpeciesAvailabilityFlags = old.AgeSpeciesAvailabilityFlags,
+            CareerThresholdType = old.CareerThresholdType,
+            CareerThresholdValue = old.CareerThresholdValue,
+            ExcludingBuffs = Methods.CloneList(old.ExcludingBuffs),
+            ExcludingTraits = Methods.CloneList(old.ExcludingTraits),
+            MoodThresholdType = old.MoodThresholdType,
+            MoodThresholdValue = old.MoodThresholdValue,
+            MotiveThresholdType = old.MotiveThresholdType,
+            MotiveThresholdValue = old.MotiveThresholdValue,
+            RequiredBuffs = Methods.CloneList(old.RequiredBuffs),
+            RequiredTraits = Methods.CloneList(old.RequiredTraits),
+            SkillThresholdType = old.SkillThresholdType,
+            SkillThresholdValue = old.SkillThresholdValue,
+            WorldRestrictionType = old.WorldRestrictionType,
+            OccultRestrictions = old.OccultRestrictions,
+            OccultRestrictionType = old.OccultRestrictionType,
+            SnowLevelValue = old.SnowLevelValue,
+            WorldRestrictionWorldNames = Methods.CloneList(old.WorldRestrictionWorldNames),
+            WorldRestrictionWorldTypes = Methods.CloneList(old.WorldRestrictionWorldTypes)
+        };
+    }
+
     public class BuffBooter
     {
         private readonly string mXmlResource;
@@ -119,6 +211,13 @@ namespace Gamefreak130.Common
             InteractionInstance instance = definition.CreateInstance(target, actor, new InteractionPriority(priority), false, isCancellable);
             actor.InteractionQueue.Add(instance);
         }
+
+        public static List<T> CloneList<T>(IEnumerable<T> old)
+        {
+            bool flag = old != null;
+            List<T> result = flag ? new List<T>(old) : null;
+            return result;
+        }
     }
 }
 
@@ -158,6 +257,8 @@ namespace Gamefreak130
             WonderPowersSpace.Helpers.WonderPowers.PreWorldLoadStartup();
             WonderPower.LoadPowers("KarmaPowers");
             new BuffBooter("Gamefreak130_KarmaBuffs").LoadBuffData();
+            Tunings.Inject(GoToLot.Singleton.GetType(), typeof(Lot), typeof(WonderPowersSpace.Interactions.GoToLotAndFight), typeof(Lot), true);
+            Tunings.Inject(Urnstone.ResurrectSim.Singleton.GetType(), typeof(Sim), typeof(WonderPowersSpace.Interactions.DivineInterventionResurrect), typeof(Sim), true);
         }
 
         private static void OnPostLoad()
