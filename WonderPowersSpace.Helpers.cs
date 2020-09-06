@@ -2107,6 +2107,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				: actor.LotCurrent;
 
 			//TODO Add EOR earthquake sting
+			//TEST
+			Camera.FocusOnLot(lot.LotId, 2f); //2f is standard lerptime
 			Audio.StartSound("earthquake");
 			CameraController.Shake(FireFightingJob.kEarthquakeCameraShakeIntensity, FireFightingJob.kEarthquakeCameraShakeDuration);
 			lot.AddAlarm(FireFightingJob.kEarthquakeTimeUntilTNS, TimeUnit.Minutes, delegate {
@@ -2148,6 +2150,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				i--;
             }
         }
+
+		/*public static void FireActivation(bool isBacklash)
+        {
+
+        }*/
 
 		public static void MeteorStrikeActivation(bool isBacklash)
         {
