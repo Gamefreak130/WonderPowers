@@ -16,10 +16,16 @@ namespace Gamefreak130.WonderPowersSpace
         [Tunable, TunableComment("Interactions pets are compelled to perform when affected by the Cry Havoc karma power")]
         public static string[] kCryHavocPetInteractions = { "Fight Pet", "Chase Mean" };
 
-        [Tunable, TunableComment("The maximum number of objects to break during the Earthquake karma power")]
+        [Tunable, TunableComment("The maximum number of objects to break during the Quake Maker karma power")]
         public static int kEarthquakeMaxBroken = 5;
 
-        [Tunable, TunableComment("The maximum number of trash spawned during the Earthquake karma power")]
+        [Tunable, TunableComment("The maximum number of trash spawned during the Quake Maker karma power")]
         public static int kEarthquakeMaxTrash = 5;
+
+        [Tunable, TunableComment("The minimum number of fires spawned during the Fire Storm karma power")]
+        public static int kFireMin = 3;
+
+        [Tunable, TunableComment("The maximum number of fires spawned during the Fire Storm karma power")]
+        public static int kFireMax = 7;
     }
 }

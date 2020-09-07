@@ -11,6 +11,10 @@ using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Utilities;
 using Gamefreak130.WonderPowersSpace.Interactions;
+using Sims3.Gameplay.Abstracts;
+using Sims3.Gameplay.Controllers;
+using static Sims3.SimIFace.ResourceUtils;
+using Sims3.Gameplay.Services;
 
 namespace Gamefreak130.WonderPowersSpace.Situations
 {
@@ -51,9 +55,12 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 PruneFighters();
                 foreach (Sim sim in Parent.mFighters)
                 {
-                    sim.AssignRole(Parent);
-                    GoToLotAndFight visitLot = new GoToLotAndFight.Definition().CreateInstance(Lot, sim, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as GoToLotAndFight;
-                    ForceSituationSpecificInteraction(sim, visitLot);
+                    if (sim != null)
+                    {
+                        sim.AssignRole(Parent);
+                        GoToLotAndFight visitLot = new GoToLotAndFight.Definition().CreateInstance(Lot, sim, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as GoToLotAndFight;
+                        ForceSituationSpecificInteraction(sim, visitLot);
+                    }
                 }
             }
 
@@ -118,6 +125,104 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             if (mFighters.Count == 0)
             {
                 Exit();
+            }
+        }
+    }
+
+    public class FireSituation : RootSituation
+    {
+        public FireSituation()
+        {
+        }
+
+        public FireSituation(Lot lot) : base(lot) => SetState(new StartSituation(this));
+
+        public override void OnParticipantDeleted(Sim participant)
+        {
+        }
+
+        public class StartSituation : ChildSituation<FireSituation>
+        {
+            public StartSituation()
+            {
+            }
+
+            public StartSituation(FireSituation parent) : base(parent)
+            {
+            }
+
+            List<GameObject> mBurnableObjects;
+
+            List<Sim> mBurnableSims;
+
+            public override void Init(FireSituation parent)
+            {
+                mBurnableObjects = Lot.GetObjects<GameObject>((@object) => !(@object is Sim) && @object.GetFireType() != FireType.DoesNotBurn && !@object.Charred);
+                mBurnableSims = Lot.GetSims((sim) => sim.IsHuman && sim.SimDescription.ChildOrAbove);
+                AlarmManager.Global.AddAlarm(1f, TimeUnit.Seconds, StartFires, "Gamefreak130 wuz here -- Fire situation alarm", AlarmType.AlwaysPersisted, null);
+            }
+
+            private void StartFires()
+            {
+                try
+                {
+                    //TODO
+                    //Audio.StartSound("sting_firestorm");
+                    Camera.FocusOnLot(Lot.LotId, 2f); //2f is standard lerptime
+
+                    // For each fire spawned, there is a 25% chance it will ignite a burnable object,
+                    // A 25% chance it will ignite a valid sim on the lot,
+                    // And a 50% chance it will spawn directly on the ground
+                    int numFires = RandomUtil.GetInt(TunableSettings.kFireMin, TunableSettings.kFireMax);
+                    for (int i = 0; i < numFires; i++)
+                    {
+                        VisualEffect effect;
+                        if (RandomUtil.CoinFlip())
+                        {
+                            if (RandomUtil.CoinFlip() && mBurnableObjects.Count != 0)
+                            {
+                                GameObject @object = RandomUtil.GetRandomObjectFromList(mBurnableObjects);
+                                FireManager.AddFire(@object.PositionOnFloor, true);
+                                effect = VisualEffect.Create("ep2DetonateMedium");
+                                effect.SetPosAndOrient(@object.Position, @object.ForwardVector, @object.UpVector);
+                                effect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
+                                mBurnableObjects.Remove(@object);
+                                continue;
+                            }
+                            else if (mBurnableSims.Count != 0)
+                            {
+                                Sim sim = RandomUtil.GetRandomObjectFromList(mBurnableSims);
+                                sim.BuffManager.AddElement(BuffNames.OnFire, (Origin)HashString64("FromWonderPower"));
+                                mBurnableSims.Remove(sim);
+                                continue;
+                            }
+                        }
+                        Vector3 pos = Lot.GetRandomPosition(true, true);
+                        FireManager.AddFire(pos, true);
+                    }
+                }
+                finally
+                {
+                    Parent.CheckForExit();
+                }
+            }
+        }
+
+        public override void CleanUp() 
+        {
+            Helpers.WonderPowers.TogglePowerRunning();
+            base.CleanUp(); 
+        }
+
+        private void CheckForExit()
+        {
+            if ((Lot.FireManager == null || Lot.FireManager.NoFire) && Lot.GetSims((sim) => FirefighterSituation.IsSimOnFire(sim)).Count == 0)
+            {
+                Exit();
+            }
+            else
+            {
+                AlarmManager.Global.AddAlarm(1f, TimeUnit.Minutes, CheckForExit, "Gamefreak130 wuz here -- Fire situation alarm", AlarmType.AlwaysPersisted, null);
             }
         }
     }

@@ -38,7 +38,6 @@ using Sims3.Gameplay.Objects;
 using Gamefreak130.WonderPowersSpace.Interactions;
 using Sims3.Gameplay.ActiveCareer.ActiveCareers;
 using Sims3.SimIFace.Enums;
-using Sims3.Gameplay.Controllers;
 using static Sims3.SimIFace.ResourceUtils;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
@@ -2160,7 +2159,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             }
         }
 
-		/*public static void FireActivation(bool isBacklash)
+		public static void FireActivation(bool isBacklash)
         {
 			Lot selectedLot;
 			if (isBacklash)
@@ -2175,51 +2174,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				selectedLot = SelectTarget(WonderPowers.LocalizeString("FireDestinationTitle"), WonderPowers.LocalizeString("FireDestinationConfirm"));
 			}
 
-			//TODO
-			//Audio.StartSound("sting_firestorm");
-			int numFires = RandomUtil.GetInt(TunableSettings.kFireMin, TunableSettings.kFireMax);
-			List<GameObject> objects = selectedLot.GetObjects<GameObject>((@object) => !(@object is Sim) && @object.GetFireType() != FireType.DoesNotBurn && !@object.Charred);
-			List<Sim> sims = selectedLot.GetSims((sim) => sim.IsHuman && sim.SimDescription.ChildOrAbove);
-			selectedLot.AddAlarm(1f, TimeUnit.Minutes, delegate {
-				Camera.FocusOnLot(selectedLot.LotId, 2f); //2f is standard lerptime
-
-				// For each fire spawned, there is a 25% chance it will ignite a burnable object,
-				// A 25% chance it will ignite a valid sim on the lot,
-			    // And a 50% chance it will spawn directly on the ground
-				for (int i = 0; i < numFires; i++)
-				{
-					VisualEffect effect;
-					if (RandomUtil.CoinFlip())
-					{
-						if (RandomUtil.CoinFlip() && objects.Count != 0)
-						{
-							GameObject @object = RandomUtil.GetRandomObjectFromList(objects);
-							FireManager.AddFire(@object.PositionOnFloor, true);
-							effect = VisualEffect.Create("ep2DetonateMedium");
-							effect.SetPosAndOrient(@object.Position, @object.ForwardVector, @object.UpVector);
-							effect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
-							objects.Remove(@object);
-							continue;
-						}
-						else if (sims.Count != 0)
-                        {
-							Sim sim = RandomUtil.GetRandomObjectFromList(sims);
-							sim.BuffManager.AddElement(BuffNames.OnFire, (Origin)HashString64("FromWonderPower"));
-							sims.Remove(sim);
-							continue;
-                        }
-					}
-					Vector3 pos = selectedLot.GetRandomPosition(true, true);
-					FireManager.AddFire(pos, true);
-				}
-				selectedLot.AddAlarmRepeating(1f, TimeUnit.Minutes, delegate {
-					if (selectedLot.FireManager == null || selectedLot.FireManager.NoFire)
-					{
-						WonderPowers.TogglePowerRunning();
-					}
-				}, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted);
-			}, "Gamefreak130 wuz here -- Activation alarm", AlarmType.AlwaysPersisted);
-		}*/
+			new FireSituation(selectedLot);
+		}
 
 		public static void MeteorStrikeActivation(bool isBacklash)
         {
