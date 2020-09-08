@@ -2031,7 +2031,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				selectedSim = RandomUtil.GetRandomObjectFromList(Household.ActiveHousehold.Sims.FindAll((sim) => sim.SimDescription.ChildOrAbove));
 			}
 			else
-			{
+			{//CONSIDER Pets?
 				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ChildOrAbove).ConvertAll((sim) => sim.SimDescription);
 				selectedSim = SelectTarget(targets, WonderPowers.LocalizeString("CurseDialogTitle"))?.CreatedSim;
 			}
@@ -2098,11 +2098,13 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			Sim selectedSim;
 			if (isBacklash)
 			{
-				selectedSim = RandomUtil.GetRandomObjectFromList(Household.ActiveHousehold.Sims.FindAll((sim) => sim.SimDescription.ChildOrAbove));
+				selectedSim = RandomUtil.GetRandomObjectFromList(Household.ActiveHousehold.AllActors.FindAll((sim) => sim.SimDescription.ChildOrAbove));
 			}
 			else
 			{
-				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ChildOrAbove).ConvertAll((sim) => sim.SimDescription);
+				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
+																				.FindAll((sim) => sim.SimDescription.ChildOrAbove)
+																				.ConvertAll((sim) => sim.SimDescription);
 				selectedSim = SelectTarget(targets, WonderPowers.LocalizeString("DoomDialogTitle"))?.CreatedSim;
 			}
 
@@ -2201,8 +2203,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static void GhostifyActivation(bool _)
         {
-			//TEST Child pets
-			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ChildOrAbove && !sim.IsGhostOrHasGhostBuff && !sim.BuffManager.HasElement((BuffNames)Buffs.BuffGhostify.kBuffGhostifyGuid))
+			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
+																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.IsGhostOrHasGhostBuff && !sim.BuffManager.HasElement((BuffNames)Buffs.BuffGhostify.kBuffGhostifyGuid))
 																			.ConvertAll((sim) => sim.SimDescription);
 			Sim sim = SelectTarget(targets, WonderPowers.LocalizeString("GhostifyDialogTitle"))?.CreatedSim;
 			if (sim != null)
