@@ -4,7 +4,7 @@
     <BuffName></BuffName>
     <BuffDescription></BuffDescription>
     <BuffHelpText></BuffHelpText>
-    <FirstPersonDescription>Gamefreak130_AdviceBuffFirstPersonDescription</FirstPersonDescription>
+    <FirstPersonDescription>Gamefreak130_KarmaBuffFirstPersonDescription</FirstPersonDescription>
     <Category>Misc</Category>
     <PermaMoodlet>False</PermaMoodlet>
     <PermaMoodletColor></PermaMoodletColor>
@@ -61,5 +61,13 @@
     <AxisEffected>Angry</AxisEffected>
     <TimeoutLength>480</TimeoutLength>
     <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffDoom, Gamefreak130.WonderPowers</CustomClassName>
+  </BuffList>
+  <BuffList>
+    <Hex>Gamefreak130_GhostifyBuff=0xABECC1DBFB07E2B9</Hex>
+    <BuffName>TheUndead</BuffName>
+    <BuffDescription>TheUndeadDescription</BuffDescription>
+    <ThumbFilename>ghostify</ThumbFilename>
+    <TimeoutLength>1440</TimeoutLength>
+    <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffGhostify, Gamefreak130.WonderPowers</CustomClassName>
   </BuffList>
 </Gamefreak130_KarmaBuffs>

@@ -102,7 +102,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				run((bool)isBacklash);
 			}
 			catch
-            {
+            {//TODO Log power errors 'cause apparently NRaas won't do it for me (also refunds maybe)
 				StyledNotification.Show(new StyledNotification.Format(WonderPowers.LocalizeString("PowerError"), StyledNotification.NotificationStyle.kSystemMessage));
 				WonderPowers.TogglePowerRunning();
             }
@@ -2033,21 +2033,29 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			else
 			{
 				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ChildOrAbove).ConvertAll((sim) => sim.SimDescription);
-				selectedSim = SelectTarget(targets, WonderPowers.LocalizeString("CurseDialogTitle")).CreatedSim;
+				selectedSim = SelectTarget(targets, WonderPowers.LocalizeString("CurseDialogTitle"))?.CreatedSim;
 			}
 
-            //CONSIDER visual effect?
-			//TODO Add glissdown
-            Camera.FocusOnSim(selectedSim);
-			if (selectedSim.IsSelectable)
+			if (selectedSim != null)
 			{
-				PlumbBob.SelectActor(selectedSim);
+				//CONSIDER visual effect?
+				//CONSIDER Toggle power on sound finish?
+				//TODO Add glissdown
+				Camera.FocusOnSim(selectedSim);
+				if (selectedSim.IsSelectable)
+				{
+					PlumbBob.SelectActor(selectedSim);
+				}
+				foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(selectedSim))
+				{
+					selectedSim.Motives.SetValue(motive, motive == CommodityKind.Bladder ? -100 : -95);
+				}
+				selectedSim.BuffManager.AddElement(HashString64("Gamefreak130_CursedBuff"), (Origin)HashString64("FromWonderPower"));
 			}
-			foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(selectedSim))
+			else
             {
-				selectedSim.Motives.SetValue(motive, motive == CommodityKind.Bladder ? -100 : -95);
+				//TODO Refund or something
             }
-			selectedSim.BuffManager.AddElement(HashString64("Gamefreak130_CursedBuff"), (Origin)HashString64("FromWonderPower"));
 			WonderPowers.TogglePowerRunning();
         }
 
@@ -2075,7 +2083,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 					}
 				}
 				Sim ghost = selectedUrnstone.MyGhost;
-				DivineInterventionResurrect instance = new DivineInterventionResurrect.Definition().CreateInstance(ghost, ghost, new InteractionPriority(InteractionPriorityLevel.MaxDeath), false, false) as DivineInterventionResurrect;
+				InteractionInstance instance = new DivineInterventionResurrect.Definition().CreateInstance(ghost, ghost, new InteractionPriority(InteractionPriorityLevel.MaxDeath), false, false);
 				ghost.InteractionQueue.AddNext(instance);
             }
 			else
@@ -2095,17 +2103,26 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			else
 			{
 				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ChildOrAbove).ConvertAll((sim) => sim.SimDescription);
-				selectedSim = SelectTarget(targets, WonderPowers.LocalizeString("DoomDialogTitle")).CreatedSim;
+				selectedSim = SelectTarget(targets, WonderPowers.LocalizeString("DoomDialogTitle"))?.CreatedSim;
 			}
 
-			//CONSIDER animation, visual effect?
-			Audio.StartSound("sting_job_demote");
-			Camera.FocusOnSim(selectedSim);
-			if (selectedSim.IsSelectable)
+			if (selectedSim != null)
 			{
-				PlumbBob.SelectActor(selectedSim);
+				//CONSIDER animation, visual effect?
+				//CONSIDER Toggle power on sound finish?
+				//TODO cancel all interactions
+				Audio.StartSound("sting_job_demote");
+				Camera.FocusOnSim(selectedSim);
+				if (selectedSim.IsSelectable)
+				{
+					PlumbBob.SelectActor(selectedSim);
+				}
+				selectedSim.BuffManager.AddElement(Buffs.BuffDoom.kBuffDoomGuid, (Origin)HashString64("FromWonderPower"));
 			}
-			selectedSim.BuffManager.AddElement(Buffs.BuffDoom.kBuffDoomGuid, (Origin)HashString64("FromWonderPower"));
+			else
+            {
+				//TODO Refund or something
+            }
 			WonderPowers.TogglePowerRunning();
 		}
 
@@ -2117,7 +2134,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				: actor.LotCurrent;
 
 			//TODO Add EOR earthquake sting
-			//TEST
 			Camera.FocusOnLot(lot.LotId, 2f); //2f is standard lerptime
 			Audio.StartSound("earthquake");
 			CameraController.Shake(FireFightingJob.kEarthquakeCameraShakeIntensity, FireFightingJob.kEarthquakeCameraShakeDuration);
@@ -2159,6 +2175,12 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             }
         }
 
+		public static void FeralPosessionActivation(bool isBacklash)
+        {
+			//TODO this
+			throw new NotImplementedException();
+        }
+
 		public static void FireActivation(bool isBacklash)
         {
 			Lot selectedLot;
@@ -2175,6 +2197,29 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 
 			new FireSituation(selectedLot);
+		}
+
+		public static void GhostifyActivation(bool _)
+        {
+			//TEST Child pets
+			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ChildOrAbove && !sim.IsGhostOrHasGhostBuff && !sim.BuffManager.HasElement((BuffNames)Buffs.BuffGhostify.kBuffGhostifyGuid))
+																			.ConvertAll((sim) => sim.SimDescription);
+			Sim sim = SelectTarget(targets, WonderPowers.LocalizeString("GhostifyDialogTitle"))?.CreatedSim;
+			if (sim != null)
+			{
+				Camera.FocusOnSim(sim);
+				if (sim.IsSelectable)
+				{
+					PlumbBob.SelectActor(sim);
+				}
+				sim.InteractionQueue.CancelAllInteractions();
+				sim.BuffManager.AddElement(Buffs.BuffGhostify.kBuffGhostifyGuid, (Origin)HashString64("FromWonderPower"));
+			}
+			else
+            {
+				//TODO refund or something
+            }
+			WonderPowers.TogglePowerRunning();
 		}
 
 		public static void MeteorStrikeActivation(bool isBacklash)
@@ -2217,6 +2262,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				{
 					new ObjectPicker.TabInfo("shop_all_r2", Localization.LocalizeString("Ui/Tooltip/CAS/LoadSim:Header"), list2)
 				};
+
 				while (target == null)
 				{
 					target = ObjectPickerDialog.Show(true, ModalDialog.PauseMode.PauseSimulator, title, Localization.LocalizeString("Ui/Caption/ObjectPicker:OK"), Localization.LocalizeString("Ui/Caption/ObjectPicker:Cancel"), list3, list, 1)?[0].Item as SimDescription;
