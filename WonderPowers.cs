@@ -227,6 +227,7 @@ namespace Gamefreak130
     //TODO Check code for unused blocks, zero references, notimplementedexceptions
     //TODO Find way to dynamically load XML for custom powers
     //TODO Clear statics on quit to menu, persist on travel
+    //TODO Command to set karma
     //CONSIDER Powers implement IWeightable for karmic backlash selection
     public static class WonderPowers
     {

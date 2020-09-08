@@ -42,7 +42,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 //TODO Change sound, make 3d sound based on lot position
                 //CONSIDER Animation for Sims on exit?
                 //Audio.StartSound("sting_death", new Function(() => Parent.SetState(new EndSituation(Parent))));
-                AlarmManager.Global.AddAlarm(180f, TimeUnit.Minutes, delegate { Parent.Exit(); }, "DEBUG", AlarmType.AlwaysPersisted, null);
+                AlarmManager.Global.AddAlarm(180f, TimeUnit.Minutes, Parent.Exit, "DEBUG", AlarmType.AlwaysPersisted, null);
                 Camera.FocusOnLot(Lot.LotId, 2f); //2f is standard lerpTime
                 Parent.mFighters = Lot.GetAllActors().FindAll(IsValidFighter);
 

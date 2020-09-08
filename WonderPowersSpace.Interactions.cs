@@ -18,7 +18,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
             public override InteractionInstance CreateInstance(ref InteractionInstanceParameters parameters)
             {
-                InteractionInstance instance = new GoToLotAndFight() { CancellableByPlayer = parameters.CancellableByPlayer };
+                InteractionInstance instance = new GoToLotAndFight() { CancellableByPlayer = parameters.CancellableByPlayer, Hidden = true };
                 instance.Init(ref parameters);
                 return instance;
             }
@@ -43,7 +43,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
         {
             public override InteractionInstance CreateInstance(ref InteractionInstanceParameters parameters)
             {
-                InteractionInstance instance = new DivineInterventionResurrect() { ResetAge = true, MustRun = true };
+                InteractionInstance instance = new DivineInterventionResurrect() { ResetAge = true, MustRun = true, Hidden = true };
                 instance.Init(ref parameters);
                 return instance;
             }
