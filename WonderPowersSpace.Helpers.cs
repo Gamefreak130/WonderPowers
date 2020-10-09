@@ -39,9 +39,22 @@ using Gamefreak130.WonderPowersSpace.Interactions;
 using Sims3.Gameplay.ActiveCareer.ActiveCareers;
 using Sims3.SimIFace.Enums;
 using static Sims3.SimIFace.ResourceUtils;
+using Gamefreak130.Common;
+using System.Text;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
+	internal class PowerExceptionLogger : EventLogger<Exception>
+	{
+		private PowerExceptionLogger()
+        {
+        }
+
+		internal static readonly PowerExceptionLogger sInstance = new PowerExceptionLogger();
+
+        protected override void Notify() => StyledNotification.Show(new StyledNotification.Format(WonderPowers.LocalizeString("PowerError"), StyledNotification.NotificationStyle.kSystemMessage));
+	}
+
 	[Persistable]
 	public class WonderPower : IEquatable<WonderPower>
 	{
@@ -90,6 +103,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		[Persistable(false)]
 		private delegate void RunDelegate(bool isBacklash);//, GameObject target);
 
+		// The Run() method is used in a OneShotFunctionWithParam added to the Simulator when the power selection dialog ends,
+		// So that any power-specific dialogs should not fire until after the power selection dialog is disposed
+		// Hence why the boolean argument here is an object -- FunctionWithParam delegates take a generic object as their argument
 		public void Run(object isBacklash)
         {
 			try
@@ -101,10 +117,13 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				RunDelegate run = (RunDelegate)Delegate.CreateDelegate(typeof(RunDelegate), mRunMethod);
 				run((bool)isBacklash);
 			}
-			catch
-            {//TODO Log power errors 'cause apparently NRaas won't do it for me (also refunds maybe)
-				StyledNotification.Show(new StyledNotification.Format(WonderPowers.LocalizeString("PowerError"), StyledNotification.NotificationStyle.kSystemMessage));
+			catch (Exception e)
+            {//TEST Refunded cost
+				// Since this runs on the Simulator, NRaas ErrorTrap can't catch any exceptions that occur
+				// So we'll do it live, f*** it! I'll write it, and we'll do it live!
 				WonderPowers.TogglePowerRunning();
+				//WonderPowers.SetKarma(WonderPowers.GetKarma() + Cost());
+				PowerExceptionLogger.sInstance.Log(e);
             }
 		}
 
@@ -211,7 +230,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		private int TotalPromisesFulfilled;
 
 		[Tunable, TunableComment("How many karma points the player starts with")]
-		private static readonly float kInitialKarmaLevel = 200f;//TODO change this back to 0
+		private static readonly int kInitialKarmaLevel = 200;//TODO change this back to 0
 
 		[Tunable, TunableComment("How much karma is gained daily, low range")]
 		private static readonly float kKarmaDailyRationLow = 9f;
@@ -269,7 +288,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		private static bool mBadPowersOn = true;
 
 		[PersistableStatic]
-		private static float sCurrentKarmaLevel = kInitialKarmaLevel;
+		private static int sCurrentKarmaLevel = kInitialKarmaLevel;
 
 		[PersistableStatic]
 		private static float sCurrentBadKarmaChance = 0f;
@@ -282,7 +301,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 		}
 
-		private float Karma
+		private int Karma
 		{
 			get
 			{
@@ -291,15 +310,15 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			set
 			{
 				sCurrentKarmaLevel = value;
-				if (sCurrentKarmaLevel < 0f)
+				if (sCurrentKarmaLevel < 0)
 				{
-					sCurrentKarmaLevel = 0f;
+					sCurrentKarmaLevel = 0;
 				}
-				if (sCurrentKarmaLevel > 100f)
+				if (sCurrentKarmaLevel > 100)
 				{
-					sCurrentKarmaLevel = 100f;
+					sCurrentKarmaLevel = 100;
 				}
-				if (sCurrentKarmaLevel == 100f)
+				if (sCurrentKarmaLevel == 100)
 				{
 					//EventTracker.SendEvent(EventTypeId.kChallengeKarmaReached100);
 					throw new NotImplementedException();
@@ -348,7 +367,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			SaveDialogFlagsToProfile();
 		}
 
-		public WonderPowers()
+		private WonderPowers()
 		{
 			//LoadDialogFlagsFromProfile();
 		}
@@ -448,7 +467,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 									float @float = RandomUtil.GetFloat(kKarmaDailyRationLow, kKarmaDailyRationHigh);
 									if (Karma < 100f)
 									{
-										Karma += @float;
+										//Karma += @float;
 									}
 									VisualEffect visualEffect = VisualEffect.Create("wonderkarma_lot_out");
 									if (visualEffect != null)
@@ -606,7 +625,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public void UsedPower(WonderPower power)
 		{
-			float num = power.Cost();
+			int num = power.Cost();
 			if (num > 0f)
 			{
 				Karma -= num;
@@ -617,7 +636,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public void CancelledPower(WonderPower power)
 		{
-			float num = power.Cost();
+			int num = power.Cost();
 			if (num > 0f)
 			{
 				Karma += num;
@@ -706,7 +725,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool HasEnoughKarma(int karma) => sInstance != null && sInstance.Karma - karma >= 0f;
 
-		public static float GetKarma() => sInstance.Karma;
+		public static int GetKarma() => sInstance.Karma;
 
 		public static void SetKarma(int karma)
 		{
@@ -2223,6 +2242,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             }
 			WonderPowers.TogglePowerRunning();
 		}
+
+		public static void GhostsActivation(bool _)
+        {
+			throw new NotImplementedException();
+        }
 
 		public static void MeteorStrikeActivation(bool isBacklash)
         {

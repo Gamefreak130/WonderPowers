@@ -13,6 +13,8 @@ using Sims3.UI;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
+using Environment = System.Environment;
 
 namespace Gamefreak130.Common
 {
@@ -189,6 +191,102 @@ namespace Gamefreak130.Common
             {
                 Sims3.Gameplay.ActorSystems.BuffManager.ParseBuffData(xmlDbData, true);
             }
+        }
+    }
+
+    public abstract class Logger<T>
+    {
+        static Logger()
+        {
+            Assembly assembly = typeof(Logger<T>).Assembly;
+            sName = assembly.GetName().Name;
+            sModVersion = (Attribute.GetCustomAttribute(assembly, typeof(AssemblyFileVersionAttribute)) as AssemblyFileVersionAttribute).Version;
+            sGameVersionData = GameUtils.GetGenericString(GenericStringID.VersionData).Split('\n');
+        }
+
+        private static readonly string sName;
+
+        private static readonly string sModVersion;
+
+        private static readonly string[] sGameVersionData;
+
+        public abstract void Log(T input);
+
+        protected void WriteLog(StringBuilder content) => WriteLog(content, $"ScriptError_{sName}_{DateTime.Now:M-d-yyyy_hh-mm-ss}__");
+
+        protected virtual void WriteLog(StringBuilder content, string fileName)
+        {
+            uint fileHandle = 0;
+            try
+            {
+                Simulator.CreateExportFile(ref fileHandle, fileName);
+                if (fileHandle != 0)
+                {
+                    CustomXmlWriter xmlWriter = new CustomXmlWriter(fileHandle);
+                    xmlWriter.WriteStartDocument();
+                    xmlWriter.WriteToBuffer(GenerateXmlWrapper(content));
+                    xmlWriter.FlushBufferToFile();
+                }
+                Notify();
+            }
+            finally
+            {
+                if (fileHandle != 0)
+                {
+                    Simulator.CloseScriptErrorFile(fileHandle);
+                }
+            }
+        }
+
+        private string GenerateXmlWrapper(StringBuilder content)
+        {
+            StringBuilder xmlBuilder = new StringBuilder();
+            xmlBuilder.AppendLine($"<{sName}>");
+            xmlBuilder.AppendLine($"<ModVersion value=\"{sModVersion}\"/>");
+            xmlBuilder.AppendLine($"<GameVersion value=\"{sGameVersionData[0]} ({sGameVersionData[5]}) ({sGameVersionData[7]})\"");
+            xmlBuilder.AppendLine($"<InstalledPacks value=\"{GameUtils.sProductFlags}\"/>");
+            // The logger expects the content to have a new line at the end of it
+            // A more new lines are appended here to create exactly one line of padding before and after the XML tags
+            xmlBuilder.AppendLine("<Content>" + Environment.NewLine);
+            xmlBuilder.Append(content.Replace("&", "&amp;"));
+            xmlBuilder.AppendLine(Environment.NewLine + "</Content>");
+            xmlBuilder.AppendLine("<LoadedAssemblies>");
+            xmlBuilder.Append(GenerateAssemblyList());
+            xmlBuilder.AppendLine("</LoadedAssemblies>");
+            xmlBuilder.Append($"</{sName}>");
+            return xmlBuilder.ToString();
+        }
+
+        private StringBuilder GenerateAssemblyList()
+        {
+            StringBuilder result = new StringBuilder();
+            List<string> assemblies = new List<Assembly>(AppDomain.CurrentDomain.GetAssemblies())
+                                            .ConvertAll((assembly) => assembly.GetName().Name);
+            assemblies.Sort();
+            foreach (string assembly in assemblies)
+            {
+                result.AppendLine(" " + assembly);
+            }
+            return result;
+        }
+
+        protected virtual void Notify()
+        {
+        }
+    }
+
+    public abstract class EventLogger<T> : Logger<T>
+    {
+        public override void Log(T @event) => WriteLog(new StringBuilder(@event.ToString()));
+
+        protected override void WriteLog(StringBuilder content, string fileName)
+        {
+            StringBuilder log = new StringBuilder();
+            log.AppendLine("Logged At:");
+            log.AppendLine(" Sim Time: " + SimClock.CurrentTime());
+            log.AppendLine(" Real Time: " + DateTime.Now + Environment.NewLine);
+            log.Append(content);
+            base.WriteLog(content, fileName);
         }
     }
 
