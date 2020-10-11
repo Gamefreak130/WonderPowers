@@ -289,19 +289,20 @@ namespace Gamefreak130.Common
         }
     }
 
-    /// <summary>Transfers (or "Ferries") PersistableStatic type members ("Cargo") across worlds upon traveling.</summary>
-    /// <remarks><para>Using the Ferry, only one copy of a type's PersistableStatic data can be shared across multiple worlds in a save,
+    /// <summary>Transfers (or "Ferries") values of PersistableStatic type members ("Cargo") across worlds when traveling.</summary>
+    /// <remarks><para>Using the Ferry, one copy of a type's PersistableStatic data can be shared across multiple worlds in a save,
     /// as opposed to each world creating and maintaining its own separate copy.</para>
     /// <para>Client code is responsible for setting any default values for Cargo after it has been loaded,
     /// should such values be necessary for new games or newly-exposed saves.</para>
-    /// <para>Only one static instance of a Ferry should exist per associated type. Types derived from a type containing a Ferry
-    /// will not have their declared Cargo saved unless a separate Ferry is declared for the derived type.</para></remarks>
+    /// <para>Types derived from <typeparamref name="T">T</typeparamref> and types from which <typeparamref name="T">T</typeparamref> is derived 
+    /// will not have their declared Cargo saved unless a separate Ferry is called for them as well.</para></remarks>
     /// <typeparam name="T">The type containing PersistableStatic data to be ferried</typeparam>
-    public abstract class Ferry<T>
+    /// <exception cref="NotSupportedException"><typeparamref name="T">T</typeparamref> does not contain PersistableStatic members</exception>
+    public static class Ferry<T>
     {
-        private readonly Dictionary<FieldInfo, object> mCargo;
+        private static readonly Dictionary<FieldInfo, object> mCargo;
 
-        public Ferry()
+        static Ferry()
         {
             FieldInfo[] fields = FindPersistableStatics();
             if (fields.Length == 0)
@@ -315,7 +316,7 @@ namespace Gamefreak130.Common
             }
         }
 
-        private FieldInfo[] FindPersistableStatics()
+        private static FieldInfo[] FindPersistableStatics()
         {
             MemberInfo[] fieldMembers = typeof(T).FindMembers(MemberTypes.Field,
                 BindingFlags.Static | BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic,
@@ -324,7 +325,7 @@ namespace Gamefreak130.Common
             return Array.ConvertAll(fieldMembers, (x) => (FieldInfo)x);
         }
 
-        public void UnloadCargo()
+        public static void UnloadCargo()
         {
             if (GameStates.IsTravelling)
             {
@@ -336,7 +337,7 @@ namespace Gamefreak130.Common
             }
         }
 
-        public void LoadCargo()
+        public static void LoadCargo()
         {
             if (GameStates.IsTravelling)
             {
@@ -346,14 +347,6 @@ namespace Gamefreak130.Common
                 }
             }
         }
-    }
-
-    public class ClassFerry<T> : Ferry<T> where T : class
-    {
-    }
-
-    public class StructFerry<T> : Ferry<T> where T : struct
-    {
     }
 
     public static class Methods

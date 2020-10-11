@@ -233,8 +233,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		[PersistableStatic]
 		private static WonderPowerManager sInstance;
 
-        private static readonly Ferry<WonderPowerManager> sFerry = new ClassFerry<WonderPowerManager>();
-
         private static readonly List<WonderPower> sAllWonderPowers = new List<WonderPower>();
 
 		private bool mIsPowerRunning;
@@ -635,13 +633,13 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				mActiveWonderPower.CleanupAfterPower();
 			}*/
-			sFerry.LoadCargo();
+			Ferry<WonderPowerManager>.LoadCargo();
 			sCurrentBadKarmaChance = 0f;
 			//sInstance.Destroy();
 			Init();
 		}
 
-		internal static void LoadValues() => sFerry.UnloadCargo();
+		internal static void LoadValues() => Ferry<WonderPowerManager>.UnloadCargo();
 
 		public static void LoadMainPowers() => sInstance.LoadPowers();
 
