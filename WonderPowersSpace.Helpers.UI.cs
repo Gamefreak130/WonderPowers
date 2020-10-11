@@ -133,7 +133,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 
         private void SetPowerInfo(WonderPower power)
         {
-			if (power.Cost() <= WonderPowers.GetKarma())
+			if (WonderPowerManager.HasEnoughKarma(power.Cost()))
             {
 				//TODO Color
 				mAcceptButton.Enabled = true;
@@ -156,7 +156,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 			mGoodPowerGrid.Clear();
 			mBadPowerGrid.Clear();
 			ResourceKey resKey = ResourceKey.CreateUILayoutKey("WonderPowerEntry", 0u);
-			foreach (WonderPower power in WonderPowers.GetWonderPowerList())
+			foreach (WonderPower power in WonderPowerManager.GetWonderPowerList())
             {
 				Window window = UIManager.LoadLayout(resKey).GetWindowByExportID(1) as Window;
 				if (window != null)
@@ -209,7 +209,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers.UI
 					power = mBadPowerGrid.SelectedTag as WonderPower;
 				}
 
-				if (power != null && power.Cost() <= WonderPowers.GetKarma())
+				if (power != null && WonderPowerManager.HasEnoughKarma(power.Cost()))
 				{
 					Simulator.AddObject(new OneShotFunctionWithParams(power.Run, false));
 				}

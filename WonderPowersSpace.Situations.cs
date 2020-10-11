@@ -103,7 +103,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             }
             finally
             {
-                Helpers.WonderPowers.TogglePowerRunning();
+                Helpers.WonderPowerManager.TogglePowerRunning();
             }
         }
 
@@ -151,9 +151,9 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             {
             }
 
-            List<GameObject> mBurnableObjects;
+            private List<GameObject> mBurnableObjects;
 
-            List<Sim> mBurnableSims;
+            private List<Sim> mBurnableSims;
 
             public override void Init(FireSituation parent)
             {
@@ -210,7 +210,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
         public override void CleanUp() 
         {
-            Helpers.WonderPowers.TogglePowerRunning();
+            Helpers.WonderPowerManager.TogglePowerRunning();
             base.CleanUp(); 
         }
 
