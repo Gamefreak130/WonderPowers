@@ -288,7 +288,7 @@ namespace Gamefreak130.Common
         }
     }
 
-    /// <summary>Transfers (or "Ferries") PersistableStatic type members ("Cargo") across worlds upon travelling, starting a new game, or loading a different save.</summary>
+    /// <summary>Transfers (or "Ferries") PersistableStatic type members ("Cargo") across worlds upon traveling, starting a new game, or loading a different save.</summary>
     /// <remarks><para>Using the Ferry, only one copy of a type's PersistableStatic data can carry across multiple worlds,
     /// as opposed to each world creating and maintaining its own separate copy.</para>
     /// <para>Only one static instance of a Ferry should exist per associated type. Classes derived from a type containing a Ferry
