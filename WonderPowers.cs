@@ -64,7 +64,7 @@ namespace Gamefreak130
 
         private static void OnPostLoad()
         {
-            WonderPowerManager.PostWorldLoad();
+            WonderPowerManager.LoadValues();
         }
 
         private static void OnWorldLoadFinished(object sender, EventArgs e)

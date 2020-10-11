@@ -1,4 +1,5 @@
-﻿using Sims3.Gameplay.Actors;
+﻿using Sims3.Gameplay;
+using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Socializing;
@@ -288,13 +289,15 @@ namespace Gamefreak130.Common
         }
     }
 
-    /// <summary>Transfers (or "Ferries") PersistableStatic type members ("Cargo") across worlds upon traveling, starting a new game, or loading a different save.</summary>
-    /// <remarks><para>Using the Ferry, only one copy of a type's PersistableStatic data can carry across multiple worlds,
+    /// <summary>Transfers (or "Ferries") PersistableStatic type members ("Cargo") across worlds upon traveling.</summary>
+    /// <remarks><para>Using the Ferry, only one copy of a type's PersistableStatic data can be shared across multiple worlds in a save,
     /// as opposed to each world creating and maintaining its own separate copy.</para>
-    /// <para>Only one static instance of a Ferry should exist per associated type. Classes derived from a type containing a Ferry
+    /// <para>Client code is responsible for setting any default values for Cargo after it has been loaded,
+    /// should such values be necessary for new games or newly-exposed saves.</para>
+    /// <para>Only one static instance of a Ferry should exist per associated type. Types derived from a type containing a Ferry
     /// will not have their declared Cargo saved unless a separate Ferry is declared for the derived type.</para></remarks>
     /// <typeparam name="T">The type containing PersistableStatic data to be ferried</typeparam>
-    public class Ferry<T> where T : class
+    public abstract class Ferry<T>
     {
         private readonly Dictionary<FieldInfo, object> mCargo;
 
@@ -323,20 +326,34 @@ namespace Gamefreak130.Common
 
         public void UnloadCargo()
         {
-            foreach (FieldInfo current in new List<FieldInfo>(mCargo.Keys))
+            if (GameStates.IsTravelling)
             {
-                current.SetValue(null, mCargo[current]);
-                mCargo[current] = null;
+                foreach (FieldInfo current in new List<FieldInfo>(mCargo.Keys))
+                {
+                    current.SetValue(null, mCargo[current]);
+                    mCargo[current] = null;
+                }
             }
         }
 
         public void LoadCargo()
         {
-            foreach (FieldInfo current in new List<FieldInfo>(mCargo.Keys))
+            if (GameStates.IsTravelling)
             {
-                mCargo[current] = current.GetValue(null);
+                foreach (FieldInfo current in new List<FieldInfo>(mCargo.Keys))
+                {
+                    mCargo[current] = current.GetValue(null);
+                }
             }
         }
+    }
+
+    public class ClassFerry<T> : Ferry<T> where T : class
+    {
+    }
+
+    public class StructFerry<T> : Ferry<T> where T : struct
+    {
     }
 
     public static class Methods
