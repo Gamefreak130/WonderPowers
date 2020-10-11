@@ -160,12 +160,12 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
                 }
                 List<ObjectPicker.TabInfo> list3 = new List<ObjectPicker.TabInfo>
                 {
-                    new ObjectPicker.TabInfo("shop_all_r2", Helpers.WonderPowers.LocalizeString("SelectGhost"), list2)
+                    new ObjectPicker.TabInfo("shop_all_r2", Helpers.WonderPowerManager.LocalizeString("SelectGhost"), list2)
                 };
 
                 while (ghostType == SimDescription.DeathType.None)
                 {
-                    List<ObjectPicker.RowInfo> selection = ObjectPickerDialog.Show(true, ModalDialog.PauseMode.PauseSimulator, Helpers.WonderPowers.LocalizeString("GhostifyDialogTitle"), Localization.LocalizeString("Ui/Caption/ObjectPicker:OK"), 
+                    List<ObjectPicker.RowInfo> selection = ObjectPickerDialog.Show(true, ModalDialog.PauseMode.PauseSimulator, Helpers.WonderPowerManager.LocalizeString("GhostifyDialogTitle"), Localization.LocalizeString("Ui/Caption/ObjectPicker:OK"), 
                                                                                     Localization.LocalizeString("Ui/Caption/ObjectPicker:Cancel"), list3, list, 1);
                     ghostType = selection != null ? (SimDescription.DeathType)selection[0].Item : SimDescription.DeathType.None;
                 }

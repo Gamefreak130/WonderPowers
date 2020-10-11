@@ -62,7 +62,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             }
             finally
             {
-                Helpers.WonderPowers.TogglePowerRunning();
+                Helpers.WonderPowerManager.TogglePowerRunning();
             }
         }
     }
@@ -73,7 +73,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
         {
             public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
 
-            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => Helpers.WonderPowers.LocalizeString("PanicReact");
+            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => Helpers.WonderPowerManager.LocalizeString("PanicReact");
         }
 
         public override bool Run()

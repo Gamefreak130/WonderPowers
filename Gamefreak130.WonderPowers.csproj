@@ -93,6 +93,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common.cs" />
     <Compile Include="WonderPowersSpace.Buffs.cs" />
     <Compile Include="WonderPowersSpace.Helpers.cs" />
     <Compile Include="WonderPowers.cs" />
@@ -104,7 +105,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Gamefreak130.WonderPowers.xml" />
-    <Content Include="Resources\KarmaPowers.xml" />
+    <Content Include="Resources\Gamefreak130_KarmaPowers.xml" />
     <Content Include="Resources\MusicEntriesKarmaLoad.xml" />
     <Content Include="Resources\MusicEntriesKarmaLoadEP1.xml" />
     <Content Include="Resources\MusicEntriesKarmaLoadEP11.xml" />
