@@ -10,7 +10,7 @@
     <RootNamespace>Gamefreak130.WonderPowers</RootNamespace>
     <AssemblyName>Gamefreak130.WonderPowers</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
-	<LangVersion>preview</LangVersion>
+    <LangVersion>preview</LangVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
@@ -97,7 +97,7 @@
     <Compile Include="WonderPowersSpace.Helpers.cs" />
     <Compile Include="WonderPowers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WonderPowersSpace.Helpers.UI.cs" />
+    <Compile Include="WonderPowersSpace.UI.cs" />
     <Compile Include="WonderPowersSpace.Interactions.cs" />
     <Compile Include="WonderPowersSpace.Situations.cs" />
     <Compile Include="WonderPowersSpace.TunableSettings.cs" />

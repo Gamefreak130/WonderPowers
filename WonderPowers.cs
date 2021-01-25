@@ -83,7 +83,7 @@ namespace Gamefreak130
             {
                 button.Click += (sender, eventArgs) =>
                 {
-                    Simulator.AddObject(new OneShotFunctionTask(WonderPowersSpace.Helpers.UI.WonderModeMenu.Show));
+                    Simulator.AddObject(new OneShotFunctionTask(WonderPowersSpace.UI.WonderModeMenu.Show));
                     eventArgs.Handled = true;
                 };
                 //TEST travel while powers running

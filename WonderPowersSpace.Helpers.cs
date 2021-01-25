@@ -19,7 +19,7 @@ using Sims3.SimIFace.CAS;
 using Sims3.SimIFace.RouteDestinations;
 using Sims3.UI;
 using Sims3.UI.Hud;
-using Gamefreak130.WonderPowersSpace.Helpers.UI;
+using Gamefreak130.WonderPowersSpace.UI;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Interfaces;
 using System.Reflection;
@@ -62,7 +62,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 	}
 
 	[Persistable]
-	public class WonderPower : IEquatable<WonderPower>
+	public class WonderPower
 	{
 		public string WonderPowerName
 		{
@@ -167,8 +167,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			return cost;
 		}
-
-        public bool Equals(WonderPower s) => WonderPowerName == s.WonderPowerName;
     }
 
 	[Persistable]
@@ -2019,7 +2017,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 												.FindAll((description) => description != null);
 			Urnstone selectedUrnstone = Urnstone.FindGhostsGrave(SelectTarget(targets, WonderPowerManager.LocalizeString("DivineInterventionDialogTitle")));
 			Audio.StartSound("sting_lifetime_opp_success");
-			if (selectedUrnstone.MyGhost == null || !selectedUrnstone.MyGhost.IsSelectable)
+			if (selectedUrnstone.MyGhost is null || !selectedUrnstone.MyGhost.IsSelectable)
             {
 				Sim actor = PlumbBob.SelectedActor;
 				Vector3 position = actor.Position;
@@ -2201,7 +2199,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 					new ObjectPicker.TabInfo("shop_all_r2", Localization.LocalizeString("Ui/Tooltip/CAS/LoadSim:Header"), list2)
 				};
 
-				while (target == null)
+				while (target is null)
 				{
 					target = ObjectPickerDialog.Show(true, ModalDialog.PauseMode.PauseSimulator, title, Localization.LocalizeString("Ui/Caption/ObjectPicker:OK"), Localization.LocalizeString("Ui/Caption/ObjectPicker:Cancel"), list3, list, 1)?[0].Item as SimDescription;
 				}

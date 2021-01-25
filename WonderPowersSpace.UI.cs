@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Gamefreak130.WonderPowersSpace.Helpers;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Tutorial;
 using Sims3.Gameplay.Utilities;
@@ -8,7 +9,7 @@ using Sims3.SimIFace;
 using Sims3.UI;
 using Sims3.UI.Hud;
 
-namespace Gamefreak130.WonderPowersSpace.Helpers.UI
+namespace Gamefreak130.WonderPowersSpace.UI
 {
 	public class WonderModeMenu : ModalDialog
 	{
