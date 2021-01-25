@@ -1,5 +1,6 @@
 ﻿using Sims3.Gameplay;
 using Sims3.Gameplay.Actors;
+using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Socializing;
@@ -24,10 +25,8 @@ namespace Gamefreak130.Common
 
         private readonly GenericDelegate<bool> mFunction;
 
-        public RepeatingFunctionTask(GenericDelegate<bool> function)
+        public RepeatingFunctionTask(GenericDelegate<bool> function) : this(function, 500)
         {
-            mFunction = function;
-            mDelay = 500;
         }
 
         public RepeatingFunctionTask(GenericDelegate<bool> function, int delay)
@@ -38,11 +37,8 @@ namespace Gamefreak130.Common
 
         public override void Dispose()
         {
-            if (mTimer != null)
-            {
-                mTimer.Dispose();
-                mTimer = null;
-            }
+            mTimer?.Dispose();
+            mTimer = null;
             if (ObjectId != ObjectGuid.InvalidObjectGuid)
             {
                 Simulator.DestroyObject(ObjectId);
@@ -53,29 +49,39 @@ namespace Gamefreak130.Common
 
         public override void Simulate()
         {
-            mTimer = StopWatch.Create(StopWatch.TickStyles.Milliseconds);
-            mTimer.Start();
-            do
+            try
             {
-                mTimer.Restart();
-                while (mTimer != null && mTimer.GetElapsedTime() < mDelay)
+                mTimer = StopWatch.Create(StopWatch.TickStyles.Milliseconds);
+                mTimer.Start();
+                do
                 {
+                    mTimer.Restart();
+                    while (mTimer?.GetElapsedTime() < mDelay)
+                    {
+                        if (Simulator.CheckYieldingContext(false))
+                        {
+                            Simulator.Sleep(0u);
+                        }
+                    }
+                    if (!mFunction())
+                    {
+                        break;
+                    }
                     if (Simulator.CheckYieldingContext(false))
                     {
                         Simulator.Sleep(0u);
                     }
                 }
-                if (!mFunction())
-                {
-                    Dispose();
-                    break;
-                }
-                if (Simulator.CheckYieldingContext(false))
-                {
-                    Simulator.Sleep(0u);
-                }
+                while (mTimer is not null);
             }
-            while (mTimer != null);
+            catch (Exception e)
+            {
+                ExceptionLogger.sInstance.Log(e);
+            }
+            finally
+            {
+                Dispose();
+            }
         }
     }
 
@@ -88,15 +94,12 @@ namespace Gamefreak130.Common
             try
             {
                 interactionTuning = AutonomyTuning.GetTuning(newType.FullName, newTarget.FullName);
-                bool flag = interactionTuning == null;
-                if (flag)
+                if (interactionTuning is null)
                 {
                     interactionTuning = AutonomyTuning.GetTuning(oldType, oldType.FullName, oldTarget);
-                    bool flag2 = interactionTuning == null;
-                    if (flag2)
+                    if (interactionTuning is null)
                     {
-                        result = null;
-                        return result;
+                        return null;
                     }
                     if (clone)
                     {
@@ -104,7 +107,7 @@ namespace Gamefreak130.Common
                     }
                     AutonomyTuning.AddTuning(newType.FullName, newTarget.FullName, interactionTuning);
                 }
-                InteractionObjectPair.sTuningCache.Remove(new Pair<Type, Type>(newType, newTarget));
+                InteractionObjectPair.sTuningCache.Remove(new(newType, newTarget));
             }
             catch (Exception)
             {
@@ -113,7 +116,7 @@ namespace Gamefreak130.Common
             return result;
         }
 
-        private static InteractionTuning CloneTuning(InteractionTuning oldTuning) => new InteractionTuning
+        private static InteractionTuning CloneTuning(InteractionTuning oldTuning) => new()
         {
             mFlags = oldTuning.mFlags,
             ActionTopic = oldTuning.ActionTopic,
@@ -122,7 +125,7 @@ namespace Gamefreak130.Common
             CodeVersion = oldTuning.CodeVersion,
             FullInteractionName = oldTuning.FullInteractionName,
             FullObjectName = oldTuning.FullObjectName,
-            mChecks = Methods.CloneList(oldTuning.mChecks),
+            mChecks = Helpers.CloneList(oldTuning.mChecks),
             mTradeoff = CloneTradeoff(oldTuning.mTradeoff),
             PosturePreconditions = oldTuning.PosturePreconditions,
             ScoringFunction = oldTuning.ScoringFunction,
@@ -132,60 +135,59 @@ namespace Gamefreak130.Common
             ShortObjectName = oldTuning.ShortObjectName
         };
 
-        private static Tradeoff CloneTradeoff(Tradeoff old) => new Tradeoff
+        private static Tradeoff CloneTradeoff(Tradeoff old) => new()
         {
             mFlags = old.mFlags,
-            mInputs = Methods.CloneList(old.mInputs),
+            mInputs = Helpers.CloneList(old.mInputs),
             mName = old.mName,
             mNumParameters = old.mNumParameters,
-            mOutputs = Methods.CloneList(old.mOutputs),
+            mOutputs = Helpers.CloneList(old.mOutputs),
             mVariableRestrictions = old.mVariableRestrictions,
             TimeEstimate = old.TimeEstimate
         };
 
-        private static Availability CloneAvailability(Availability old) => new Availability
+        private static Availability CloneAvailability(Availability old) => new()
         {
             mFlags = old.mFlags,
             AgeSpeciesAvailabilityFlags = old.AgeSpeciesAvailabilityFlags,
             CareerThresholdType = old.CareerThresholdType,
             CareerThresholdValue = old.CareerThresholdValue,
-            ExcludingBuffs = Methods.CloneList(old.ExcludingBuffs),
-            ExcludingTraits = Methods.CloneList(old.ExcludingTraits),
+            ExcludingBuffs = Helpers.CloneList(old.ExcludingBuffs),
+            ExcludingTraits = Helpers.CloneList(old.ExcludingTraits),
             MoodThresholdType = old.MoodThresholdType,
             MoodThresholdValue = old.MoodThresholdValue,
             MotiveThresholdType = old.MotiveThresholdType,
             MotiveThresholdValue = old.MotiveThresholdValue,
-            RequiredBuffs = Methods.CloneList(old.RequiredBuffs),
-            RequiredTraits = Methods.CloneList(old.RequiredTraits),
+            RequiredBuffs = Helpers.CloneList(old.RequiredBuffs),
+            RequiredTraits = Helpers.CloneList(old.RequiredTraits),
             SkillThresholdType = old.SkillThresholdType,
             SkillThresholdValue = old.SkillThresholdValue,
             WorldRestrictionType = old.WorldRestrictionType,
             OccultRestrictions = old.OccultRestrictions,
             OccultRestrictionType = old.OccultRestrictionType,
             SnowLevelValue = old.SnowLevelValue,
-            WorldRestrictionWorldNames = Methods.CloneList(old.WorldRestrictionWorldNames),
-            WorldRestrictionWorldTypes = Methods.CloneList(old.WorldRestrictionWorldTypes)
+            WorldRestrictionWorldNames = Helpers.CloneList(old.WorldRestrictionWorldNames),
+            WorldRestrictionWorldTypes = Helpers.CloneList(old.WorldRestrictionWorldTypes)
         };
     }
 
     public class BuffBooter
     {
-        private readonly string mXmlResource;
+        public string mXmlResource;
 
         public BuffBooter(string xmlResource) => mXmlResource = xmlResource;
 
         public void LoadBuffData()
         {
             AddBuffs(null);
-            UIManager.NewHotInstallStoreBuffData += new UIManager.NewHotInstallStoreBuffCallback(AddBuffs);
+            UIManager.NewHotInstallStoreBuffData += AddBuffs;
         }
 
-        private void AddBuffs(ResourceKey[] resourceKeys)
+        public void AddBuffs(ResourceKey[] resourceKeys)
         {
-            XmlDbData xmlDbData = XmlDbData.ReadData(mXmlResource);
-            if (xmlDbData != null)
+            if (XmlDbData.ReadData(mXmlResource) is XmlDbData xmlDbData)
             {
-                Sims3.Gameplay.ActorSystems.BuffManager.ParseBuffData(xmlDbData, true);
+                BuffManager.ParseBuffData(xmlDbData, true);
             }
         }
     }
@@ -200,7 +202,7 @@ namespace Gamefreak130.Common
             sGameVersionData = GameUtils.GetGenericString(GenericStringID.VersionData).Split('\n');
         }
 
-        private static readonly string sName;
+        protected static readonly string sName;
 
         private static readonly string sModVersion;
 
@@ -218,7 +220,7 @@ namespace Gamefreak130.Common
                 Simulator.CreateExportFile(ref fileHandle, fileName);
                 if (fileHandle != 0)
                 {
-                    CustomXmlWriter xmlWriter = new CustomXmlWriter(fileHandle);
+                    CustomXmlWriter xmlWriter = new(fileHandle);
                     xmlWriter.WriteStartDocument();
                     xmlWriter.WriteToBuffer(GenerateXmlWrapper(content));
                     xmlWriter.FlushBufferToFile();
@@ -236,14 +238,14 @@ namespace Gamefreak130.Common
 
         private string GenerateXmlWrapper(StringBuilder content)
         {
-            StringBuilder xmlBuilder = new StringBuilder();
+            StringBuilder xmlBuilder = new();
             xmlBuilder.AppendLine($"<{sName}>");
             xmlBuilder.AppendLine($"<ModVersion value=\"{sModVersion}\"/>");
             xmlBuilder.AppendLine($"<GameVersion value=\"{sGameVersionData[0]} ({sGameVersionData[5]}) ({sGameVersionData[7]})\"/>");
             xmlBuilder.AppendLine($"<InstalledPacks value=\"{GameUtils.sProductFlags}\"/>");
             // The logger expects the content to have a new line at the end of it
             // More new lines are appended here to create exactly one line of padding before and after the XML tags
-            xmlBuilder.AppendLine("<Content>" + System.Environment.NewLine);
+            xmlBuilder.AppendLine("<Content>" + Environment.NewLine);
             xmlBuilder.Append(content.Replace("&", "&amp;"));
             xmlBuilder.AppendLine(Environment.NewLine + "</Content>");
             xmlBuilder.AppendLine("<LoadedAssemblies>");
@@ -255,7 +257,7 @@ namespace Gamefreak130.Common
 
         private StringBuilder GenerateAssemblyList()
         {
-            StringBuilder result = new StringBuilder();
+            StringBuilder result = new();
             List<string> assemblies = new List<Assembly>(AppDomain.CurrentDomain.GetAssemblies())
                                             .ConvertAll((assembly) => assembly.GetName().Name);
             assemblies.Sort();
@@ -276,20 +278,31 @@ namespace Gamefreak130.Common
     /// along with timestamps and the rest of the standard log info.</remarks>
     public abstract class EventLogger<T> : Logger<T>
     {
-        public override void Log(T input) => WriteLog(new StringBuilder(input.ToString()));
+        public override void Log(T input) => WriteLog(new(input.ToString()));
 
         protected override void WriteLog(StringBuilder content, string fileName)
         {
-            StringBuilder log = new StringBuilder();
+            StringBuilder log = new();
             log.AppendLine("Logged At:");
-            log.AppendLine(" Sim Time: " + SimClock.CurrentTime());
+            log.AppendLine($" Sim Time: {SimClock.CurrentTime()}");
             log.AppendLine(" Real Time: " + DateTime.Now + Environment.NewLine);
             log.Append(content);
             base.WriteLog(content, fileName);
         }
     }
 
-    /// <summary>Transfers (or "Ferries") values of PersistableStatic type members ("Cargo") across worlds when traveling.</summary>
+    public class ExceptionLogger : EventLogger<Exception>
+    {
+        private ExceptionLogger()
+        {
+        }
+
+        internal static readonly ExceptionLogger sInstance = new();
+
+        protected override void Notify() => StyledNotification.Show(new($"Error occurred in {sName}\n\nAn error log has been created in your user directory. Please send it to Gamefreak130 for further review.", StyledNotification.NotificationStyle.kSystemMessage));
+    }
+
+    /// <summary>Transfers (or "Ferries") values of PersistableStatic type members ("Cargo") across worlds when traveling</summary>
     /// <remarks><para>Using the Ferry, one copy of a type's PersistableStatic data can be shared across multiple worlds in a save,
     /// as opposed to each world creating and maintaining its own separate copy.</para>
     /// <para>Client code is responsible for setting any default values for Cargo after it has been loaded,
@@ -309,7 +322,7 @@ namespace Gamefreak130.Common
             {
                 throw new NotSupportedException($"There are no PersistableStatic fields declared in {typeof(T)}.");
             }
-            mCargo = new Dictionary<FieldInfo, object>(fields.Length);
+            mCargo = new(fields.Length);
             foreach (FieldInfo current in fields)
             {
                 mCargo[current] = null;
@@ -349,7 +362,7 @@ namespace Gamefreak130.Common
         }
     }
 
-    public static class Methods
+    public static class Helpers
     {
         public static void ForceSocial(Sim actor, Sim target, string socialName, InteractionPriorityLevel priority, bool isCancellable)
         {
@@ -361,19 +374,14 @@ namespace Gamefreak130.Common
                     definition = social;
                 }
             }
-            if (definition == null)
+            if (definition is null)
             {
-                definition = new SocialInteractionA.Definition(socialName, new string[0], null, false);
+                definition = new(socialName, new string[0], null, false);
             }
-            InteractionInstance instance = definition.CreateInstance(target, actor, new InteractionPriority(priority), false, isCancellable);
+            InteractionInstance instance = definition.CreateInstance(target, actor, new(priority), false, isCancellable);
             actor.InteractionQueue.Add(instance);
         }
 
-        public static List<T> CloneList<T>(IEnumerable<T> old)
-        {
-            bool flag = old != null;
-            List<T> result = flag ? new List<T>(old) : null;
-            return result;
-        }
+        public static List<T> CloneList<T>(IEnumerable<T> old) => old is not null ? new(old) : null;
     }
 }

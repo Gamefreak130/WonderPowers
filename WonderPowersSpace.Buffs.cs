@@ -7,7 +7,6 @@ using Sims3.UI;
 using Sims3.Gameplay.Utilities;
 using Sims3.Gameplay.CAS;
 using Sims3.SimIFace.CAS;
-using System;
 using System.Collections.Generic;
 using Sims3.Gameplay.Objects;
 
@@ -36,7 +35,7 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
                     if (CanFight(actor, target))
                     {
                         string social = RandomUtil.GetRandomStringFromList(actor.IsPet ? TunableSettings.kCryHavocPetInteractions : TunableSettings.kCryHavocSimInteractions);
-                        Common.Methods.ForceSocial(actor, target, social, InteractionPriorityLevel.CriticalNPCBehavior, false);
+                        Common.Helpers.ForceSocial(actor, target, social, InteractionPriorityLevel.CriticalNPCBehavior, false);
                     }
                 }
                 actor.AddAlarm(1f, TimeUnit.Seconds, delegate { CruiseForBruise(actor); }, "Gamefreak130 wuz here -- Cry Havoc alarm", AlarmType.DeleteOnReset);
