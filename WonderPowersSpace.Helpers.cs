@@ -151,7 +151,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				return 0;
 			}*/
 			int cost = mCost;
-			if (Household.ActiveHousehold != null)
+			if (Household.ActiveHousehold is not null)
 			{
 				foreach (Sim current in Household.ActiveHousehold.Sims)
 				{
@@ -349,7 +349,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool IsInWitchingHour()
 		{
-			return smWitchingHourState != WitchingHourState.NONE;
+			return smWitchingHourState is not WitchingHourState.NONE;
 		}
 
 		/*public override void Simulate()
@@ -505,7 +505,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static void OnPromiseFulfilled(IDreamAndPromise dream)
 		{
-			if (sInstance != null)
+			if (sInstance is not null)
 			{
 				Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(delegate ()
 				{
@@ -514,7 +514,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				sInstance.mTotalPromisesFulfilled++;
 				float num = 0;// sCurrentKarmaWishAmountModifier;
 				float num2 = kKarmaBasicWishAmount;
-				if (dream is ActiveDreamNode activeDreamNode && activeDreamNode.Owner != null && activeDreamNode.IsMajorWish)
+				if (dream is ActiveDreamNode activeDreamNode && activeDreamNode.Owner is not null && activeDreamNode.IsMajorWish)
 				{
 					num2 = kKarmaLifetimeWishAmount;
 				}
@@ -529,7 +529,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				ShowKarmaDial();
 			}
 			IDreamAndPromise dreamAndPromise = d as IDreamAndPromise;
-			if (dreamAndPromise is ActiveDreamNode activeDreamNode && activeDreamNode.Owner != null)
+			if (dreamAndPromise is ActiveDreamNode activeDreamNode && activeDreamNode.Owner is not null)
 			{
 				VisualEffect.FireOneShotEffect("wonderkarma_gain", activeDreamNode.Owner, Sim.FXJoints.HatGrip, VisualEffect.TransitionType.SoftTransition);
 			}
@@ -646,7 +646,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			XmlDbData xmlDbData = XmlDbData.ReadData("Gamefreak130_KarmaPowers");
 			XmlDbTable xmlDbTable = null;
 			xmlDbData?.Tables.TryGetValue("Power", out xmlDbTable);
-			if (xmlDbTable != null)
+			if (xmlDbTable is not null)
 			{
 				foreach (XmlDbRow row in xmlDbTable.Rows)
 				{
@@ -676,7 +676,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static void OnPowerUsed(WonderPower power)
 		{
-			if (sInstance != null)
+			if (sInstance is not null)
 			{
 				sInstance.UsedPower(power);
 			}
@@ -684,7 +684,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static void OnPowerCancelled(WonderPower power)
 		{
-			if (sInstance != null)
+			if (sInstance is not null)
 			{
 				sInstance.CancelledPower(power);
 			}
@@ -2004,7 +2004,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(selectedSim))
 			{
-				selectedSim.Motives.SetValue(motive, motive == CommodityKind.Bladder ? -100 : -95);
+				selectedSim.Motives.SetValue(motive, motive is CommodityKind.Bladder ? -100 : -95);
 			}
 			selectedSim.BuffManager.AddElement(HashString64("Gamefreak130_CursedBuff"), (Origin)HashString64("FromWonderPower"));
 			WonderPowerManager.TogglePowerRunning();
@@ -2014,7 +2014,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
         {
 			List<SimDescription> targets = new List<Urnstone>(Queries.GetObjects<Urnstone>())
 												.ConvertAll((urnstone) => urnstone.DeadSimsDescription)
-												.FindAll((description) => description != null);
+												.FindAll((description) => description is not null);
 			Urnstone selectedUrnstone = Urnstone.FindGhostsGrave(SelectTarget(targets, WonderPowerManager.LocalizeString("DivineInterventionDialogTitle")));
 			Audio.StartSound("sting_lifetime_opp_success");
 			if (selectedUrnstone.MyGhost is null || !selectedUrnstone.MyGhost.IsSelectable)
@@ -2072,7 +2072,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				: actor.LotCurrent;
 
 			//TODO Add EOR earthquake sting
-			Camera.FocusOnLot(lot.LotId, 2f); //2f is standard lerptime
+			lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted); //2f is standard lerptime
 			Audio.StartSound("earthquake");
 			CameraController.Shake(FireFightingJob.kEarthquakeCameraShakeIntensity, FireFightingJob.kEarthquakeCameraShakeDuration);
 			lot.AddAlarm(FireFightingJob.kEarthquakeTimeUntilTNS, TimeUnit.Minutes, WonderPowerManager.TogglePowerRunning, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted);
@@ -2153,18 +2153,37 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			WonderPowerManager.TogglePowerRunning();
 		}
 
-		public static void GhostsActivation(bool _)
+		public static void GhostsActivation(bool isBacklash)
         {
-			throw new NotImplementedException();
-        }
+			Lot selectedLot;
+			if (isBacklash)
+			{
+				//List<Lot> list = (LotManager.AllLotsWithoutCommonExceptions as List<Lot>).FindAll((lot) => lot.CommercialLotSubType is not CommercialLotSubType.kEP1_HiddenTomb);
+				//selectedLot = RandomUtil.GetRandomObjectFromList(list);
+				Sim actor = PlumbBob.SelectedActor;
+				selectedLot = actor.LotCurrent.IsWorldLot
+					? GetClosestObject((List<Lot>)LotManager.AllLotsWithoutCommonExceptions, actor)
+					: actor.LotCurrent;
+			}
+			else
+			{
+				selectedLot = SelectTarget(WonderPowerManager.LocalizeString("GhostsDestinationTitle"), WonderPowerManager.LocalizeString("GhostsDestinationConfirm"));
+			}
+
+			new GhostsSituation(selectedLot);
+		}
 
 		public static void MeteorStrikeActivation(bool isBacklash)
         {
 			Lot selectedLot;
 			if (isBacklash)
 			{
-				List<Lot> list = (LotManager.AllLotsWithoutCommonExceptions as List<Lot>).FindAll((lot) => lot.CommercialLotSubType != CommercialLotSubType.kEP1_HiddenTomb);
-				selectedLot = RandomUtil.GetRandomObjectFromList(list);
+				//List<Lot> list = (LotManager.AllLotsWithoutCommonExceptions as List<Lot>).FindAll((lot) => lot.CommercialLotSubType is not CommercialLotSubType.kEP1_HiddenTomb);
+				//selectedLot = RandomUtil.GetRandomObjectFromList(list);
+				Sim actor = PlumbBob.SelectedActor;
+				selectedLot = actor.LotCurrent.IsWorldLot
+					? GetClosestObject((List<Lot>)LotManager.AllLotsWithoutCommonExceptions, actor)
+					: actor.LotCurrent;
 			}
 			else
 			{
@@ -2172,6 +2191,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 
 			Audio.StartSound("sting_meteor_forshadow");
+			selectedLot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(selectedLot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted);
 			Meteor.TriggerMeteorEvent(selectedLot.GetRandomPosition(false, true));
 			AlarmManager.Global.AddAlarm(Meteor.kMeteorLifetime + 3, TimeUnit.Minutes, WonderPowerManager.TogglePowerRunning, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted, null);
 		}
@@ -2179,7 +2199,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		private static SimDescription SelectTarget(List<SimDescription> sims, string title)
 		{
 			SimDescription target = null;
-			if (sims != null && sims.Count > 0)
+			if (sims?.Count > 0)
 			{
 				List<ObjectPicker.HeaderInfo> list = new List<ObjectPicker.HeaderInfo>
 				{
@@ -2212,7 +2232,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			List<IMapTagPickerInfo> list = new List<IMapTagPickerInfo>();
 			foreach (Lot lot in LotManager.AllLotsWithoutCommonExceptions)
 			{
-				if (lot.CommercialLotSubType != CommercialLotSubType.kEP1_HiddenTomb)
+				if (lot.CommercialLotSubType is not CommercialLotSubType.kEP1_HiddenTomb)
 				{
 					list.Add(new MapTagPickerLotInfo(lot, lot.IsPlayerHomeLot ? MapTagType.HomeLot
 														: lot.IsResidentialLot ? MapTagType.NeighborLot
@@ -2232,7 +2252,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		{
 			try
 			{
-				if (OptionsDialog.sDialog != null)
+				if (OptionsDialog.sDialog is not null)
 				{
 					if (!mOptionsInjectionHandled)
 					{
@@ -2283,7 +2303,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		private static void ParseXml(string xmlFileName)
 		{
-			if (Simulator.LoadXML(xmlFileName) is XmlDocument xml && xml.GetElementsByTagName("MusicSelection")[0] is XmlElement xmlElement)
+			if (Simulator.LoadXML(xmlFileName)?.GetElementsByTagName("MusicSelection")[0] is XmlElement xmlElement)
 			{
 				OptionsDialog.sDialog.LoadSongData(xmlElement, "Karma", 5);
 				OptionsDialog.sDialog.LoadSongData(xmlElement, "Load", 6);

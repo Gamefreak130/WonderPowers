@@ -118,6 +118,10 @@
 <STR>Gameplay/WonderMode:FireDestinationTitle</STR>
 <KEY>Gameplay/WonderMode:FireDestinationConfirm</KEY>
 <STR>Gameplay/WonderMode:FireDestinationConfirm</STR>
+<KEY>Gameplay/WonderMode:GhostsDestinationTitle</KEY>
+<STR>Gameplay/WonderMode:GhostsDestinationTitle</STR>
+<KEY>Gameplay/WonderMode:GhostsDestinationConfirm</KEY>
+<STR>Gameplay/WonderMode:GhostsDestinationConfirm</STR>
 <KEY>Gameplay/WonderMode:CurseDialogTitle</KEY>
 <STR>Gameplay/WonderMode:CurseDialogTitle</STR>
 <KEY>Gameplay/WonderMode:DivineInterventionDialogTitle</KEY>

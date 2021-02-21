@@ -2,6 +2,7 @@
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
@@ -383,5 +384,7 @@ namespace Gamefreak130.Common
         }
 
         public static List<T> CloneList<T>(IEnumerable<T> old) => old is not null ? new(old) : null;
+
+        public static object CoinFlipSelect(object obj1, object obj2) => RandomUtil.CoinFlip() ? obj1 : obj2;
     }
 }
