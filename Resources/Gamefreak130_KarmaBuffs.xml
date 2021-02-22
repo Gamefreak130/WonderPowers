@@ -70,4 +70,13 @@
     <TimeoutLength>1440</TimeoutLength>
     <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffGhostify, Gamefreak130.WonderPowers</CustomClassName>
   </BuffList>
+  <BuffList>
+    <Hex>Gamefreak130_GoodMoodBuff=0x858E9F63DE5C0576</Hex>
+    <BuffName>Gamefreak130_GoodMoodBuff</BuffName>
+    <BuffDescription>Gamefreak130_GoodMoodBuffDescription</BuffDescription>
+    <ThumbFilename>goodmood</ThumbFilename>
+    <EffectValue>20</EffectValue>
+    <AxisEffected>Happy</AxisEffected>
+    <TimeoutLength>120</TimeoutLength>
+  </BuffList>
 </Gamefreak130_KarmaBuffs>

@@ -2173,6 +2173,27 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			new GhostsSituation(selectedLot);
 		}
 
+		public static void GoodMoodActivation(bool _)
+        {
+			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ChildOrAbove).ConvertAll((sim) => sim.SimDescription);
+			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("GoodMoodDialogTitle"))?.CreatedSim;
+
+			//CONSIDER visual effect?
+			//CONSIDER Toggle power on sound finish?
+			Audio.StartSound("sting_good_mood");
+			Camera.FocusOnSim(selectedSim);
+			if (selectedSim.IsSelectable)
+			{
+				PlumbBob.SelectActor(selectedSim);
+			}
+			foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(selectedSim))
+			{
+				selectedSim.Motives.SetValue(motive, 100);
+			}
+			selectedSim.BuffManager.AddElement(HashString64("Gamefreak130_GoodMoodBuff"), (Origin)HashString64("FromWonderPower"));
+			WonderPowerManager.TogglePowerRunning();
+		}
+
 		public static void MeteorStrikeActivation(bool isBacklash)
         {
 			Lot selectedLot;
