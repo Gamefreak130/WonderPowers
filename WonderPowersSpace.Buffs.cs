@@ -9,6 +9,7 @@ using Sims3.Gameplay.CAS;
 using Sims3.SimIFace.CAS;
 using System.Collections.Generic;
 using Sims3.Gameplay.Objects;
+using Gamefreak130.Common;
 
 namespace Gamefreak130.WonderPowersSpace.Buffs
 {
@@ -43,7 +44,7 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
         }
 
         private static bool CanFight(Sim x, Sim y)
-            => y != null && (y.CurrentInteraction is null || y.CurrentInteraction.GetPriority().Level < InteractionPriorityLevel.CriticalNPCBehavior) && x != y 
+            => y is not null && (y.CurrentInteraction is null || y.CurrentInteraction.GetPriority().Level < InteractionPriorityLevel.CriticalNPCBehavior) && x != y 
             && x.BuffManager.HasElement(kBuffCryHavocGuid) && y.BuffManager.HasElement(kBuffCryHavocGuid)
             && x.IsPet == y.IsPet && ((x.SimDescription.Teen && y.SimDescription.Teen) || (x.SimDescription.YoungAdultOrAbove && y.SimDescription.YoungAdultOrAbove));
     }
@@ -83,7 +84,7 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
 
         public const ulong kBuffGhostifyGuid = 0xABECC1DBFB07E2B9;
 
-        private static readonly SimDescription.DeathType[] sHumanDeathTypes = new SimDescription.DeathType[]
+        private static readonly SimDescription.DeathType[] sHumanDeathTypes =
         {
             SimDescription.DeathType.OldAge,
             SimDescription.DeathType.Drown,
@@ -120,7 +121,7 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
             {
                 Sim actor = bm.Actor;
                 biGhostify.mGhostType = SelectGhostType(actor);
-                string name = (actor.SimDescription.Age != CASAgeGenderFlags.Child) ? "ep4PotionWearOff" : "ep4PotionWearOffChild";
+                string name = (actor.SimDescription.Age is not CASAgeGenderFlags.Child) ? "ep4PotionWearOff" : "ep4PotionWearOffChild";
                 Audio.StartObjectSound(actor.ObjectId, "sting_ghost_appear", false);
                 VisualEffect.FireOneShotEffect(name, actor, Sim.FXJoints.Spine0, VisualEffect.TransitionType.SoftTransition);
                 World.ObjectSetGhostState(actor.ObjectId, biGhostify.mGhostType, (uint)actor.SimDescription.AgeGenderSpecies);
@@ -131,42 +132,42 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
         private static uint SelectGhostType(Sim sim)
         {
             SimDescription.DeathType ghostType = SimDescription.DeathType.None;
-            if (sim != null)
+            if (sim is not null)
             {
                 List<SimDescription.DeathType> types;
                 if (sim.IsHuman)
                 {
-                    types = new List<SimDescription.DeathType>(sHumanDeathTypes);
+                    types = new(sHumanDeathTypes);
                 }
                 else
                 {
-                    return RandomUtil.CoinFlip() ? (uint)SimDescription.DeathType.PetOldAgeGood : (uint)SimDescription.DeathType.PetOldAgeBad;
+                    return (uint)Common.Helpers.CoinFlipSelect(SimDescription.DeathType.PetOldAgeGood, SimDescription.DeathType.PetOldAgeBad);
                 }
 
-                List<ObjectPicker.HeaderInfo> list = new List<ObjectPicker.HeaderInfo>
+                List<ObjectPicker.HeaderInfo> list = new()
                 {
-                    new ObjectPicker.HeaderInfo("Ui/Caption/ObjectPicker:Ghost", "Ui/Caption/ObjectPicker:Ghost", 300)
+                    new("Ui/Caption/ObjectPicker:Ghost", "Ui/Caption/ObjectPicker:Ghost", 300)
                 };
-                List<ObjectPicker.RowInfo> list2 = new List<ObjectPicker.RowInfo>();
+                List<ObjectPicker.RowInfo> list2 = new();
                 foreach (SimDescription.DeathType current in types)
                 {
                     string name = Sims3.UI.CAS.CASBasics.mGhostDeathNames[types.IndexOf(current)];
-                    ObjectPicker.RowInfo item = new ObjectPicker.RowInfo(current, new List<ObjectPicker.ColumnInfo>
+                    ObjectPicker.RowInfo item = new ObjectPicker.RowInfo(current, new()
                     {
                         new ObjectPicker.ThumbAndTextColumn(new ThumbnailKey(ResourceKey.CreatePNGKey(name, 0u), ThumbnailSize.ExtraLarge), Urnstone.DeathTypeToLocalizedString(current))
                     });
                     list2.Add(item);
                 }
-                List<ObjectPicker.TabInfo> list3 = new List<ObjectPicker.TabInfo>
+                List<ObjectPicker.TabInfo> list3 = new()
                 {
-                    new ObjectPicker.TabInfo("shop_all_r2", Helpers.WonderPowerManager.LocalizeString("SelectGhost"), list2)
+                    new("shop_all_r2", Helpers.WonderPowerManager.LocalizeString("SelectGhost"), list2)
                 };
 
-                while (ghostType == SimDescription.DeathType.None)
+                while (ghostType is SimDescription.DeathType.None)
                 {
                     List<ObjectPicker.RowInfo> selection = ObjectPickerDialog.Show(true, ModalDialog.PauseMode.PauseSimulator, Helpers.WonderPowerManager.LocalizeString("GhostifyDialogTitle"), Localization.LocalizeString("Ui/Caption/ObjectPicker:OK"), 
                                                                                     Localization.LocalizeString("Ui/Caption/ObjectPicker:Cancel"), list3, list, 1);
-                    ghostType = selection != null ? (SimDescription.DeathType)selection[0].Item : SimDescription.DeathType.None;
+                    ghostType = selection is not null ? (SimDescription.DeathType)selection[0].Item : SimDescription.DeathType.None;
                 }
             }
             return (uint)ghostType;

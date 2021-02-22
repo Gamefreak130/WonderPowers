@@ -482,10 +482,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
         {
 			if (methodName.Contains(","))
 			{
-				string[] array = methodName.Split(new char[]
-				{
-			        ','
-				});
+				string[] array = methodName.Split(new[] { ',' });
 				string typeName = array[0] + "," + array[1];
 				Type type = Type.GetType(typeName, true);
 				string text = array[2];
@@ -2017,7 +2014,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 												.FindAll((description) => description is not null);
 			Urnstone selectedUrnstone = Urnstone.FindGhostsGrave(SelectTarget(targets, WonderPowerManager.LocalizeString("DivineInterventionDialogTitle")));
 			Audio.StartSound("sting_lifetime_opp_success");
-			if (selectedUrnstone.MyGhost is null || !selectedUrnstone.MyGhost.IsSelectable)
+			if (selectedUrnstone.MyGhost is null or { IsSelectable: false })
             {
 				Sim actor = PlumbBob.SelectedActor;
 				Vector3 position = actor.Position;
@@ -2081,16 +2078,16 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             {
 				if (sim.IsPet)
                 {
-					PetStartleBehavior.StartlePet(sim, StartleType.Invalid, (Origin)HashString64("FromWonderPower"), lot, true, PetStartleReactionType.NoReaction, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior));
+					PetStartleBehavior.StartlePet(sim, StartleType.Invalid, (Origin)HashString64("FromWonderPower"), lot, true, PetStartleReactionType.NoReaction, new(InteractionPriorityLevel.CriticalNPCBehavior));
                 }
 				else
                 {
-					InteractionInstance instance = new PanicReact.Definition().CreateInstance(sim, sim, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior), false, false);
+					InteractionInstance instance = new PanicReact.Definition().CreateInstance(sim, sim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false);
 					sim.InteractionQueue.AddNext(instance);
                 }
             }
 
-			List<GameObject> breakableObjects = lot.GetObjects<GameObject>((@object) => @object.Repairable is RepairableComponent component && !component.Broken);
+			List<GameObject> breakableObjects = lot.GetObjects<GameObject>((@object) => @object.Repairable is { Broken: false });
 			for (int i = 0; i < TunableSettings.kEarthquakeMaxBroken; i++)
             {
 				if (breakableObjects.Count == 0) { break; }
@@ -2222,22 +2219,22 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			SimDescription target = null;
 			if (sims?.Count > 0)
 			{
-				List<ObjectPicker.HeaderInfo> list = new List<ObjectPicker.HeaderInfo>
+				List<ObjectPicker.HeaderInfo> list = new()
 				{
-					new ObjectPicker.HeaderInfo("Ui/Caption/ObjectPicker:Name", "Ui/Tooltip/ObjectPicker:Name", 500)
+					new("Ui/Caption/ObjectPicker:Name", "Ui/Tooltip/ObjectPicker:Name", 500)
 				};
-				List<ObjectPicker.RowInfo> list2 = new List<ObjectPicker.RowInfo>();
+				List<ObjectPicker.RowInfo> list2 = new();
 				foreach (SimDescription description in sims)
 				{
-					ObjectPicker.RowInfo item = new ObjectPicker.RowInfo(description, new List<ObjectPicker.ColumnInfo>
+					ObjectPicker.RowInfo item = new(description, new()
 					{
 						new ObjectPicker.ThumbAndTextColumn(description.GetThumbnailKey(ThumbnailSize.Large, 0), description.FullName)
 					});
 					list2.Add(item);
 				}
-				List<ObjectPicker.TabInfo> list3 = new List<ObjectPicker.TabInfo>
+				List<ObjectPicker.TabInfo> list3 = new()
 				{
-					new ObjectPicker.TabInfo("shop_all_r2", Localization.LocalizeString("Ui/Tooltip/CAS/LoadSim:Header"), list2)
+					new("shop_all_r2", Localization.LocalizeString("Ui/Tooltip/CAS/LoadSim:Header"), list2)
 				};
 
 				while (target is null)
@@ -2250,7 +2247,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		private static Lot SelectTarget(string title, string confirm)
         {
-			List<IMapTagPickerInfo> list = new List<IMapTagPickerInfo>();
+			List<IMapTagPickerInfo> list = new();
 			foreach (Lot lot in LotManager.AllLotsWithoutCommonExceptions)
 			{
 				if (lot.CommercialLotSubType is not CommercialLotSubType.kEP1_HiddenTomb)
@@ -2277,8 +2274,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				{
 					if (!mOptionsInjectionHandled)
 					{
-						OptionsDialog.sDialog.mMusicData.Add(new Dictionary<string, List<OptionsDialog.SongData>>());
-						OptionsDialog.sDialog.mMusicData.Add(new Dictionary<string, List<OptionsDialog.SongData>>());
+						OptionsDialog.sDialog.mMusicData.Add(new());
+						OptionsDialog.sDialog.mMusicData.Add(new());
 						Button button = OptionsDialog.sDialog.mModalDialogWindow.GetChildByID(2822726298u, true) as Button;
 						button.Click += OnMusicSelectionClicked;
 						button = OptionsDialog.sDialog.mModalDialogWindow.GetChildByID(2822726299u, true) as Button;

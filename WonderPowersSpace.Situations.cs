@@ -65,17 +65,20 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 PruneFighters();
                 foreach (Sim sim in Parent.mFighters)
                 {
-                    if (sim != null)
+                    if (sim is not null)
                     {
                         sim.AssignRole(Parent);
-                        GoToLotAndFight visitLot = new GoToLotAndFight.Definition().CreateInstance(Lot, sim, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as GoToLotAndFight;
+                        GoToLotAndFight visitLot = new GoToLotAndFight.Definition().CreateInstance(Lot, sim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as GoToLotAndFight;
                         ForceSituationSpecificInteraction(sim, visitLot);
                     }
                 }
             }
 
-            private bool IsValidFighter(Sim sim) => sim != null && sim.SimDescription.TeenOrAbove && !sim.IsHorse && sim.CanBeSocializedWith;
+            private bool IsValidFighter(Sim sim) => sim is { IsHorse: false, CanBeSocializedWith: true, SimDescription: { TeenOrAbove: true } };
 
+            // Two Sims can fight each other only if they are both pets, both teens, or both adults or above
+            // This method ensures that there are an even number of fighters in each of these three groups
+            // So that any Sim always has someone to fight with
             private void PruneFighters()
             {
                 Predicate<Sim>[] predicates = {
@@ -100,11 +103,11 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             {
                 foreach (Sim sim in mFighters)
                 {
-                    if (sim != null)
+                    if (sim is not null)
                     {
                         sim.BuffManager.RemoveElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid);
                         sim.RemoveRole(this);
-                        Sim.MakeSimGoHome(sim, false, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior));
+                        Sim.MakeSimGoHome(sim, false, new(InteractionPriorityLevel.CriticalNPCBehavior));
                     }
                 }
                 AlarmManager.RemoveAlarm(mExitHandle);
@@ -230,7 +233,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
         private void CheckForExit()
         {
-            if ((Lot.FireManager == null || Lot.FireManager.NoFire) && Lot.GetSims((sim) => FirefighterSituation.IsSimOnFire(sim)).Count == 0)
+            if ((Lot.FireManager is null or { NoFire: true }) && Lot.GetSims((sim) => FirefighterSituation.IsSimOnFire(sim)).Count == 0)
             {
                 Exit();
             }
@@ -261,9 +264,9 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
         private struct ColorInfo
         {
-            public LightGameObject.LightColor Color { get; }
+            public LightGameObject.LightColor Color;
 
-            public Vector3 CustomColorVec { get; }
+            public Vector3 CustomColorVec;
 
             public ColorInfo(LightGameObject.LightColor color, Vector3 colorVec)
             {
@@ -282,7 +285,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             {
             }
 
-            private static readonly SimDescription.DeathType[] sValidDeathTypes = new SimDescription.DeathType[]
+            private static readonly SimDescription.DeathType[] sValidDeathTypes =
             {
                 SimDescription.DeathType.OldAge,
                 SimDescription.DeathType.Drown,
@@ -336,12 +339,11 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                         lightGameObject.DisableInteractions();
                     }
 
-                    Simulator.AddObject(new OneShotFunction(delegate {
-                        for (int i = 0; i < RandomUtil.GetInt(TunableSettings.kFireMin, TunableSettings.kFireMax); i++)
-                        {
-                            CreateAngryGhost();
-                        }
-                    }));
+                    
+                    for (int i = 0; i < RandomUtil.GetInt(TunableSettings.kFireMin, TunableSettings.kFireMax); i++)
+                    {
+                        Simulator.AddObject(new OneShotFunction(CreateAngryGhost));
+                    }
                     
                 }
                 catch (Exception e)
@@ -362,7 +364,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                     ropParams.ValidFloors[i] = (sbyte)(i + lotDisplayLevelInfo.mMin);
                 }
                 ropParams.FglParams.BooleanConstraints &= ~FindGoodLocationBooleans.PreferEmptyTiles;
-                List<GameObject> list = new List<GameObject>();
+                List<GameObject> list = new();
                 for (int i = 0; i < (int)num; i++)
                 {
                     if (CreateObjectOnLot("fogEmitter", ProductVersion.BaseGame, null, lot, ropParams, true) is not GameObject gameObject)
@@ -442,7 +444,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 }
                 if (ghost.IsHuman && RandomUtil.RandomChance01(GhostHunter.kAngryGhostAncientOutfitChance))
                 {
-                    string name = string.Format("{0}{1}{2}", OutfitUtils.GetAgePrefix(ghost.Age), OutfitUtils.GetGenderPrefix(ghost.Gender), RandomUtil.GetRandomStringFromList(GhostHunter.GhostHunterJob.sAncientCasOutfits));
+                    string name = $"{OutfitUtils.GetAgePrefix(ghost.Age)}{OutfitUtils.GetGenderPrefix(ghost.Gender)}{RandomUtil.GetRandomStringFromList(GhostHunter.GhostHunterJob.sAncientCasOutfits)}";
                     SimOutfit uniform = new(ResourceKey.CreateOutfitKeyFromProductVersion(name, ProductVersion.EP2));
                     if (OutfitUtils.TryApplyUniformToOutfit(ghost.GetOutfit(OutfitCategories.Everyday, 0), uniform, ghost, "GhostsSituation.CreateAngryGhost", out SimOutfit outfit))
                     {
@@ -493,7 +495,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                     {
                         if (num != 0 && !base.Lot.IsRoomHidden(num))
                         {
-                            list.Add(new GhostHunter.GhostHunterJob.RoomSizeInfo(base.Lot, num));
+                            list.Add(new(base.Lot, num));
                         }
                     }
                 }
