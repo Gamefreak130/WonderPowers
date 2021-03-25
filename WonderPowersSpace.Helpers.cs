@@ -42,6 +42,7 @@ using static Sims3.SimIFace.ResourceUtils;
 using Gamefreak130.Common;
 using System.Text;
 using System.Collections.ObjectModel;
+using Sims3.UI.CAS;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
@@ -56,7 +57,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
         {
         }
 
-		internal static readonly PowerExceptionLogger sInstance = new PowerExceptionLogger();
+		internal static readonly PowerExceptionLogger sInstance = new();
 
         protected override void Notify() => StyledNotification.Show(new StyledNotification.Format(WonderPowerManager.LocalizeString("PowerError"), StyledNotification.NotificationStyle.kSystemMessage));
 	}
@@ -224,7 +225,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		[Tunable, TunableComment("Distance to check for affected nearby Sims")]
 		private static readonly float kNearbySimsDistance = 10f;
 
-		public static Vector3 kWonderBuffVfxOffset = new Vector3(0.097f, 0.5f, -0.113f);
+		public static Vector3 kWonderBuffVfxOffset = new(0.097f, 0.5f, -0.113f);
 
 		private static WitchingHourState smWitchingHourState = WitchingHourState.NONE;
 
@@ -2100,7 +2101,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             {
 				Vector3 randomPosition = lot.GetRandomPosition(true, true);
 				TrashPile trashPile = CreateObjectOutOfWorld("TrashPileIndoor") as TrashPile;
-				World.FindGoodLocationParams fglParams = new World.FindGoodLocationParams(randomPosition);
+				World.FindGoodLocationParams fglParams = new(randomPosition);
 				if (PlaceAtGoodLocation(trashPile, fglParams, true))
                 {
 					trashPile.AddToWorld();
@@ -2177,6 +2178,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 			//CONSIDER visual effect?
 			//CONSIDER Toggle power on sound finish?
+			//CONSIDER styled notifications (not just for this, but for all of these potentially?)
 			Audio.StartSound("sting_good_mood");
 			Camera.FocusOnSim(selectedSim);
 			if (selectedSim.IsSelectable)
@@ -2189,6 +2191,19 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			selectedSim.BuffManager.AddElement(HashString64("Gamefreak130_GoodMoodBuff"), (Origin)HashString64("FromWonderPower"));
 			WonderPowerManager.TogglePowerRunning();
+		}
+
+		public static void InstantBeautyActivation(bool _)
+        {
+			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ToddlerOrAbove && !sim.OccultManager.DisallowClothesChange() && !sim.BuffManager.DisallowClothesChange()).ConvertAll((sim) => sim.SimDescription);
+			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("InstantBeautyDialogTitle"))?.CreatedSim;
+
+            // CONSIDER anim/vis effect and sting?
+            CASLogic singleton = CASLogic.GetSingleton();
+            singleton.LoadSim(selectedSim.SimDescription, selectedSim.CurrentOutfitCategory, 0);
+            singleton.UseTempSimDesc = true;
+            GameStates.sSingleton.mInWorldState.GotoCASMode((InWorldState.SubState)HashString32("CASWonderModeState"));
+            WonderPowerManager.TogglePowerRunning();
 		}
 
 		public static void MeteorStrikeActivation(bool isBacklash)
@@ -2262,80 +2277,77 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		}
 	}
 
-	internal static class OptionsInjector
+	public class CASWonderModeState : CASFullModeState
     {
-		private static bool mOptionsInjectionHandled;
+		// CONSIDER route through MasterControllerIntegration if necessary
+		public CASWonderModeState() : base()
+        {
+			mStateId = (int)HashString32("CASWonderModeState");
+			mStateName = "CAS Wonder Mode";
+		}
 
-		internal static bool InjectOptions()
-		{
-			try
+        public override void Startup()
+        {
+			base.Startup();
+			CASLogic cas = CASLogic.GetSingleton();
+			cas.ShowUI += OnShowUI;
+        }
+
+        public override void Shutdown()
+        {
+			CASLogic cas = CASLogic.GetSingleton();
+			cas.ShowUI -= OnShowUI;
+			base.Shutdown();
+		}
+
+        public static void OnShowUI(bool toShow)
+        {
+			if (toShow)
 			{
-				if (OptionsDialog.sDialog is not null)
-				{
-					if (!mOptionsInjectionHandled)
+				CASWonderMode.HideCharacterSheetElement((uint)CASCharacterSheet.ControlIDs.CharacterButton);
+				CASWonderMode.HideCharacterSheetElement((uint)CASCharacterSheet.ControlIDs.CharacterText);
+				CASWonderMode.HideCharacterSheetElement((uint)CASCharacterSheet.ControlIDs.ClothingButton);
+				CASWonderMode.HideCharacterSheetElement((uint)CASCharacterSheet.ControlIDs.ClothingText);
+				CASWonderMode.HideCharacterSheetElement((uint)CASCharacterSheet.ControlIDs.RandomizeButton);
+				CASWonderMode.HideCharacterSheetElement((uint)CASCharacterSheet.ControlIDs.RandomizeFaceButton);
+
+				if (CASBasics.gSingleton?.GetChildByID((uint)CASBasics.ControlIDs.HumanBasicsWindow, true) is WindowBase window)
+                {
+					for (uint i = 0; i < 5; i++)
 					{
-						OptionsDialog.sDialog.mMusicData.Add(new());
-						OptionsDialog.sDialog.mMusicData.Add(new());
-						Button button = OptionsDialog.sDialog.mModalDialogWindow.GetChildByID(2822726298u, true) as Button;
-						button.Click += OnMusicSelectionClicked;
-						button = OptionsDialog.sDialog.mModalDialogWindow.GetChildByID(2822726299u, true) as Button;
-						button.Click += OnMusicSelectionClicked;
-						ParseXml("MusicEntriesKarmaLoad");
-						foreach (uint num in Enum.GetValues(typeof(ProductVersion)))
-						{
-							if (GameUtils.IsInstalled((ProductVersion)num))
-							{
-								string name = ((ProductVersion)num).ToString();
-								ParseXml("MusicEntriesKarmaLoad" + name);
-							}
-						}
-						mOptionsInjectionHandled = true;
+						if (window.GetChildByIndex(i) is WindowBase window2)
+                        {
+							window2.Visible = false;
+                        }
+					}
+					WindowBase window3 = window.GetChildByIndex(5);
+					if (window3 is not null)
+					{
+						window3.Area = new(new(window3.Area.TopLeft.x, 80), new(window3.Area.BottomRight.x, 80));
+					}
+					window3 = window.GetChildByIndex(6);
+					if (window3 is not null)
+					{
+						window3.Area = new(new(window3.Area.TopLeft.x, 170), new(window3.Area.BottomRight.x, 170));
 					}
 				}
-				else
-				{
-					mOptionsInjectionHandled = false;
-				}
-				return true;
-			}
-			catch
-			{
-				return false;
-			}
-		}
 
-		private static void OnMusicSelectionClicked(WindowBase sender, UIButtonClickEventArgs eventArgs)
-		{
-			if (sender.ID == 2822726298u)
-			{
-				OptionsDialog.sDialog.mButtonHolderWindow.Visible = false;
-				OptionsDialog.sDialog.mCurrentFilterIndex = (OptionsDialog.MusicTypeIndex)5;
-			}
-			if (sender.ID == 2822726299u)
-			{
-				OptionsDialog.sDialog.mButtonHolderWindow.Visible = false;
-				OptionsDialog.sDialog.mCurrentFilterIndex = (OptionsDialog.MusicTypeIndex)6;
-			}
-			OptionsDialog.sDialog.UpdateTable();
-		}
-
-		private static void ParseXml(string xmlFileName)
-		{
-			if (Simulator.LoadXML(xmlFileName)?.GetElementsByTagName("MusicSelection")[0] is XmlElement xmlElement)
-			{
-				OptionsDialog.sDialog.LoadSongData(xmlElement, "Karma", 5);
-				OptionsDialog.sDialog.LoadSongData(xmlElement, "Load", 6);
-				if (OptionsDialog.sDialog.mItemGridGenreButtons.Count > 0)
-				{
-					OptionsDialog.sDialog.mItemGridGenreButtons.SelectedItem = 0;
-					string text = OptionsDialog.sDialog.mItemGridGenreButtons.InternalGrid.CellTags[0, 0] as string;
-					if (!string.IsNullOrEmpty(text))
-					{
-						OptionsDialog.sDialog.mCurrentGenre = text;
-						OptionsDialog.sDialog.UpdateTable();
-					}
-				}
+				if (CASPuck.Instance is CASPuck puck)
+                {
+					if (puck.GetChildByID((uint)CASPuck.ControlIDs.CloseButton, true) is Button button)
+                    {
+						button.Click -= puck.OnCloseClick;
+						button.Click -= CASWonderMode.OnCloseClick;
+						button.Click += CASWonderMode.OnCloseClick;
+                    }
+					if (puck.GetChildByID((uint)CASPuck.ControlIDs.OptionsButton, true) is Button button2)
+                    {
+						button2.Click -= puck.OnOptionsClick;
+						button2.Click -= CASWonderMode.OnOptionsClick;
+						button2.Click += CASWonderMode.OnOptionsClick;
+                    }
+                }
 			}
 		}
-	}
+    }
 }

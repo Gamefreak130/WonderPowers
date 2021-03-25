@@ -1,5 +1,7 @@
 ﻿using Gamefreak130.Common;
 using Gamefreak130.WonderPowersSpace.Helpers;
+using Gamefreak130.WonderPowersSpace.UI;
+using Sims3.Gameplay;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
@@ -35,11 +37,12 @@ namespace Gamefreak130
         {
             WonderPowerManager.Init();
             WonderPowerManager.LoadMainPowers();
+            bool flag = true;
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 if (assembly.GetName().Name == "Gamefreak130.LTRMenuMusicReplacement")
                 {
-                    Simulator.AddObject(new RepeatingFunctionTask(OptionsInjector.InjectOptions));
+                    flag = false;
                 }
                 else
                 {
@@ -52,6 +55,10 @@ namespace Gamefreak130
                         }
                     }
                 }
+            }
+            if (flag)
+            {
+                Simulator.AddObject(new RepeatingFunctionTask(OptionsInjector.InjectOptions));
             }
         }
 
@@ -83,12 +90,13 @@ namespace Gamefreak130
             {
                 button.Click += (sender, eventArgs) =>
                 {
-                    Simulator.AddObject(new OneShotFunctionTask(WonderPowersSpace.UI.WonderModeMenu.Show));
+                    Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(WonderModeMenu.Show));
                     eventArgs.Handled = true;
                 };
                 //TEST travel while powers running
                 button.Enabled = !WonderPowerManager.IsPowerRunning;
             }
+            GameStates.sSingleton.mInWorldState.mStateMachine.AddState(new CASWonderModeState());
             return ListenerAction.Remove;
         }
     }

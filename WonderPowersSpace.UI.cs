@@ -1,13 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml;
 using Gamefreak130.WonderPowersSpace.Helpers;
+using Sims3.Gameplay;
 using Sims3.Gameplay.Core;
+using Sims3.Gameplay.Passport;
 using Sims3.Gameplay.Tutorial;
+using Sims3.Gameplay.UI;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
+using Sims3.UI.CAS;
+using Sims3.UI.Dialogs;
+using Sims3.UI.GameEntry;
 using Sims3.UI.Hud;
+using static Sims3.SimIFace.ResourceUtils;
 
 namespace Gamefreak130.WonderPowersSpace.UI
 {
@@ -41,7 +49,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 
 		private readonly uint mMusicHandle;
 
-		private readonly int mPreviousMusicMode;
+		private readonly MusicMode mPreviousMusicMode;
 
 		private readonly Button mAcceptButton;
 
@@ -67,7 +75,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 		{
 			if (sMenu is null)
 			{
-				using (WonderModeMenu menu = new WonderModeMenu())
+				using (WonderModeMenu menu = new())
 				{
 					menu.StartModal();
 				}
@@ -87,7 +95,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 				}
 				SetKarma(WonderPowers.GetKarma());
 				//PowerSelected = (PowerSelectHandler)(object)new PowerSelectHandler(WonderPowerSelected);*/
-				mPreviousMusicMode = (int)AudioManager.MusicMode;
+				mPreviousMusicMode = AudioManager.MusicMode;
 				AudioManager.SetMusicMode(MusicMode.None);
 				mMusicHandle = Audio.StartSound(kBrowseWonderPowersMusic);
 
@@ -192,7 +200,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 
 		public override bool OnEnd(uint endID)
 		{
-			AudioManager.SetMusicMode((MusicMode)mPreviousMusicMode);
+			AudioManager.SetMusicMode(mPreviousMusicMode);
 			if (mMusicHandle != 0u)
 			{
 				Audio.StopSound(mMusicHandle);
@@ -229,6 +237,365 @@ namespace Gamefreak130.WonderPowersSpace.UI
 			EndDialog(0u);
 			eventArgs.Handled = true;
         }
+	}
+
+	public static class CASWonderMode
+    {
+		public static void OnOptionsClick(WindowBase sender, UIButtonClickEventArgs _)
+		{
+			if (CASPuck.Instance is CASPuck puck && !puck.UiBusy)
+			{
+				Button button = puck.GetChildByID((uint)CASPuck.ControlIDs.OptionsButton, true) as Button;
+				List<PuckCommon.OptionsMenuItems> list = DownloadDashboard.Enable
+                    ? new()
+                    {
+                        PuckCommon.OptionsMenuItems.Tutorials,
+                        PuckCommon.OptionsMenuItems.Options,
+                        PuckCommon.OptionsMenuItems.MainMenu,
+                        PuckCommon.OptionsMenuItems.QuitToWindows,
+                        PuckCommon.OptionsMenuItems.QuitToLauncher,
+                        PuckCommon.OptionsMenuItems.DownloadDashboard
+                    }
+                    : new()
+                    {
+                        PuckCommon.OptionsMenuItems.Tutorials,
+                        PuckCommon.OptionsMenuItems.Options,
+                        PuckCommon.OptionsMenuItems.MainMenu,
+                        PuckCommon.OptionsMenuItems.QuitToWindows,
+                        PuckCommon.OptionsMenuItems.QuitToLauncher
+                    };
+                if (puck.mPuckCommon.CanShowOptionsMenu() && PuckCommon.mOptionsTask is null)
+				{
+					PuckCommon.OptionsMenuInfo param = new(sender, list, puck.mPuckCommon);
+					PuckCommon.mOptionsTask = new OneShotFunctionWithParams(new FunctionWithParam(OptionsMenuTask), param);
+					Simulator.AddObject(PuckCommon.mOptionsTask);
+				}
+			}
+		}
+
+		private static void OptionsMenuTask(object optionMenuInfoParam)
+		{
+			if (CASPuck.Instance?.mPuckCommon is PuckCommon puckCommon)
+			{
+				PuckCommon.OptionsMenuInfo optionsMenuInfo = optionMenuInfoParam as PuckCommon.OptionsMenuInfo;
+				if (!puckCommon.CanShowOptionsMenu())
+				{
+					PuckCommon.mOptionsTask = null;
+					return;
+				}
+				puckCommon.mOptionsMenuInfo = optionsMenuInfo;
+				int num = PopupMenu.Show(optionsMenuInfo.OptionStrings, optionsMenuInfo.ScreenPos);
+				PuckCommon.mOptionsTask = null;
+				if (num >= 0)
+				{
+					PuckCommon.OptionsMenuItems item = optionsMenuInfo.OptionIds[num];
+					OnOptionsMenuSelect(item);
+				}
+				puckCommon.mOptionsMenuInfo = null;
+			}
+		}
+
+		private static void OnOptionsMenuSelect(PuckCommon.OptionsMenuItems item)
+		{
+			if (CASPuck.Instance?.mPuckCommon is PuckCommon puckCommon)
+			{
+				if (Sims3.UI.Responder.Instance.PassportModel.WorldIsCurrentlyHostingASimViaPassport())
+				{
+					switch (item)
+					{
+						case PuckCommon.OptionsMenuItems.SaveGame:
+						case PuckCommon.OptionsMenuItems.SaveGameAs:
+						case PuckCommon.OptionsMenuItems.MainMenu:
+						case PuckCommon.OptionsMenuItems.QuitToWindowsAndSave:
+						case PuckCommon.OptionsMenuItems.QuitToWindows:
+							if (!Sims3.UI.Responder.Instance.PassportModel.IsShowComplete() && !TwoButtonDialog.Show(Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:VerifyQuitWhileHosting", new object[0]), 
+																													 Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:Yes", new object[0]), 
+																													 Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:No", new object[0])))
+							{
+								return;
+							}
+							try
+							{
+								Sims3.UI.Responder.Instance.PassportModel.SendSimHomeImmediately();
+							}
+							catch (Exception)
+							{
+							}
+							break;
+						default:
+							break;
+					}
+					
+				}
+				switch (item)
+				{
+					case PuckCommon.OptionsMenuItems.SaveGame:
+						puckCommon.OnSave();
+						return;
+					case PuckCommon.OptionsMenuItems.SaveGameAs:
+						puckCommon.OnSaveAs();
+						return;
+					case PuckCommon.OptionsMenuItems.EditTown:
+						if (Sims3.UI.Responder.Instance.PassportModel.GetIsHostingSim())
+						{
+							return;
+						}
+						puckCommon.OnEditTown();
+						return;
+					case PuckCommon.OptionsMenuItems.PlayFlow:
+						puckCommon.OnPlayFlow();
+						return;
+					case PuckCommon.OptionsMenuItems.Tutorials:
+						puckCommon.OnTutorialette();
+						return;
+					case PuckCommon.OptionsMenuItems.Options:
+						puckCommon.OnOptions();
+						return;
+					case PuckCommon.OptionsMenuItems.ReturnToLive:
+						puckCommon.OnReturnToLive();
+						return;
+					case PuckCommon.OptionsMenuItems.ReturnToPlayFlow:
+						puckCommon.OnReturnToPlayFlow();
+						return;
+					case PuckCommon.OptionsMenuItems.MainMenu:
+						GameStates.mQuitting = true;
+						Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(new Sims3.UI.Function(QuitToMenuTask)));
+						return;
+					case PuckCommon.OptionsMenuItems.QuitToWindowsAndSave:
+						puckCommon.OnQuitToWindowsAndSave();
+						return;
+					case PuckCommon.OptionsMenuItems.QuitToWindows:
+						GameStates.mQuitting = true;
+						Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(new Sims3.UI.Function(QuitToWindowsTask)));
+						return;
+					case PuckCommon.OptionsMenuItems.QuitToLauncher:
+						puckCommon.OnQuitToLauncher();
+						return;
+					case PuckCommon.OptionsMenuItems.EditTownTutorial:
+						puckCommon.OnEditTownTutorial();
+						return;
+					case PuckCommon.OptionsMenuItems.DownloadDashboard:
+					case PuckCommon.OptionsMenuItems.Login:
+					case PuckCommon.OptionsMenuItems.InGameWall:
+					case PuckCommon.OptionsMenuItems.Passport:
+						puckCommon.mQueuedMenuOption = item;
+						LoginDialog.PromptIfSuccessCall(new Sims3.UI.Function(puckCommon.DoMenuOptionTask));
+						return;
+					default:
+						return;
+				}
+			}
+		}
+
+		private static void QuitToMenuTask()
+		{
+			if (GameStates.IsCurrentlySwitchingSubStates || GameStates.mQuittingTaskStarted || GameStates.QuitDisabled)
+			{
+				return;
+			}
+			GameStates.mQuittingTaskStarted = true;
+			if (GameStates.sSingleton.mInWorldState.mStateMachine.CurState.StateId == (int)HashString32("CASWonderModeState") || GameStates.IsCasState || GameStates.IsBuildBuyLikeState || Passport.Instance.IsCurrentlyHosting())
+			{
+				if (TwoButtonDialog.Show(Localization.LocalizeString("Ui/Caption/QuitDialog:PromptMainMenuNoSave"), Localization.LocalizeString("Ui/Caption/Global:Exit"), Localization.LocalizeString("Ui/Caption/QuitDialog:Cancel")))
+				{
+					GameStates.TransitionToLeaveInWorld();
+				}
+			}
+			else
+			{
+				string promptText2 = Localization.LocalizeString("Ui/Caption/QuitToMainMenuDialog:Prompt");
+				string firstButton = Localization.LocalizeString("Ui/Caption/QuitToMainMenuDialog:SaveAndQuit");
+				string secondButton = Localization.LocalizeString("Ui/Caption/QuitToMainMenuDialog:QuitWinhoutSaving");
+				string thirdButton = Localization.LocalizeString("Ui/Caption/QuitToMainMenuDialog:Cancel");
+				ThreeButtonDialog.ButtonPressed buttonPressed = ThreeButtonDialog.Show(promptText2, firstButton, secondButton, thirdButton);
+				if (buttonPressed == ThreeButtonDialog.ButtonPressed.FirstButton)
+				{
+					OptionsModel optionsModel = Sims3.Gameplay.UI.Responder.Instance.OptionsModel as OptionsModel;
+					if (optionsModel.SaveGame(true))
+					{
+						GameStates.TransitionToLeaveInWorld();
+					}
+				}
+				else if (buttonPressed == ThreeButtonDialog.ButtonPressed.SecondButton)
+				{
+					GameStates.TransitionToLeaveInWorld();
+				}
+			}
+			GameStates.mQuitting = false;
+			GameStates.mQuittingTaskStarted = false;
+		}
+
+		private static void QuitToWindowsTask()
+		{
+			bool inCasWonderMode = GameStates.sSingleton.mInWorldState.mStateMachine.CurState.StateId == (int)HashString32("CASWonderModeState");
+			if (GameStates.mQuittingTaskStarted || GameStates.mQuitDisableCount > 0 || GameStates.IsGameShuttingDown || MiniLoad.Loading)
+			{
+				GameStates.mQuitting = GameStates.mQuittingTaskStarted;
+				return;
+			}
+			if ((inCasWonderMode || GameStates.IsCasState) && CASController.Singleton is not null && (CASController.Singleton.CurrentState.mTopState == CASTopState.None || CASController.Singleton.UiBusy || LoadScreen.Loading()))
+			{
+				GameStates.mQuitting = false;
+				return;
+			}
+			GameStates.mQuittingTaskStarted = true;
+			if (GameStates.sSingleton.mStateMachine.CurStateId == 4)
+			{
+				if (GameStates.sSingleton.mInWorldState is not null && (GameStates.sSingleton.mInWorldState.IsCurrentlySwitchingSubStates || GameStates.IsTravelling))
+				{
+					GameStates.mQuittingTaskStarted = false;
+					GameStates.mQuitting = false;
+					return;
+				}
+				if (inCasWonderMode || GameStates.IsCasState || GameStates.IsBuildBuyLikeState)
+				{
+					if (TwoButtonDialog.Show(Localization.LocalizeString("Ui/Caption/QuitDialog:PromptNoSave"), Localization.LocalizeString("Ui/Caption/Global:Exit"), Localization.LocalizeString("Ui/Caption/QuitDialog:Cancel")))
+					{
+						GameStates.GotoState(GameState.InWorldToQuit);
+					}
+				}
+				else if (!IntroTutorial.IsRunning || IntroTutorial.AreYouExitingTutorial())
+				{
+					if (Sims3.UI.Responder.Instance.PassportModel.WorldIsCurrentlyHostingASimViaPassport())
+					{
+						if (!TwoButtonDialog.Show(Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:VerifyQuitWhileHosting"),
+												  Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:Yes"), Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:No")))
+						{
+							GameStates.mQuitting = false;
+							GameStates.mQuittingTaskStarted = false;
+							return;
+						}
+						Sims3.UI.Responder.Instance.PassportModel.SendSimHomeImmediately();
+					}
+					if (InWorldState.PromptedQuit())
+					{
+						GameStates.GotoState(GameState.InWorldToQuit);
+					}
+				}
+			}
+			else if (GameStates.sSingleton.mStateMachine.CurStateId == 2)
+			{
+				if (CommandLine.FindSwitch("ccinstall") is null || CommandLine.FindSwitch("ccuninstall") is null || AcceptCancelDialog.Show(Localization.LocalizeString("Gameplay/Gameflow:QuitSims3DialogTitle")))
+				{
+					GameStates.GotoState(GameState.Quit);
+				}
+			}
+			GameStates.mQuitting = false;
+			GameStates.mQuittingTaskStarted = false;
+		}
+
+		public static void OnCloseClick(WindowBase sender, UIButtonClickEventArgs eventArgs)
+		{
+			if (CASPuck.Instance is not CASPuck puck || puck.UiBusy || puck.mLeaveCAS)
+			{
+				return;
+			}
+			puck.UiBusy = true;
+			Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(delegate () {
+				ICASModel casmodel = Sims3.UI.Responder.Instance.CASModel;
+				ILocalizationModel localizationModel = Sims3.UI.Responder.Instance.LocalizationModel;
+				if (TwoButtonDialog.Show(localizationModel.LocalizeString("Ui/Caption/CAS/ExitDialog:AlternatePrompt"), localizationModel.LocalizeString("Ui/Caption/Global:Yes"), localizationModel.LocalizeString("Ui/Caption/Global:No")))
+				{
+					CASController singleton = CASController.Singleton;
+					singleton.AllowCameraMovement(false);
+					while (casmodel.IsProcessing())
+					{
+						Simulator.Sleep(0U);
+					}
+					sender.Enabled = false;
+					casmodel.RequestClearChangeReport();
+					singleton.SetCurrentState(CASState.None);
+					return;
+				}
+				puck.UiBusy = false;
+			}));
+			eventArgs.Handled = true;
+		}
+
+		public static void HideCharacterSheetElement(uint id)
+		{
+			if (CASCharacterSheet.gSingleton?.GetChildByID(id, true) is WindowBase window)
+			{
+				window.Visible = false;
+			}
+		}
+	}
+
+	internal static class OptionsInjector
+	{
+		private static bool mOptionsInjectionHandled;
+
+		internal static bool InjectOptions()
+		{
+			try
+			{
+				if (OptionsDialog.sDialog is not null)
+				{
+					if (!mOptionsInjectionHandled)
+					{
+						OptionsDialog.sDialog.mMusicData.Add(new());
+						OptionsDialog.sDialog.mMusicData.Add(new());
+						Button button = OptionsDialog.sDialog.mModalDialogWindow.GetChildByID(2822726298u, true) as Button;
+						button.Click += OnMusicSelectionClicked;
+						button = OptionsDialog.sDialog.mModalDialogWindow.GetChildByID(2822726299u, true) as Button;
+						button.Click += OnMusicSelectionClicked;
+						ParseXml("MusicEntriesKarmaLoad");
+						foreach (uint num in Enum.GetValues(typeof(ProductVersion)))
+						{
+							if (GameUtils.IsInstalled((ProductVersion)num))
+							{
+								string name = ((ProductVersion)num).ToString();
+								ParseXml("MusicEntriesKarmaLoad" + name);
+							}
+						}
+						mOptionsInjectionHandled = true;
+					}
+				}
+				else
+				{
+					mOptionsInjectionHandled = false;
+				}
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
+		}
+
+		private static void OnMusicSelectionClicked(WindowBase sender, UIButtonClickEventArgs eventArgs)
+		{
+			if (sender.ID == 2822726298u)
+			{
+				OptionsDialog.sDialog.mButtonHolderWindow.Visible = false;
+				OptionsDialog.sDialog.mCurrentFilterIndex = (OptionsDialog.MusicTypeIndex)5;
+			}
+			if (sender.ID == 2822726299u)
+			{
+				OptionsDialog.sDialog.mButtonHolderWindow.Visible = false;
+				OptionsDialog.sDialog.mCurrentFilterIndex = (OptionsDialog.MusicTypeIndex)6;
+			}
+			OptionsDialog.sDialog.UpdateTable();
+		}
+
+		private static void ParseXml(string xmlFileName)
+		{
+			if (Simulator.LoadXML(xmlFileName)?.GetElementsByTagName("MusicSelection")[0] is XmlElement xmlElement)
+			{
+				OptionsDialog.sDialog.LoadSongData(xmlElement, "Karma", 5);
+				OptionsDialog.sDialog.LoadSongData(xmlElement, "Load", 6);
+				if (OptionsDialog.sDialog.mItemGridGenreButtons.Count > 0)
+				{
+					OptionsDialog.sDialog.mItemGridGenreButtons.SelectedItem = 0;
+					string text = OptionsDialog.sDialog.mItemGridGenreButtons.InternalGrid.CellTags[0, 0] as string;
+					if (!string.IsNullOrEmpty(text))
+					{
+						OptionsDialog.sDialog.mCurrentGenre = text;
+						OptionsDialog.sDialog.UpdateTable();
+					}
+				}
+			}
+		}
 	}
 
 	/*public class KarmaDial
@@ -399,7 +766,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 				return null;
 			}
 			UserToolUtils.OnClose();
-			Responder.Instance.HudModel.RestoreUIVisibility();
+			Sims3.UI.Responder.Instance.HudModel.RestoreUIVisibility();
 			if (EnableModalDialogs && sDialog is null)
 			{
 				MapTagFilterType sLastFilterType = MapViewController.sLastFilterType;
@@ -411,7 +778,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 				hasExclusiveAccess = sDialog.mHasExclusiveAccess;
 				sDialog = null;
 				MapViewController.sLastFilterType = sLastFilterType;
-				Responder.Instance.HudModel.RefreshMapTags();
+				Sims3.UI.Responder.Instance.HudModel.RefreshMapTags();
 				return result;
 			}
 			return null;
