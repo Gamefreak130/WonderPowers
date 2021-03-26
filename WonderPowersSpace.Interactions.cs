@@ -23,7 +23,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 return instance;
             }
 
-            public override string GetInteractionName(Sim actor, Lot target, InteractionObjectPair iop) => base.GetInteractionName(actor, target, new InteractionObjectPair(Singleton, target));
+            public override string GetInteractionName(Sim actor, Lot target, InteractionObjectPair iop) => base.GetInteractionName(actor, target, new(Singleton, target));
         }
 
         public override bool Run()
@@ -48,7 +48,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 return instance;
             }
 
-            public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop) => base.GetInteractionName(actor, target, new InteractionObjectPair(Singleton, target));
+            public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop) => base.GetInteractionName(actor, target, new(Singleton, target));
         }
 
         public override bool Run()

@@ -109,9 +109,9 @@ namespace Gamefreak130.WonderPowersSpace.UI
 				mBadPowerGrid.ItemClicked += OnPowerSelect;
 				PopulatePowerGrid();
 				mAcceptButton = mModalDialogWindow.GetChildByID((uint)ControlIds.kOkayButton, true) as Button;
-				mAcceptButton.Click += new UIEventHandler<UIButtonClickEventArgs>(OnAcceptClick);
+				mAcceptButton.Click += OnAcceptClick;
 				mCloseButton = mModalDialogWindow.GetChildByID((uint)ControlIds.kCancelButton, true) as Button;
-				mCloseButton.Click += new UIEventHandler<UIButtonClickEventArgs>(OnClose);
+				mCloseButton.Click += OnClose;
 				mCloseButton.TooltipText = Localization.LocalizeString("Ui/Caption/ObjectPicker:Cancel");
 				mGoodPowerGrid.SelectedItem = 0;
 				SetPowerInfo(mGoodPowerGrid.SelectedTag as WonderPower);
@@ -180,7 +180,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 						thumbBg[DrawableBase.ControlStates.kCheckedNormal] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("bad_power_thumb_bg_ac", 0u));
 						thumbBg[DrawableBase.ControlStates.kCheckedHighlighted] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("bad_power_thumb_bg_ac", 0u));
 						thumbBg[DrawableBase.ControlStates.kCheckedActive] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("bad_power_thumb_bg_ac", 0u));
-						mBadPowerGrid.AddItem(new ItemGridCellItem(window, power));
+						mBadPowerGrid.AddItem(new(window, power));
 					}
 					else
                     {
@@ -190,7 +190,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 						thumbBg[DrawableBase.ControlStates.kCheckedNormal] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("good_power_thumb_bg_ac", 0u));
 						thumbBg[DrawableBase.ControlStates.kCheckedHighlighted] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("good_power_thumb_bg_ac", 0u));
 						thumbBg[DrawableBase.ControlStates.kCheckedActive] = UIManager.LoadUIImage(ResourceKey.CreatePNGKey("good_power_thumb_bg_ac", 0u));
-						mGoodPowerGrid.AddItem(new ItemGridCellItem(window, power));
+						mGoodPowerGrid.AddItem(new(window, power));
                     }
                 }
 			}
@@ -267,7 +267,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
                 if (puck.mPuckCommon.CanShowOptionsMenu() && PuckCommon.mOptionsTask is null)
 				{
 					PuckCommon.OptionsMenuInfo param = new(sender, list, puck.mPuckCommon);
-					PuckCommon.mOptionsTask = new OneShotFunctionWithParams(new FunctionWithParam(OptionsMenuTask), param);
+					PuckCommon.mOptionsTask = new OneShotFunctionWithParams(OptionsMenuTask, param);
 					Simulator.AddObject(PuckCommon.mOptionsTask);
 				}
 			}
@@ -308,9 +308,9 @@ namespace Gamefreak130.WonderPowersSpace.UI
 						case PuckCommon.OptionsMenuItems.MainMenu:
 						case PuckCommon.OptionsMenuItems.QuitToWindowsAndSave:
 						case PuckCommon.OptionsMenuItems.QuitToWindows:
-							if (!Sims3.UI.Responder.Instance.PassportModel.IsShowComplete() && !TwoButtonDialog.Show(Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:VerifyQuitWhileHosting", new object[0]), 
-																													 Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:Yes", new object[0]), 
-																													 Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:No", new object[0])))
+							if (!Sims3.UI.Responder.Instance.PassportModel.IsShowComplete() && !TwoButtonDialog.Show(Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:VerifyQuitWhileHosting"), 
+																													 Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:Yes"), 
+																													 Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:No")))
 							{
 								return;
 							}
@@ -359,14 +359,14 @@ namespace Gamefreak130.WonderPowersSpace.UI
 						return;
 					case PuckCommon.OptionsMenuItems.MainMenu:
 						GameStates.mQuitting = true;
-						Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(new Sims3.UI.Function(QuitToMenuTask)));
+						Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(QuitToMenuTask));
 						return;
 					case PuckCommon.OptionsMenuItems.QuitToWindowsAndSave:
 						puckCommon.OnQuitToWindowsAndSave();
 						return;
 					case PuckCommon.OptionsMenuItems.QuitToWindows:
 						GameStates.mQuitting = true;
-						Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(new Sims3.UI.Function(QuitToWindowsTask)));
+						Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(QuitToWindowsTask));
 						return;
 					case PuckCommon.OptionsMenuItems.QuitToLauncher:
 						puckCommon.OnQuitToLauncher();
@@ -379,7 +379,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 					case PuckCommon.OptionsMenuItems.InGameWall:
 					case PuckCommon.OptionsMenuItems.Passport:
 						puckCommon.mQueuedMenuOption = item;
-						LoginDialog.PromptIfSuccessCall(new Sims3.UI.Function(puckCommon.DoMenuOptionTask));
+						LoginDialog.PromptIfSuccessCall(new(puckCommon.DoMenuOptionTask));
 						return;
 					default:
 						return;
