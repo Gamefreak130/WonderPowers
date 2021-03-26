@@ -111,7 +111,6 @@
     <EffectMethod>WealthActivation</EffectMethod>
   </Power>
   <Power>
-    <!--<ProductVersion>EP11</ProductVersion>-->
     <PowerName>Fire</PowerName>
     <IsBad>True</IsBad>
     <Cost>75</Cost>

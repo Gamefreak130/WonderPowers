@@ -299,33 +299,21 @@ namespace Gamefreak130.WonderPowersSpace.UI
 		{
 			if (CASPuck.Instance?.mPuckCommon is PuckCommon puckCommon)
 			{
-				if (Sims3.UI.Responder.Instance.PassportModel.WorldIsCurrentlyHostingASimViaPassport())
+				if (Sims3.UI.Responder.Instance.PassportModel.WorldIsCurrentlyHostingASimViaPassport() && item is PuckCommon.OptionsMenuItems.MainMenu or PuckCommon.OptionsMenuItems.SaveGame or PuckCommon.OptionsMenuItems.SaveGameAs or PuckCommon.OptionsMenuItems.QuitToWindows or PuckCommon.OptionsMenuItems.QuitToWindowsAndSave)
 				{
-					switch (item)
-					{
-						case PuckCommon.OptionsMenuItems.SaveGame:
-						case PuckCommon.OptionsMenuItems.SaveGameAs:
-						case PuckCommon.OptionsMenuItems.MainMenu:
-						case PuckCommon.OptionsMenuItems.QuitToWindowsAndSave:
-						case PuckCommon.OptionsMenuItems.QuitToWindows:
-							if (!Sims3.UI.Responder.Instance.PassportModel.IsShowComplete() && !TwoButtonDialog.Show(Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:VerifyQuitWhileHosting"), 
+					if (!Sims3.UI.Responder.Instance.PassportModel.IsShowComplete() && !TwoButtonDialog.Show(Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:VerifyQuitWhileHosting"), 
 																													 Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:Yes"), 
 																													 Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:No")))
-							{
-								return;
-							}
-							try
-							{
-								Sims3.UI.Responder.Instance.PassportModel.SendSimHomeImmediately();
-							}
-							catch (Exception)
-							{
-							}
-							break;
-						default:
-							break;
+					{
+						return;
 					}
-					
+					try
+					{
+						Sims3.UI.Responder.Instance.PassportModel.SendSimHomeImmediately();
+					}
+					catch (Exception)
+					{
+					}
 				}
 				switch (item)
 				{

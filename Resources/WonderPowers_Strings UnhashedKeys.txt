@@ -130,10 +130,10 @@
 <STR>Gameplay/WonderMode:DoomDialogTitle</STR>
 <KEY>Gameplay/WonderMode:GhostifyDialogTitle</KEY>
 <STR>Gameplay/WonderMode:GhostifyDialogTitle</STR>
-<KEY>Gameplay/WonderMode:GoodMoodDialogTitle</KEY>
-<STR>Gameplay/WonderMode:GoodMoodDialogTitle</STR>
 <KEY>Gameplay/WonderMode:InstantBeautyDialogTitle</KEY>
 <STR>Gameplay/WonderMode:InstantBeautyDialogTitle</STR>
+<KEY>Gameplay/WonderMode:LuckyBreakDialogTitle</KEY>
+<STR>Gameplay/WonderMode:LuckyBreakDialogTitle</STR>
 <KEY>Gameplay/WonderMode:SelectGhost</KEY>
 <STR>Gameplay/WonderMode:SelectGhost</STR>
 <KEY>Gameplay/Excel/Buffs/BuffOrigins:D30E840A88FBA523</KEY>
@@ -154,5 +154,9 @@
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GoodMoodBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GoodMoodBuffDescription</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GoodMoodBuffDescription</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuff</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuff</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuffDescription</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuffDescription</STR>
 <KEY></KEY>
 <STR></STR>

@@ -9,7 +9,6 @@ using Sims3.Gameplay.CAS;
 using Sims3.SimIFace.CAS;
 using System.Collections.Generic;
 using Sims3.Gameplay.Objects;
-using Gamefreak130.Common;
 
 namespace Gamefreak130.WonderPowersSpace.Buffs
 {
@@ -47,15 +46,6 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
             => y is not null && (y.CurrentInteraction is null || y.CurrentInteraction.GetPriority().Level < InteractionPriorityLevel.CriticalNPCBehavior) && x != y 
             && x.BuffManager.HasElement(kBuffCryHavocGuid) && y.BuffManager.HasElement(kBuffCryHavocGuid)
             && x.IsPet == y.IsPet && ((x.SimDescription.Teen && y.SimDescription.Teen) || (x.SimDescription.YoungAdultOrAbove && y.SimDescription.YoungAdultOrAbove));
-    }
-
-    public class BuffDoom : BuffUnicornsIre
-    {
-        public const ulong kBuffDoomGuid = 0xE6E44C7930BDD3F3;
-
-        public BuffDoom(BuffData data) : base(data)
-        {
-        }
     }
 
     public class BuffGhostify : BuffTheUndead
@@ -152,7 +142,7 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
                 foreach (SimDescription.DeathType current in types)
                 {
                     string name = Sims3.UI.CAS.CASBasics.mGhostDeathNames[types.IndexOf(current)];
-                    ObjectPicker.RowInfo item = new ObjectPicker.RowInfo(current, new()
+                    ObjectPicker.RowInfo item = new(current, new()
                     {
                         new ObjectPicker.ThumbAndTextColumn(new ThumbnailKey(ResourceKey.CreatePNGKey(name, 0u), ThumbnailSize.ExtraLarge), Urnstone.DeathTypeToLocalizedString(current))
                     });

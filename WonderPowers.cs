@@ -3,9 +3,11 @@ using Gamefreak130.WonderPowersSpace.Helpers;
 using Gamefreak130.WonderPowersSpace.UI;
 using Sims3.Gameplay;
 using Sims3.Gameplay.Actors;
+using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Objects;
+using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
 using System;
@@ -65,6 +67,14 @@ namespace Gamefreak130
         private static void OnPreLoad()
         {
             new BuffBooter("Gamefreak130_KarmaBuffs").LoadBuffData();
+            if (GenericManager<BuffNames, BuffInstance, BuffInstance>.sDictionary.TryGetValue((ulong)BuffNames.UnicornsBlessing, out BuffInstance buff))
+            {
+                buff.mBuff.mInfo.mProductVersion = ProductVersion.BaseGame;
+            }
+            if (GenericManager<BuffNames, BuffInstance, BuffInstance>.sDictionary.TryGetValue((ulong)BuffNames.UnicornsIre, out BuffInstance buff2))
+            {
+                buff2.mBuff.mInfo.mProductVersion = ProductVersion.BaseGame;
+            }
             Tunings.Inject(GoToLot.Singleton.GetType(), typeof(Lot), typeof(WonderPowersSpace.Interactions.GoToLotAndFight), typeof(Lot), true);
             Tunings.Inject(Urnstone.ResurrectSim.Singleton.GetType(), typeof(Sim), typeof(WonderPowersSpace.Interactions.DivineInterventionResurrect), typeof(Sim), true);
         }
