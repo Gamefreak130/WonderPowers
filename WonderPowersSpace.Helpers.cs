@@ -46,7 +46,6 @@ using Sims3.UI.CAS;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
-	// TODO Separate booter from the power manager
 	public abstract class PowerBooter
     {
 		private readonly string mXmlName;
@@ -71,7 +70,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 							bool isBad = row.GetBool("IsBad");
 							int cost = row.GetInt("Cost");
 							MethodInfo methodInfo = FindMethod(runMethod);
-							new WonderPower(name, isBad, cost, methodInfo);
+							WonderPowerManager.Add(new(name, isBad, cost, methodInfo));
 						}
 					}
 				}
@@ -149,11 +148,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			IsBadPower = isBad;
 			mCost = cost;
 			mRunMethod = runMethod;
-			WonderPowerManager.Add(this);
 		}
 
 		[Persistable(false)]
-		private delegate void RunDelegate(bool isBacklash);//, GameObject target);
+		private delegate bool RunDelegate(bool isBacklash);//, GameObject target);
 
 		// The Run() method is used in a OneShotFunctionWithParam added to the Simulator when the power selection dialog ends,
 		// So that any power-specific dialogs should not fire until after the power selection dialog is disposed
@@ -179,9 +177,20 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
                     }
 					WonderPowerManager.SetKarma(newKarma);
 					RunDelegate run = (RunDelegate)Delegate.CreateDelegate(typeof(RunDelegate), mRunMethod);
-                    run(backlash);
-					// TODO make the activation functions booleans to handle failures that do not warrant a script error
-                }
+                    if (!run(backlash))
+                    {
+						if (backlash)
+                        {
+							PlumbBob.SelectedActor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("BacklashFailed"), StyledNotification.NotificationStyle.kSystemMessage);
+                        }
+						else
+                        {
+							StyledNotification.Show(new(WonderPowerManager.LocalizeString("PowerFailed"), StyledNotification.NotificationStyle.kGameMessagePositive));
+							WonderPowerManager.SetKarma(WonderPowerManager.GetKarma() + Cost());
+						}
+						WonderPowerManager.TogglePowerRunning();
+					}
+				}
                 catch (Exception e)
                 {
                     // Since this runs on the Simulator, NRaas ErrorTrap can't catch any exceptions that occur
@@ -1978,7 +1987,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 	public static class ActivationMethods
     {
-		public static void CryHavocActivation(bool _)
+		public static bool CryHavocActivation(bool _)
         {
 			Sim sim = PlumbBob.SelectedActor;
 			Lot lot = sim.LotCurrent.IsWorldLot 
@@ -1986,9 +1995,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				: sim.LotCurrent;
 
 			new CryHavocSituation(lot);
+			return true;
 		}
 
-		public static void CurseActivation(bool isBacklash)
+		public static bool CurseActivation(bool isBacklash)
         {
 			Sim selectedSim = null;
 			//CONSIDER Pets?
@@ -2008,7 +2018,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			
 			if (selectedSim is null)
             {
-				//return false;
+				return false;
             }
 
 			//CONSIDER visual effect?
@@ -2025,9 +2035,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			selectedSim.BuffManager.AddElement(HashString64("Gamefreak130_CursedBuff"), (Origin)HashString64("FromWonderPower"));
 			WonderPowerManager.TogglePowerRunning();
+			return true;
         }
 
-		public static void DivineInterventionActivation(bool _)
+		public static bool DivineInterventionActivation(bool _)
         {
 			List<SimDescription> targets = new List<Urnstone>(Queries.GetObjects<Urnstone>())
 												.ConvertAll((urnstone) => urnstone.DeadSimsDescription)
@@ -2035,8 +2046,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			Urnstone selectedUrnstone = Urnstone.FindGhostsGrave(SelectTarget(targets, WonderPowerManager.LocalizeString("DivineInterventionDialogTitle")));
 			if (selectedUrnstone is null)
             {
-				//return false;
-            }
+				return false;
+			}
 			Audio.StartSound("sting_lifetime_opp_success");
 			if (selectedUrnstone.MyGhost is null or { IsSelectable: false })
             {
@@ -2055,9 +2066,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			Sim ghost = selectedUrnstone.MyGhost;
 			InteractionInstance instance = new DivineInterventionResurrect.Definition().CreateInstance(ghost, ghost, new(InteractionPriorityLevel.MaxDeath), false, false);
 			ghost.InteractionQueue.AddNext(instance);
+			return true;
         }
 
-		public static void DoomActivation(bool isBacklash)
+		public static bool DoomActivation(bool isBacklash)
         {
 			Sim selectedSim = null;
 			if (isBacklash)
@@ -2078,7 +2090,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 			if (selectedSim is null)
             {
-				//return false;
+				return false;
             }
 
 			//CONSIDER animation, visual effect?
@@ -2098,9 +2110,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			// This will automatically trigger the BuffsChanged event, so the UI should refresh itself after this and we won't have to do it manually
 			buff.SetThumbnail("doom", ProductVersion.BaseGame, selectedSim);
 			WonderPowerManager.TogglePowerRunning();
+			return true;
 		}
 
-		public static void EarthquakeActivation(bool _)
+		public static bool EarthquakeActivation(bool _)
         {
 			Sim actor = PlumbBob.SelectedActor;
 			Lot lot = actor.LotCurrent.IsWorldLot
@@ -2147,15 +2160,16 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
                 }
 				i--;
             }
+			return true;
         }
 
-		public static void FeralPosessionActivation(bool isBacklash)
+		public static bool FeralPosessionActivation(bool isBacklash)
         {
 			//TODO this
 			throw new NotImplementedException();
         }
 
-		public static void FireActivation(bool isBacklash)
+		public static bool FireActivation(bool isBacklash)
         {
 			Lot selectedLot;
 			if (isBacklash)
@@ -2171,9 +2185,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 
 			new FireSituation(selectedLot);
+			return true;
 		}
 
-		public static void GhostifyActivation(bool _)
+		public static bool GhostifyActivation(bool _)
         {
 			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
 																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.IsGhostOrHasGhostBuff && !sim.BuffManager.HasElement((BuffNames)Buffs.BuffGhostify.kBuffGhostifyGuid))
@@ -2181,8 +2196,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			Sim sim = SelectTarget(targets, WonderPowerManager.LocalizeString("GhostifyDialogTitle"))?.CreatedSim;
 			if (sim is null)
             {
-				//return false;
-            }
+				return false;
+			}
 			Camera.FocusOnSim(sim);
 			if (sim.IsSelectable)
 			{
@@ -2191,9 +2206,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			sim.InteractionQueue.CancelAllInteractions();
 			sim.BuffManager.AddElement(Buffs.BuffGhostify.kBuffGhostifyGuid, (Origin)HashString64("FromWonderPower"));
 			WonderPowerManager.TogglePowerRunning();
+			return true;
 		}
 
-		public static void GhostsActivation(bool isBacklash)
+		public static bool GhostsActivation(bool isBacklash)
         {
 			Lot selectedLot;
 			if (isBacklash)
@@ -2211,9 +2227,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 
 			new GhostsSituation(selectedLot);
+			return true;
 		}
 
-		public static void GoodMoodActivation(bool _)
+		public static bool GoodMoodActivation(bool _)
         {
 			Audio.StartSound("sting_good_mood");
 			Camera.FocusOnSelectedSim();
@@ -2232,15 +2249,16 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			//CONSIDER styled notifications (not just for this, but for all of these potentially?)
 			WonderPowerManager.TogglePowerRunning();
+			return true;
 		}
 
-		public static void InstantBeautyActivation(bool _)
+		public static bool InstantBeautyActivation(bool _)
         {
 			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ToddlerOrAbove && !sim.OccultManager.DisallowClothesChange() && !sim.BuffManager.DisallowClothesChange()).ConvertAll((sim) => sim.SimDescription);
 			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("InstantBeautyDialogTitle"))?.CreatedSim;
 			if (selectedSim is null)
             {
-				//return false;
+				return false;
             }
             // CONSIDER anim/vis effect and sting?
             GameStates.sSingleton.mInWorldState.GotoCASMode((InWorldState.SubState)HashString32("CASWonderModeState"));
@@ -2253,9 +2271,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			Camera.FocusOnSim(selectedSim);
 			WonderPowerManager.TogglePowerRunning();
+			return true;
 		}
 
-		public static void LuckyBreakActivation(bool _)
+		public static bool LuckyBreakActivation(bool _)
 		{
 			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
 																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement(BuffNames.UnicornsBlessing))
@@ -2264,8 +2283,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 			if (selectedSim is null)
             {
-				//return false;
-            }
+				return false;
+			}
 
 			//CONSIDER animation, visual effect?
 			//CONSIDER Toggle power on sound finish?
@@ -2283,9 +2302,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			// This will automatically trigger the BuffsChanged event, so the UI should refresh itself after this and we won't have to do it manually
 			buff.SetThumbnail("moodlet_feelinglucky", ProductVersion.BaseGame, selectedSim);
 			WonderPowerManager.TogglePowerRunning();
+			return true;
 		}
 
-		public static void MeteorStrikeActivation(bool isBacklash)
+		public static bool MeteorStrikeActivation(bool isBacklash)
         {
 			Lot selectedLot;
 			if (isBacklash)
@@ -2306,6 +2326,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			selectedLot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(selectedLot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted);
 			Meteor.TriggerMeteorEvent(selectedLot.GetRandomPosition(false, true));
 			AlarmManager.Global.AddAlarm(Meteor.kMeteorLifetime + 3, TimeUnit.Minutes, WonderPowerManager.TogglePowerRunning, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted, null);
+			return true;
 		}
 
 		private static SimDescription SelectTarget(List<SimDescription> sims, string title)

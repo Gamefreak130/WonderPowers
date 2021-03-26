@@ -108,6 +108,10 @@
 <STR>Gameplay/WonderMode:PowerIsDeploying</STR>
 <KEY>Gameplay/WonderMode:PowerError</KEY>
 <STR>Gameplay/WonderMode:PowerError</STR>
+<KEY>Gameplay/WonderMode:PowerFailure</KEY>
+<STR>Gameplay/WonderMode:PowerFailure</STR>
+<KEY>Gameplay/WonderMode:BacklashFailure</KEY>
+<STR>Gameplay/WonderMode:BacklashFailure</STR>
 <KEY>Gameplay/WonderMode:PanicReact</KEY>
 <STR>Gameplay/WonderMode:PanicReact</STR>
 <KEY>Gameplay/WonderMode:MeteorDestinationTitle</KEY>
