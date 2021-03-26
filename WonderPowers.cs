@@ -17,7 +17,6 @@ namespace Gamefreak130
 {
     //TODO Cleanup LAYO
     //TODO Check code for unused blocks, zero references, notimplementedexceptions
-    //TODO Find way to dynamically load XML for custom powers
     //TODO Command to set karma, reset cooldown
     //CONSIDER SortedList for powers (by cost)
     //CONSIDER Powers implement IWeightable for karmic backlash selection
@@ -38,7 +37,6 @@ namespace Gamefreak130
         private static void OnStartupApp(object sender, EventArgs e)
         {
             WonderPowerManager.Init();
-            WonderPowerManager.LoadMainPowers();
             bool flag = true;
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -50,9 +48,9 @@ namespace Gamefreak130
                 {
                     foreach (Type type in assembly.GetExportedTypes())
                     {
-                        if (!type.IsAbstract && !type.IsGenericTypeDefinition && typeof(IPowerBooter).IsAssignableFrom(type) && type != typeof(WonderPowerManager))
+                        if (!type.IsAbstract && !type.IsGenericTypeDefinition && typeof(PowerBooter).IsAssignableFrom(type))
                         {
-                            IPowerBooter booter = type.GetConstructor(new Type[0]).Invoke(null) as IPowerBooter;
+                            PowerBooter booter = type.GetConstructor(new Type[0]).Invoke(null) as PowerBooter;
                             booter.LoadPowers();
                         }
                     }

@@ -47,9 +47,58 @@ using Sims3.UI.CAS;
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
 	// TODO Separate booter from the power manager
-	public interface IPowerBooter
+	public abstract class PowerBooter
     {
-		void LoadPowers();
+		private readonly string mXmlName;
+
+		protected PowerBooter(string xmlName) => mXmlName = xmlName;
+
+		public void LoadPowers()
+        {
+			XmlDbData xmlDbData = XmlDbData.ReadData(mXmlName);
+			XmlDbTable xmlDbTable = null;
+			xmlDbData?.Tables.TryGetValue("Power", out xmlDbTable);
+			if (xmlDbTable is not null)
+			{
+				foreach (XmlDbRow row in xmlDbTable.Rows)
+				{
+					string name = row.GetString("PowerName");
+					if (row.TryGetEnum("ProductVersion", out ProductVersion version, ProductVersion.Undefined) && GameUtils.IsInstalled(version) && !string.IsNullOrEmpty(name))
+					{
+						string runMethod = row.GetString("EffectMethod");
+						if (!string.IsNullOrEmpty(runMethod))
+						{
+							bool isBad = row.GetBool("IsBad");
+							int cost = row.GetInt("Cost");
+							MethodInfo methodInfo = FindMethod(runMethod);
+							new WonderPower(name, isBad, cost, methodInfo);
+						}
+					}
+				}
+			}
+		}
+
+		private static MethodInfo FindMethod(string methodName)
+		{
+			if (methodName.Contains(","))
+			{
+				string[] array = methodName.Split(new[] { ',' });
+				string typeName = array[0].Trim() + "," + array[1].Trim();
+				Type type = Type.GetType(typeName, true);
+				string text = array[2];
+				text = text.Trim();
+				return type.GetMethod(text);
+			}
+			Type typeFromHandle = typeof(ActivationMethods);
+			return typeFromHandle.GetMethod(methodName);
+		}
+	}
+
+	public sealed class WonderPowerBooter : PowerBooter
+    {
+		public WonderPowerBooter() : base("Gamefreak130_KarmaPowers")
+        {
+        }
     }
 
 	internal class PowerExceptionLogger : EventLogger<Exception>
@@ -173,7 +222,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
     }
 
 	[Persistable]
-	public sealed class WonderPowerManager : IPowerBooter //ScriptObject
+	public sealed class WonderPowerManager //: ScriptObject
 	{
 		private enum WitchingHourState
 		{
@@ -481,21 +530,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 		}*/
 
-		internal static MethodInfo FindMethod(string methodName)
-        {
-			if (methodName.Contains(","))
-			{
-				string[] array = methodName.Split(new[] { ',' });
-				string typeName = array[0].Trim() + "," + array[1].Trim();
-				Type type = Type.GetType(typeName, true);
-				string text = array[2];
-				text = text.Trim();
-				return type.GetMethod(text);
-			}
-			Type typeFromHandle = typeof(ActivationMethods);
-			return typeFromHandle.GetMethod(methodName);
-		}
-
         private void DisplayWitchingHourDialogPopup()
 		{
 			SimpleMessageDialog.Show(Localization.LocalizeString("UI/Wondermode/PopupDialog:HourOfReckoningTitle"), Localization.LocalizeString("UI/Wondermode/PopupDialog:HourOfReckoningText"));
@@ -638,33 +672,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		}
 
 		internal static void LoadValues() => Ferry<WonderPowerManager>.UnloadCargo();
-
-		public static void LoadMainPowers() => sInstance.LoadPowers();
-
-		public void LoadPowers()
-		{
-			XmlDbData xmlDbData = XmlDbData.ReadData("Gamefreak130_KarmaPowers");
-			XmlDbTable xmlDbTable = null;
-			xmlDbData?.Tables.TryGetValue("Power", out xmlDbTable);
-			if (xmlDbTable is not null)
-			{
-				foreach (XmlDbRow row in xmlDbTable.Rows)
-				{
-					string name = row.GetString("PowerName");
-					if (row.TryGetEnum("ProductVersion", out ProductVersion version, ProductVersion.Undefined) && GameUtils.IsInstalled(version) && !string.IsNullOrEmpty(name))
-					{
-						string runMethod = row.GetString("EffectMethod");
-						if (!string.IsNullOrEmpty(runMethod))
-						{
-							bool isBad = row.GetBool("IsBad");
-							int cost = row.GetInt("Cost");
-							MethodInfo methodInfo = FindMethod(runMethod);
-							new WonderPower(name, isBad, cost, methodInfo);
-						}
-					}
-				}
-			}
-		}
 
         public static void Add(WonderPower s) => sAllWonderPowers.Add(s);
 
