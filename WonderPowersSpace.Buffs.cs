@@ -162,7 +162,24 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
             }
             return (uint)ghostType;
         }
+    }
 
-        public override void OnRemoval(BuffManager bm, BuffInstance bi) => base.OnRemoval(bm, bi);
+    public class BuffLuckyFind : BuffTemporaryTrait
+    {
+        public const ulong kBuffLuckyFindGuid = 0x2D42AC8E858A22A7;
+
+        public BuffLuckyFind(BuffData data) : base(data)
+        {
+        }
+
+        public override BuffInstance CreateBuffInstance() => new BuffInstanceTemporaryTrait(this, BuffGuid, EffectValue, TimeoutSimMinutes);
+
+        public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
+        {
+            if (bi is BuffInstanceTemporaryTrait luckyFind)
+            {
+                luckyFind.AddTemporaryTrait(bm.Actor.IsPet ? TraitNames.HunterPet : TraitNames.GathererTrait);
+            }
+        }
     }
 }

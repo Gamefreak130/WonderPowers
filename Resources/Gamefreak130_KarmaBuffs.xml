@@ -69,4 +69,13 @@
     <AxisEffected>Happy</AxisEffected>
     <TimeoutLength>180</TimeoutLength>
   </BuffList>
+  <BuffList>
+    <Hex>Gamefreak130_LuckyFindBuff=0x2D42AC8E858A22A7</Hex>
+    <BuffName>Gamefreak130_LuckyFindBuff</BuffName>
+    <BuffDescription>Gamefreak130_LuckyFindBuffDescription</BuffDescription>
+    <ThumbFilename>luckyfind</ThumbFilename>
+    <EffectValue>0</EffectValue>
+    <TimeoutLength>720</TimeoutLength>
+    <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffLuckyFind, Gamefreak130.WonderPowers</CustomClassName>
+  </BuffList>
 </Gamefreak130_KarmaBuffs>

@@ -2135,6 +2135,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				else
                 {
 					InteractionInstance instance = new PanicReact.Definition().CreateInstance(sim, sim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false);
+					instance.Hidden = true;
 					sim.InteractionQueue.AddNext(instance);
                 }
             }
@@ -2301,6 +2302,33 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			buff.mDescription = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuffDescription";
 			// This will automatically trigger the BuffsChanged event, so the UI should refresh itself after this and we won't have to do it manually
 			buff.SetThumbnail("moodlet_feelinglucky", ProductVersion.BaseGame, selectedSim);
+			WonderPowerManager.TogglePowerRunning();
+			return true;
+		}
+
+		public static bool LuckyFindActivation(bool _)
+		{
+			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
+																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.SimDescription.IsHorse && !sim.BuffManager.HasElement(Buffs.BuffLuckyFind.kBuffLuckyFindGuid))
+																			.ConvertAll((sim) => sim.SimDescription);
+			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("LuckyFindDialogTitle"))?.CreatedSim;
+
+			if (selectedSim is null)
+			{
+				return false;
+			}
+
+			//CONSIDER animation, visual effect?
+			//CONSIDER Toggle power on sound finish?
+			//TODO cancel all interactions
+			//TODO get sting
+			//Audio.StartSound("sting_good_mood");
+			Camera.FocusOnSim(selectedSim);
+			if (selectedSim.IsSelectable)
+			{
+				PlumbBob.SelectActor(selectedSim);
+			}
+			selectedSim.BuffManager.AddElement(Buffs.BuffLuckyFind.kBuffLuckyFindGuid, (Origin)HashString64("FromWonderPower"));
 			WonderPowerManager.TogglePowerRunning();
 			return true;
 		}
