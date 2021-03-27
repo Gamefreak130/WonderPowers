@@ -2031,7 +2031,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(selectedSim))
 			{
-				selectedSim.Motives.SetValue(motive, motive is CommodityKind.Bladder ? -100 : -95);
+				selectedSim.Motives.SetValue(motive, motive is CommodityKind.Bladder ? -100 : TunableSettings.kCurseMotiveAmount);
 			}
 			selectedSim.BuffManager.AddElement(HashString64("Gamefreak130_CursedBuff"), (Origin)HashString64("FromWonderPower"));
 			WonderPowerManager.TogglePowerRunning();
@@ -2356,6 +2356,23 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			AlarmManager.Global.AddAlarm(Meteor.kMeteorLifetime + 3, TimeUnit.Minutes, WonderPowerManager.TogglePowerRunning, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted, null);
 			return true;
 		}
+
+		public static bool RayOfSunshineActivation(bool _)
+        {
+			Sim selectedSim = SelectTarget(PlumbBob.SelectedActor.LotCurrent.GetAllActors().ConvertAll((sim) => sim.SimDescription), WonderPowerManager.LocalizeString("RayOfSunshineDialogTitle"))?.CreatedSim;
+			if (selectedSim is null)
+            {
+				return false;
+            }
+			//CONSIDER animation, visual effect?
+			Audio.StartSound("sting_rayofsunshine");
+			foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(selectedSim))
+            {
+				selectedSim.Motives.ChangeValue(motive, TunableSettings.kRayOfSunshineBoostAmount);
+			}
+			WonderPowerManager.TogglePowerRunning();
+			return true;
+        }
 
 		private static SimDescription SelectTarget(List<SimDescription> sims, string title)
 		{

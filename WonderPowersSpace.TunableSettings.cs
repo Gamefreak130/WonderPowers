@@ -4,6 +4,9 @@ namespace Gamefreak130.WonderPowersSpace
 {
     public static class TunableSettings
     {
+        [Tunable, TunableComment("The that a Sim's needs are set to when affected by the Curse karma power (except for the bladder need, which will always be fully emptied")]
+        public static int kCurseMotiveAmount = -95;
+
         [Tunable, TunableComment("The length of time in sim-minutes that the effects of the Cry Havoc karma power will last")]
         public static int kCryHavocLength = 180;
 
@@ -36,5 +39,8 @@ namespace Gamefreak130.WonderPowersSpace
 
         [Tunable, TunableComment("The maximum number of ghosts spawned during the Ghost Invasion karma power")]
         public static int kGhostsMax = 5;
+
+        [Tunable, TunableComment("The amount by which a Sim's needs are boosted when affected by the Ray of Sunshine karma power")]
+        public static float kRayOfSunshineBoostAmount = 20;
     }
 }
