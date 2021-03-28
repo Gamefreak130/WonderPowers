@@ -43,6 +43,8 @@ using Gamefreak130.Common;
 using System.Text;
 using System.Collections.ObjectModel;
 using Sims3.UI.CAS;
+using Sims3.Gameplay.Objects.Beds;
+using Sims3.Gameplay.Objects.FoodObjects;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
@@ -2373,6 +2375,91 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			WonderPowerManager.TogglePowerRunning();
 			return true;
         }
+
+		public static bool RepairActivation(bool _)
+        {
+			Lot target = PlumbBob.SelectedActor.LotHome;
+			if (target is null)
+            {
+				return false;
+            }
+			//TODO add eor sting
+			//CONSIDER do laundry?
+			//CONSIDER delay vis effects to account for camera lerp?
+			//CONSIDER react broadcast?
+			Camera.FocusOnLot(target.LotId, 2f);
+			if (target.GetSharedFridgeInventory() is SharedFridgeInventory inventory)
+			{
+				foreach (ISpoilable spoilable in new List<ISpoilable>(inventory.SpoiledFood))
+				{
+					spoilable.Unspoil();
+					inventory.SpoiledFood.Remove(spoilable);
+				}
+			}
+			foreach (GameObject gameObject in target.GetObjects<GameObject>())
+			{
+				if (!gameObject.InUse && gameObject.InWorld)
+				{
+					if (!target.IsJunkyardLot || !gameObject.IsOutside)
+					{
+						if (gameObject.Charred)
+						{
+							gameObject.Charred = false;
+							if (gameObject is Windows)
+							{
+								RepairableComponent.CreateReplaceObject(gameObject);
+							}
+						}
+						if (gameObject.Scratched)
+						{
+							gameObject.Scratched = false;
+						}
+						if (gameObject.Repairable is { Broken: true } repairable)
+						{
+							repairable.ForceRepaired(null);
+						}
+						if (gameObject is ISpoilable { IsSpoiled: true } spoilable)
+						{
+							spoilable.Unspoil();
+						}
+						if (gameObject is IFridge fridge)
+						{
+							fridge.StopFridgeFrontStinkVFX();
+						}
+						if (gameObject is Fire fire)
+                        {
+							VisualEffect visualEffect = VisualEffect.Create("ep5UnicornRain");
+							visualEffect.SetPosAndOrient(fire.Position, fire.ForwardVector, fire.UpVector);
+							visualEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
+							fire.ExtinguishFire();
+						}
+						if (gameObject is Sim sim && sim.BuffManager.HasElement(BuffNames.OnFire))
+                        {
+							VisualEffect visualEffect = VisualEffect.Create("ep5UnicornRain");
+							visualEffect.SetPosAndOrient(sim.Position, sim.ForwardVector, sim.UpVector);
+							visualEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
+							sim.BuffManager.RemoveElement(BuffNames.OnFire);
+						}
+						if (gameObject is IBed bed && bed.UseCount == 0 && !bed.IsMade())
+                        {
+							//TODO visual effect
+							foreach (PartData data in bed.PartComponent.PartDataList.Values)
+							{
+								if (data is BedData bedData)
+								{
+									bedData.BedMade = true;
+								}
+							}
+							bed.ResetBindPose();
+						}
+					}
+				}
+			}
+			target.MagicallyCleanUp(false, false);
+			target.Enchant();
+			WonderPowerManager.TogglePowerRunning();
+			return true;
+		}
 
 		private static SimDescription SelectTarget(List<SimDescription> sims, string title)
 		{

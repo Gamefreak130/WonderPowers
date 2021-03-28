@@ -51,6 +51,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 //TODO Add fog effect to lot
                 //TODO Change sound, make 3d sound based on lot position
                 //CONSIDER Animation for Sims on exit?
+                //CONSIDER reaction broadcast?
                 //Audio.StartSound("sting_death", new Function(() => Parent.SetState(new EndSituation(Parent))));
                 Parent.mExitHandle = AlarmManager.Global.AddAlarm(TunableSettings.kCryHavocLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- CryHavoc Situation Alarm", AlarmType.AlwaysPersisted, null);
                 Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted); //2f is standard lerpTime
@@ -315,6 +316,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 try
                 {
                     //TODO extract file out to avoid EP2 dependency
+                    //CONSIDER reaction broadcast?
                     Parent.mMusicHandle = Audio.StartSound("sting_ghost_invasion", Lot.Position);
                     Parent.mExitHandle = AlarmManager.Global.AddAlarm(TunableSettings.kGhostInvasionLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- GhostInvasion Situation Alarm", AlarmType.AlwaysPersisted, null);
                     Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted);
