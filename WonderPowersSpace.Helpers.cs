@@ -2035,6 +2035,14 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				selectedSim.Motives.SetValue(motive, motive is CommodityKind.Bladder ? -100 : TunableSettings.kCurseMotiveAmount);
 			}
+			if ((selectedSim.CurrentOccultType & OccultTypes.Fairy) is not OccultTypes.None)
+            {
+				selectedSim.Motives.SetValue(CommodityKind.AuraPower, TunableSettings.kCurseMotiveAmount);
+            }
+			if ((selectedSim.CurrentOccultType & OccultTypes.Witch) is not OccultTypes.None)
+            {
+				selectedSim.Motives.SetValue(CommodityKind.MagicFatigue, -TunableSettings.kCurseMotiveAmount);
+            }
 			selectedSim.BuffManager.AddElement(HashString64("Gamefreak130_CursedBuff"), (Origin)HashString64("FromWonderPower"));
 			WonderPowerManager.TogglePowerRunning();
 			return true;
@@ -2066,6 +2074,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				}
 			}
 			Sim ghost = selectedUrnstone.MyGhost;
+			Camera.FocusOnSim(ghost);
 			InteractionInstance instance = new DivineInterventionResurrect.Definition().CreateInstance(ghost, ghost, new(InteractionPriorityLevel.MaxDeath), false, false);
 			ghost.InteractionQueue.AddNext(instance);
 			return true;
@@ -2273,6 +2282,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				Simulator.Sleep(1U);
 			}
 			Camera.FocusOnSim(selectedSim);
+			if (selectedSim.IsSelectable)
+			{
+				PlumbBob.SelectActor(selectedSim);
+			}
 			WonderPowerManager.TogglePowerRunning();
 			return true;
 		}
@@ -2323,7 +2336,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			//CONSIDER animation, visual effect?
 			//CONSIDER Toggle power on sound finish?
 			//TODO cancel all interactions
-			//TODO get sting
+			//TODO get eor sting
 			//Audio.StartSound("sting_good_mood");
 			Camera.FocusOnSim(selectedSim);
 			if (selectedSim.IsSelectable)
@@ -2361,17 +2374,34 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool RayOfSunshineActivation(bool _)
         {
-			Sim selectedSim = SelectTarget(PlumbBob.SelectedActor.LotCurrent.GetAllActors().ConvertAll((sim) => sim.SimDescription), WonderPowerManager.LocalizeString("RayOfSunshineDialogTitle"))?.CreatedSim;
+			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
+																			.FindAll((sim) => !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_BoostedBuff")))
+																			.ConvertAll((sim) => sim.SimDescription);
+			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("RayOfSunshineDialogTitle"))?.CreatedSim;
 			if (selectedSim is null)
             {
 				return false;
             }
 			//CONSIDER animation, visual effect?
+			Camera.FocusOnSim(selectedSim);
+			if (selectedSim.IsSelectable)
+			{
+				PlumbBob.SelectActor(selectedSim);
+			}
 			Audio.StartSound("sting_rayofsunshine");
 			foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(selectedSim))
             {
 				selectedSim.Motives.ChangeValue(motive, TunableSettings.kRayOfSunshineBoostAmount);
 			}
+			if ((selectedSim.CurrentOccultType & OccultTypes.Fairy) is not OccultTypes.None)
+			{
+				selectedSim.Motives.ChangeValue(CommodityKind.AuraPower, TunableSettings.kRayOfSunshineBoostAmount);
+			}
+			if ((selectedSim.CurrentOccultType & OccultTypes.Witch) is not OccultTypes.None)
+			{
+				selectedSim.Motives.ChangeValue(CommodityKind.MagicFatigue, -TunableSettings.kRayOfSunshineBoostAmount);
+			}
+			selectedSim.BuffManager.AddElement((BuffNames)HashString64("Gamefreak130_BoostedBuff"), (Origin)HashString64("FromWonderPower"));
 			WonderPowerManager.TogglePowerRunning();
 			return true;
         }
@@ -2460,6 +2490,42 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			WonderPowerManager.TogglePowerRunning();
 			return true;
 		}
+
+		public static bool SatisfactionActivation(bool _)
+        {
+			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
+																			.FindAll((sim) => !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_SatisfiedBuff")))
+																			.ConvertAll((sim) => sim.SimDescription);
+			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("SatisfactionDialogTitle"))?.CreatedSim;
+			if (selectedSim is null)
+			{
+				return false;
+			}
+			//CONSIDER vis eff
+			//CONSIDER eor sting here instead?
+			Camera.FocusOnSim(selectedSim);
+			if (selectedSim.IsSelectable)
+			{
+				PlumbBob.SelectActor(selectedSim);
+			}
+			// This sting typo physically pains me
+			Audio.StartSound("sting_dream_fullfill");
+			foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(selectedSim))
+			{
+				selectedSim.Motives.SetMax(motive);
+			}
+			if ((selectedSim.CurrentOccultType & OccultTypes.Fairy) is not OccultTypes.None)
+			{
+				selectedSim.Motives.SetMax(CommodityKind.AuraPower);
+			}
+			if ((selectedSim.CurrentOccultType & OccultTypes.Witch) is not OccultTypes.None)
+			{
+				selectedSim.Motives.SetValue(CommodityKind.MagicFatigue, selectedSim.Motives.GetMin(CommodityKind.MagicFatigue));
+			}
+			selectedSim.BuffManager.AddElement((BuffNames)HashString64("Gamefreak130_SatisfiedBuff"), (Origin)HashString64("FromWonderPower"));
+			WonderPowerManager.TogglePowerRunning();
+			return true;
+        }
 
 		private static SimDescription SelectTarget(List<SimDescription> sims, string title)
 		{

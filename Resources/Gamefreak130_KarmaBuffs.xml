@@ -78,4 +78,21 @@
     <TimeoutLength>720</TimeoutLength>
     <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffLuckyFind, Gamefreak130.WonderPowers</CustomClassName>
   </BuffList>
+  <BuffList>
+    <Hex>Gamefreak130_BoostedBuff=0x83B99D454CEF8390</Hex>
+    <BuffName>Gamefreak130_BoostedBuff</BuffName>
+    <BuffDescription>Gamefreak130_BoostedBuffDescription</BuffDescription>
+    <ThumbFilename>moodlet_Gamefreak130_BoostedBuff</ThumbFilename>
+    <EffectValue>10</EffectValue>
+    <TimeoutLength>120</TimeoutLength>
+  </BuffList>
+  <BuffList>
+    <Hex>Gamefreak130_SatisfiedBuff=0xBD69E391DA4826BE</Hex>
+    <BuffName>Gamefreak130_SatisfiedBuff</BuffName>
+    <BuffDescription>Gamefreak130_SatisfiedBuffDescription</BuffDescription>
+    <ThumbFilename>satisfaction</ThumbFilename>
+    <EffectValue>20</EffectValue>
+    <AxisEffected>Fulfilled</AxisEffected>
+    <TimeoutLength>180</TimeoutLength>
+  </BuffList>
 </Gamefreak130_KarmaBuffs>
