@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <base>
-	<Interaction name="Gamefreak130.WonderPowersSpace.Interactions.PanicReact+Definition" />
+	<Interaction name="Gamefreak130.WonderPowersSpace.Interactions.EarthquakePanicReact+Definition" />
 	<Object name="Sims3.Gameplay.Actors.Sim" />
 	<CodeVersion name="BaseGame" considerCodeVersion="False" />
 	<Current_Tuning>

@@ -2136,16 +2136,16 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
                 }
 				else
                 {
-					InteractionInstance instance = new PanicReact.Definition().CreateInstance(sim, sim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false);
+					InteractionInstance instance = new EarthquakePanicReact.Definition().CreateInstance(sim, sim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false);
 					instance.Hidden = true;
 					sim.InteractionQueue.AddNext(instance);
                 }
             }
 
 			List<GameObject> breakableObjects = lot.GetObjects<GameObject>((@object) => @object.Repairable is { Broken: false });
-			for (int i = 0; i < TunableSettings.kEarthquakeMaxBroken; i++)
+			int maxBroken = Math.Min(RandomUtil.GetInt(1, TunableSettings.kEarthquakeMaxBroken), breakableObjects.Count);
+			for (int i = 0; i < maxBroken; i++)
             {
-				if (breakableObjects.Count == 0) { break; }
 				GameObject @object = RandomUtil.GetRandomObjectFromList(breakableObjects);
 				@object.Repairable.BreakObject();
 				breakableObjects.Remove(@object);

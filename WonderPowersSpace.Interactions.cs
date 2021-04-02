@@ -67,9 +67,9 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
         }
     }
 
-    public class PanicReact : Interaction<Sim, Sim>
+    public class EarthquakePanicReact : Interaction<Sim, Sim>
     {
-        public class Definition : InteractionDefinition<Sim, Sim, PanicReact>
+        public class Definition : InteractionDefinition<Sim, Sim, EarthquakePanicReact>
         {
             public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
 
