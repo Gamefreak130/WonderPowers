@@ -95,4 +95,14 @@
     <AxisEffected>Fulfilled</AxisEffected>
     <TimeoutLength>180</TimeoutLength>
   </BuffList>
+  <BuffList>
+    <Hex>Gamefreak130_KarmicSicknessBuff=0x89A067CE37714BDC</Hex>
+    <BuffName>Gamefreak130_KarmicSicknessBuff</BuffName>
+    <BuffDescription>Gamefreak130_KarmicSicknessBuffDescription</BuffDescription>
+    <ThumbFilename>sickness</ThumbFilename>
+    <EffectValue>-50</EffectValue>
+    <AxisEffected>Uncomfortable</AxisEffected>
+    <TimeoutLength>1440</TimeoutLength>
+    <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffKarmicSickness, Gamefreak130.WonderPowers</CustomClassName>
+  </BuffList>
 </Gamefreak130_KarmaBuffs>

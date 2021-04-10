@@ -45,6 +45,7 @@ using System.Collections.ObjectModel;
 using Sims3.UI.CAS;
 using Sims3.Gameplay.Objects.Beds;
 using Sims3.Gameplay.Objects.FoodObjects;
+using static Sims3.Gameplay.ActorSystems.BuffCommodityDecayModifier;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
@@ -179,7 +180,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
                     }
 					WonderPowerManager.SetKarma(newKarma);
 					RunDelegate run = (RunDelegate)Delegate.CreateDelegate(typeof(RunDelegate), mRunMethod);
-                    if (!run(backlash))
+                    if (run(backlash))
+                    {
+						//TODO potential backlash
+                    }
+					else
                     {
 						if (backlash)
                         {
@@ -2085,7 +2090,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			Sim selectedSim = null;
 			if (isBacklash)
 			{
-				List<Sim> validSims = Household.ActiveHousehold.AllActors.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement(BuffNames.UnicornsIre));
+				List<Sim> validSims = Household.ActiveHousehold.AllActors.FindAll((sim) => sim.SimDescription.ChildOrAbove && sim.BuffManager.GetElement(BuffNames.UnicornsIre)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff");
 				if (validSims.Count > 0)
 				{
 					selectedSim = RandomUtil.GetRandomObjectFromList(validSims);
@@ -2094,7 +2099,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			else
 			{
 				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
-																				.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement(BuffNames.UnicornsIre))
+																				.FindAll((sim) => sim.SimDescription.ChildOrAbove && sim.BuffManager.GetElement(BuffNames.UnicornsIre)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff")
 																				.ConvertAll((sim) => sim.SimDescription);
 				selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("DoomDialogTitle"))?.CreatedSim;
 			}
@@ -2244,7 +2249,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool GoodMoodActivation(bool _)
         {
-			Audio.StartSound("sting_good_mood");
+			Audio.StartSound("sting_goodmood");
 			Camera.FocusOnSelectedSim();
 			foreach (Sim sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors())
 			{
@@ -2293,7 +2298,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		public static bool LuckyBreakActivation(bool _)
 		{
 			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
-																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement(BuffNames.UnicornsBlessing))
+																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && sim.BuffManager.GetElement(BuffNames.UnicornsBlessing)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuff")
 																			.ConvertAll((sim) => sim.SimDescription);
 			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("LuckyBreakDialogTitle"))?.CreatedSim;
 
@@ -2526,6 +2531,41 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			WonderPowerManager.TogglePowerRunning();
 			return true;
         }
+
+		public static bool SicknessActivation(bool isBacklash)
+        {
+			Sim selectedSim = null;
+			if (isBacklash)
+			{
+				List<Sim> validSims = Household.ActiveHousehold.Sims.FindAll((sim) => (WonderPowers.IsKidsMagicInstalled ? sim.SimDescription.ChildOrAbove : sim.SimDescription.TeenOrAbove) && !sim.IsRobot && sim.BuffManager.GetElement(BuffNames.CommodityDecayModifier)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuff"
+																							&& !sim.BuffManager.HasElement(Buffs.BuffKarmicSickness.kBuffKarmicSicknessGuid));
+				if (validSims.Count > 0)
+				{
+					selectedSim = RandomUtil.GetRandomObjectFromList(validSims);
+				}
+			}
+			else
+			{
+				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => (WonderPowers.IsKidsMagicInstalled ? sim.SimDescription.ChildOrAbove : sim.SimDescription.TeenOrAbove) && !sim.IsRobot 
+																									&& sim.BuffManager.GetElement(BuffNames.CommodityDecayModifier)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuff" && !sim.BuffManager.HasElement(Buffs.BuffKarmicSickness.kBuffKarmicSicknessGuid))
+																				.ConvertAll((sim) => sim.SimDescription);
+				selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("SicknessDialogTitle"))?.CreatedSim;
+			}
+
+			if (selectedSim is null)
+			{
+				return false;
+			}
+			Camera.FocusOnSim(selectedSim);
+			if (selectedSim.IsSelectable)
+			{
+				PlumbBob.SelectActor(selectedSim);
+			}
+			Audio.StartSound("sting_sickness");
+			Buffs.BuffKarmicSickness.AddKarmicSickness(selectedSim);
+			WonderPowerManager.TogglePowerRunning();
+			return true;
+		}
 
 		private static SimDescription SelectTarget(List<SimDescription> sims, string title)
 		{

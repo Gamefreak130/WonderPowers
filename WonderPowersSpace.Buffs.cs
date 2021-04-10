@@ -9,6 +9,12 @@ using Sims3.Gameplay.CAS;
 using Sims3.SimIFace.CAS;
 using System.Collections.Generic;
 using Sims3.Gameplay.Objects;
+using Sims3.Gameplay.Autonomy;
+using static Sims3.SimIFace.ResourceUtils;
+using Sims3.Gameplay.UI;
+using Responder = Sims3.UI.Responder;
+using static Sims3.Gameplay.ActorSystems.BuffCommodityDecayModifier;
+using Sims3.Gameplay.Abstracts;
 
 namespace Gamefreak130.WonderPowersSpace.Buffs
 {
@@ -179,6 +185,148 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
             if (bi is BuffInstanceTemporaryTrait luckyFind)
             {
                 luckyFind.AddTemporaryTrait(bm.Actor.IsPet ? TraitNames.HunterPet : TraitNames.GathererTrait);
+            }
+        }
+    }
+
+    public class BuffKarmicSickness : BuffPestilencePlague
+    {
+        public class BuffInstanceKarmicSickness : BuffInstancePestilencePlague
+        {
+            public BuffInstanceKarmicSickness()
+            {
+            }
+
+            public BuffInstanceKarmicSickness(Buff buff, BuffNames buffGuid, int effectValue, float timeoutCount) : base(buff, buffGuid, effectValue, timeoutCount)
+            {
+            }
+
+            public override BuffInstance Clone() => new BuffInstanceKarmicSickness(mBuff, mBuffGuid, mEffectValue, mTimeoutCount);
+
+            new public void AdvancePlagueStage() => mCoughingFitAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(MaxTimeBetweenCoughingFits - MinTimeBetweenCoughingFits) + MinTimeBetweenCoughingFits, TimeUnit.Minutes, DoCoughingFit, "Gamefreak130 wuz here -- Sickness cough alarm", AlarmType.DeleteOnReset);
+
+            new private void DoCoughingFit()
+            {
+                mPlaguedSim.InteractionQueue.AddNext(CoughingFit.Singleton.CreateInstance(mPlaguedSim, mPlaguedSim, new(InteractionPriorityLevel.High), true, false));
+                AdvancePlagueStage();
+            }
+        }
+
+        new public class CoughingFit : Interaction<Sim, Sim>
+        {
+            [DoesntRequireTuning]
+            public class Definition : SoloSimInteractionDefinition<CoughingFit>, ISoloInteractionDefinition
+            {
+                public static string LocalizeString(string name, params object[] parameters) => Localization.LocalizeString(sLocalizationKey + name, parameters);
+
+                public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop) => LocalizeString("CoughingFit", new object[0]);
+
+                public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => a == target && isAutonomous;
+            }
+
+            public const string sLocalizationKey = "Gameplay/ActorSystems/BuffPestilencePlague/CoughingFit:";
+
+            public static ISoloInteractionDefinition Singleton = new Definition();
+
+            public static string LocalizeString(string name, params object[] parameters) => Localization.LocalizeString(sLocalizationKey + name, parameters);
+
+            public override bool Run()
+            {
+                StandardEntry();
+                ReactionBroadcaster reactionBroadcaster = new(Actor, BuffSickAndTired.DisgustSimsBroadcasterParams, DisgustSims);
+                EnterStateMachine("CoughingFit", "Enter", "x");
+                AnimateSim("Exit");
+                reactionBroadcaster.Dispose();
+                StandardExit();
+                return true;
+            }
+        }
+
+        public const ulong kBuffKarmicSicknessGuid = 0x89A067CE37714BDC;
+
+        public BuffKarmicSickness(BuffData data) : base(data)
+        {
+        }
+
+        public override BuffInstance CreateBuffInstance() => new BuffInstanceKarmicSickness(this, BuffGuid, EffectValue, TimeoutSimMinutes);
+
+        public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
+        {
+            base.OnAddition(bm, bi, travelReaddition);
+            BuffInstanceKarmicSickness karmicSickness = bi as BuffInstanceKarmicSickness;
+            bm.Actor.RemoveAlarm(karmicSickness.mStageAdvanceAlarmHandle);
+            karmicSickness.mStageAdvanceAlarmHandle = AlarmHandle.kInvalidHandle;
+            if (GameUtils.IsInstalled(ProductVersion.EP7))
+            {
+                karmicSickness.AdvancePlagueStage();
+            }
+            karmicSickness.mEffect = VisualEffect.Create("ep7BuffSickandTired_main");
+            karmicSickness.mEffect.ParentTo(bm.Actor, Sim.FXJoints.Pelvis);
+            karmicSickness.mEffect.Start();
+            karmicSickness.mDisgustBroadcaster = new(bm.Actor, BuffSickAndTired.DisgustSimsBroadcasterParams, DisgustSims);
+            InteractionInstance interactionInstance = bm.Actor.Autonomy.FindBestActionForCommodityOnLot(CommodityKind.RelieveNausea, bm.Actor.LotCurrent, AutonomySearchType.BuffAutoSolve);
+            if (interactionInstance is not null)
+            {
+                interactionInstance.CancellableByPlayer = false;
+                interactionInstance.SetPriority(InteractionPriorityLevel.High);
+                bm.Actor.InteractionQueue.AddNext(interactionInstance);
+            }
+            else
+            {
+                bm.Actor.InteractionQueue.AddNext(BuffNauseous.ThrowUpOutside.Singleton.CreateInstance(bm.Actor, bm.Actor, new(InteractionPriorityLevel.High), false, false));
+            }
+        }
+
+        public override void OnRemoval(BuffManager bm, BuffInstance bi)
+        {
+            if (bi is BuffInstanceKarmicSickness karmicSickness && karmicSickness.mStageAdvanceAlarmHandle != AlarmHandle.kInvalidHandle)
+            {
+                bm.Actor.RemoveAlarm(karmicSickness.mStageAdvanceAlarmHandle);
+                karmicSickness.mStageAdvanceAlarmHandle = AlarmHandle.kInvalidHandle;
+            }
+            bi.Dispose(bm);
+            if (bm.GetElement(BuffNames.CommodityDecayModifier)?.mBuffName == "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuff")
+            {
+                bm.RemoveElement(BuffNames.CommodityDecayModifier);
+            }
+        }
+
+        public static void AddKarmicSickness(Sim sim)
+        {
+            if ((WonderPowers.IsKidsMagicInstalled ? sim.SimDescription.ChildOrAbove : sim.SimDescription.TeenOrAbove) && !sim.IsRobot)
+            {
+                sim.BuffManager.AddElement(kBuffKarmicSicknessGuid, (Origin)HashString64("FromWonderPower"));
+                sim.BuffManager.AddBuff(BuffNames.CommodityDecayModifier, 0, 1440, false, MoodAxis.Uncomfortable, (Origin)HashString64("FromWonderPower"), true);
+                BuffInstance buff = sim.BuffManager.GetElement(BuffNames.CommodityDecayModifier);
+                foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(sim))
+                {
+                    (buff as BuffInstanceCommodityDecayModifier).AddCommodityMultiplier(motive, TunableSettings.kSicknessMotiveDecay);
+                }
+                buff.mBuffName = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuff";
+                buff.mDescription = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuffDescription";
+                // This will automatically trigger the BuffsChanged event, so the UI should refresh itself after this and we won't have to do it manually
+                buff.SetThumbnail("moodlet_Gamefreak130_DrainedBuff", ProductVersion.BaseGame, sim);
+            }
+        }
+
+        private static void DisgustSims(Sim sim, ReactionBroadcaster broadcaster)
+        {
+            if (RandomUtil.RandomChance(BuffSickAndTired.ChanceForDisgustedBuff))
+            {
+                sim.BuffManager.AddElement(BuffNames.Disgusted, (Origin)HashString64("FromWonderPower"));
+            }
+            if (RandomUtil.RandomChance(BuffSickAndTired.ChanceForNauseousBuff))
+            {
+                sim.BuffManager.AddElement(BuffNames.Nauseous, (Origin)HashString64("FromWonderPower"));
+            }
+            if (RandomUtil.RandomChance(BuffSickAndTired.ChanceForSickAndTiredBuff))
+            {
+                AddKarmicSickness(sim);
+            }
+            if (RandomUtil.RandomChance(BuffSickAndTired.ChanceForFlee))
+            {
+                sim.PlayReaction(ReactionTypes.Repel, new(InteractionPriorityLevel.UserDirected), broadcaster.BroadcastingObject as GameObject, ReactionSpeed.AfterInteraction);
+                Sim.MakeSimGoHome(sim, false);
             }
         }
     }

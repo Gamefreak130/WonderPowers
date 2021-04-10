@@ -144,6 +144,8 @@
 <STR>Gameplay/WonderMode:RayOfSunshineDialogTitle</STR>
 <KEY>Gameplay/WonderMode:SatisfactionDialogTitle</KEY>
 <STR>Gameplay/WonderMode:SatisfactionDialogTitle</STR>
+<KEY>Gameplay/WonderMode:SicknessDialogTitle</KEY>
+<STR>Gameplay/WonderMode:SicknessDialogTitle</STR>
 <KEY>Gameplay/WonderMode:SelectGhost</KEY>
 <STR>Gameplay/WonderMode:SelectGhost</STR>
 <KEY>Gameplay/Excel/Buffs/BuffOrigins:D30E840A88FBA523</KEY>
@@ -180,5 +182,13 @@
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_SatisfiedBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_SatisfiedBuffDescription</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_SatisfiedBuffDescription</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_KarmicSicknessBuff</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_KarmicSicknessBuff</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_KarmicSicknessBuffDescription</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_KarmicSicknessBuffDescription</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuff</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuff</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuffDescription</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuffDescription</STR>
 <KEY></KEY>
 <STR></STR>

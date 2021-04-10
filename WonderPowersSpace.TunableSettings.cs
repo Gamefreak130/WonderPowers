@@ -1,7 +1,6 @@
-﻿using Sims3.SimIFace;
-
-namespace Gamefreak130.WonderPowersSpace
+﻿namespace Gamefreak130.WonderPowersSpace
 {
+    using Sims3.SimIFace;
     public static class TunableSettings
     {
         [Tunable, TunableComment("The that a Sim's needs are set to when affected by the Curse karma power (except for the bladder need, which will always be fully emptied")]
@@ -40,7 +39,10 @@ namespace Gamefreak130.WonderPowersSpace
         [Tunable, TunableComment("The maximum number of ghosts spawned during the Ghost Invasion karma power")]
         public static int kGhostsMax = 5;
 
-        [Tunable, TunableComment("The amount by which a Sim's needs are boosted when affected by the Ray of Sunshine karma power")]
+        [Tunable, TunableComment("The amount by which a Sim's needs are boosted when affected by the A Little Sunshine karma power")]
         public static float kRayOfSunshineBoostAmount = 20;
+
+        [Tunable, TunableComment("The multiplier applied to a Sim's motive decay when affected by the Sickness karma power")]
+        public static float kSicknessMotiveDecay = 2;
     }
 }

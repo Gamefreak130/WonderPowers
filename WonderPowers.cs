@@ -25,6 +25,8 @@ namespace Gamefreak130
         [Tunable]
         private static readonly bool kCJackB;
 
+        public static bool IsKidsMagicInstalled;
+
         static WonderPowers()
         {
             World.OnStartupAppEventHandler += OnStartupApp;
@@ -40,6 +42,11 @@ namespace Gamefreak130
             bool flag = true;
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
+                if (assembly.GetName().Name == "Skydome_KidsMagic")
+                {
+                    IsKidsMagicInstalled = true;
+                }
+
                 if (assembly.GetName().Name == "Gamefreak130.LTRMenuMusicReplacement")
                 {
                     flag = false;
