@@ -125,7 +125,7 @@
     <None Include="Resources\S3_025C95B6_00000000_BE899B75F7F9536D_OptionsDialog%25%25+LAYO.layout" />
     <None Include="Resources\S3_025C95B6_00000000_DC721D2C07F01139_WonderPowerEntry%25%25+LAYO.layout" />
     <None Include="Resources\S3_025C95B6_00000000_F77F23C857AA652D_WonderMode%25%25+LAYO.layout" />
-    <None Include="Resources\S3_03B33DDF_00000000_98994F5A7A4BC95F_PanicReact_Sim%25%25+ITUN.tuning" />
+    <None Include="Resources\S3_03B33DDF_00000000_3A129ABE2EF50D2C_EarthquakePanicReact_Sim%25%25+ITUN.tuning" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
