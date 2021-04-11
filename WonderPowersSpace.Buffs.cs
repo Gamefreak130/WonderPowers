@@ -15,6 +15,7 @@ using Sims3.Gameplay.UI;
 using Responder = Sims3.UI.Responder;
 using static Sims3.Gameplay.ActorSystems.BuffCommodityDecayModifier;
 using Sims3.Gameplay.Abstracts;
+using Gamefreak130.Common.Buffs;
 
 namespace Gamefreak130.WonderPowersSpace.Buffs
 {
@@ -170,7 +171,7 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
         }
     }
 
-    public class BuffLuckyFind : BuffTemporaryTrait
+    public class BuffLuckyFind : BuffTemporaryTraitEx
     {
         public const ulong kBuffLuckyFindGuid = 0x2D42AC8E858A22A7;
 
@@ -178,11 +179,9 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
         {
         }
 
-        public override BuffInstance CreateBuffInstance() => new BuffInstanceTemporaryTrait(this, BuffGuid, EffectValue, TimeoutSimMinutes);
-
         public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
         {
-            if (bi is BuffInstanceTemporaryTrait luckyFind)
+            if (bi is BuffInstanceTemporaryTraitEx luckyFind)
             {
                 luckyFind.AddTemporaryTrait(bm.Actor.IsPet ? TraitNames.HunterPet : TraitNames.GathererTrait);
             }
@@ -327,6 +326,24 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
             {
                 sim.PlayReaction(ReactionTypes.Repel, new(InteractionPriorityLevel.UserDirected), broadcaster.BroadcastingObject as GameObject, ReactionSpeed.AfterInteraction);
                 Sim.MakeSimGoHome(sim, false);
+            }
+        }
+    }
+
+    public class BuffStrokeOfGenius : BuffTemporaryTraitEx
+    {
+        public const ulong kBuffStrokeOfGeniusGuid = 0x5013C6DC21516CD8;
+
+        public BuffStrokeOfGenius(BuffData data) : base(data)
+        {
+        }
+
+        public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
+        {
+            if (bi is BuffInstanceTemporaryTraitEx strokeOfGenius)
+            {
+                strokeOfGenius.AddTemporaryTrait(bm.Actor.IsPet ? TraitNames.GeniusPet : TraitNames.Genius);
+                strokeOfGenius.AddTemporaryTrait(bm.Actor.IsPet ? TraitNames.SuperSmartPet : TraitNames.FastLearner, true);
             }
         }
     }

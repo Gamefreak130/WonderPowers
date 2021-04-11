@@ -146,6 +146,8 @@
 <STR>Gameplay/WonderMode:SatisfactionDialogTitle</STR>
 <KEY>Gameplay/WonderMode:SicknessDialogTitle</KEY>
 <STR>Gameplay/WonderMode:SicknessDialogTitle</STR>
+<KEY>Gameplay/WonderMode:StrokeOfGeniusDialogTitle</KEY>
+<STR>Gameplay/WonderMode:StrokeOfGeniusDialogTitle</STR>
 <KEY>Gameplay/WonderMode:SelectGhost</KEY>
 <STR>Gameplay/WonderMode:SelectGhost</STR>
 <KEY>Gameplay/Excel/Buffs/BuffOrigins:D30E840A88FBA523</KEY>
@@ -190,5 +192,9 @@
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuffDescription</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuffDescription</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_StrokeOfGeniusBuff</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_StrokeOfGeniusBuff</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_StrokeOfGeniusBuffDescription</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_StrokeOfGeniusBuffDescription</STR>
 <KEY></KEY>
 <STR></STR>

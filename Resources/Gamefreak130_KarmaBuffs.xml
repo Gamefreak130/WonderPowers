@@ -105,4 +105,13 @@
     <TimeoutLength>1440</TimeoutLength>
     <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffKarmicSickness, Gamefreak130.WonderPowers</CustomClassName>
   </BuffList>
+  <BuffList>
+    <Hex>Gamefreak130_StrokeOfGeniusBuff=0x5013C6DC21516CD8</Hex>
+    <BuffName>Gamefreak130_StrokeOfGeniusBuff</BuffName>
+    <BuffDescription>Gamefreak130_StrokeOfGeniusBuffDescription</BuffDescription>
+    <ThumbFilename>strokeofgenius</ThumbFilename>
+    <EffectValue>0</EffectValue>
+    <TimeoutLength>720</TimeoutLength>
+    <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffStrokeOfGenius, Gamefreak130.WonderPowers</CustomClassName>
+  </BuffList>
 </Gamefreak130_KarmaBuffs>

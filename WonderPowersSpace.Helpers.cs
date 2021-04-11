@@ -2180,7 +2180,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			return true;
         }
 
-		public static bool FeralPosessionActivation(bool isBacklash)
+		public static bool FeralPossessionActivation(bool isBacklash)
         {
 			//TODO this
 			throw new NotImplementedException();
@@ -2551,7 +2551,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 																				.ConvertAll((sim) => sim.SimDescription);
 				selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("SicknessDialogTitle"))?.CreatedSim;
 			}
-
+			// CONSIDER more vis effects?
 			if (selectedSim is null)
 			{
 				return false;
@@ -2563,6 +2563,32 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			Audio.StartSound("sting_sickness");
 			Buffs.BuffKarmicSickness.AddKarmicSickness(selectedSim);
+			WonderPowerManager.TogglePowerRunning();
+			return true;
+		}
+
+		public static bool StrokeOfGeniusActivation(bool _)
+        {
+			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
+																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement(Buffs.BuffStrokeOfGenius.kBuffStrokeOfGeniusGuid))
+																			.ConvertAll((sim) => sim.SimDescription);
+			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("StrokeOfGeniusDialogTitle"))?.CreatedSim;
+
+			if (selectedSim is null)
+			{
+				return false;
+			}
+
+			//CONSIDER animation, visual effect?
+			//TODO cancel all interactions
+			//TODO either get eor sting or extract out and make non-3d
+			Audio.StartSound("sting_sculpt_brilliant");
+			Camera.FocusOnSim(selectedSim);
+			if (selectedSim.IsSelectable)
+			{
+				PlumbBob.SelectActor(selectedSim);
+			}
+			selectedSim.BuffManager.AddElement(Buffs.BuffStrokeOfGenius.kBuffStrokeOfGeniusGuid, (Origin)HashString64("FromWonderPower"));
 			WonderPowerManager.TogglePowerRunning();
 			return true;
 		}
