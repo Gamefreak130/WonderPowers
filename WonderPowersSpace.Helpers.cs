@@ -2310,7 +2310,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			//CONSIDER animation, visual effect?
 			//CONSIDER Toggle power on sound finish?
 			//TODO cancel all interactions
-			Audio.StartSound("sting_good_mood");
+			Audio.StartSound("sting_goodmood");
 			Camera.FocusOnSim(selectedSim);
 			if (selectedSim.IsSelectable)
 			{
@@ -2342,7 +2342,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			//CONSIDER Toggle power on sound finish?
 			//TODO cancel all interactions
 			//TODO get eor sting
-			//Audio.StartSound("sting_good_mood");
+			//Audio.StartSound("sting_goodmood");
 			Camera.FocusOnSim(selectedSim);
 			if (selectedSim.IsSelectable)
 			{
@@ -2589,6 +2589,32 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				PlumbBob.SelectActor(selectedSim);
 			}
 			selectedSim.BuffManager.AddElement(Buffs.BuffStrokeOfGenius.kBuffStrokeOfGeniusGuid, (Origin)HashString64("FromWonderPower"));
+			WonderPowerManager.TogglePowerRunning();
+			return true;
+		}
+
+		public static bool SuperLuckyActivation(bool _)
+		{
+			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
+																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement(Buffs.BuffSuperLucky.kBuffSuperLuckyGuid))
+																			.ConvertAll((sim) => sim.SimDescription);
+			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("SuperLuckyDialogTitle"))?.CreatedSim;
+
+			if (selectedSim is null)
+			{
+				return false;
+			}
+
+			//CONSIDER animation, visual effect?
+			//CONSIDER Toggle power on sound finish?
+			//TODO cancel all interactions
+			Audio.StartSound("sting_goodmood");
+			Camera.FocusOnSim(selectedSim);
+			if (selectedSim.IsSelectable)
+			{
+				PlumbBob.SelectActor(selectedSim);
+			}
+			selectedSim.BuffManager.AddElement(Buffs.BuffSuperLucky.kBuffSuperLuckyGuid, (Origin)HashString64("FromWonderPower"));
 			WonderPowerManager.TogglePowerRunning();
 			return true;
 		}

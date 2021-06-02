@@ -20,6 +20,12 @@
     <EffectMethod>RayOfSunshineActivation</EffectMethod>
   </Power>
   <Power>
+    <PowerName>SuperLucky</PowerName>
+    <IsBad>False</IsBad>
+    <Cost>10</Cost>
+    <EffectMethod>SuperLuckyActivation</EffectMethod>
+  </Power>
+  <Power>
     <PowerName>CryHavoc</PowerName>
     <IsBad>True</IsBad>
     <Cost>20</Cost>
@@ -91,12 +97,6 @@
     <IsBad>False</IsBad>
     <Cost>40</Cost>
     <EffectMethod>StrokeOfGeniusActivation</EffectMethod>
-  </Power>
-  <Power>
-    <PowerName>SuperLucky</PowerName>
-    <IsBad>False</IsBad>
-    <Cost>50</Cost>
-    <EffectMethod>SuperLuckyActivation</EffectMethod>
   </Power>
   <Power>
     <PowerName>Earthquake</PowerName>

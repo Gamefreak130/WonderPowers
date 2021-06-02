@@ -114,4 +114,14 @@
     <TimeoutLength>720</TimeoutLength>
     <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffStrokeOfGenius, Gamefreak130.WonderPowers</CustomClassName>
   </BuffList>
+  <BuffList>
+    <Hex>Gamefreak130_SuperLuckyBuff=0xDCF517CDF276DA33</Hex>
+    <BuffName>Gamefreak130_SuperLuckyBuff</BuffName>
+    <BuffDescription>Gamefreak130_SuperLuckyBuffDescription</BuffDescription>
+    <ThumbFilename>moodlet_Gamefreak130_SuperLuckyBuff</ThumbFilename>
+    <EffectValue>10</EffectValue>
+    <TimeoutLength>720</TimeoutLength>
+    <IncreasedEffectiveness>Humor, Impressive, Romance, Social, Talk, AcceptingOfHumor, AcceptingOfImpressive, AcceptingOfRomance, AcceptingOfSocials, AcceptingOfTalk</IncreasedEffectiveness>
+    <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffSuperLucky, Gamefreak130.WonderPowers</CustomClassName>
+  </BuffList>
 </Gamefreak130_KarmaBuffs>

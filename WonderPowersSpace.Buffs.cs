@@ -347,4 +347,52 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
             }
         }
     }
+
+    public class BuffSuperLucky : Buff
+    {
+        public const ulong kBuffSuperLuckyGuid = 0xDCF517CDF276DA33;
+
+        public class BuffInstanceSuperLucky : BuffInstance
+        {
+            public VisualEffect mEffect;
+
+            public BuffInstanceSuperLucky()
+            {
+            }
+
+            public BuffInstanceSuperLucky(Buff buff, BuffNames buffGuid, int effectValue, float timeoutCount) : base(buff, buffGuid, effectValue, timeoutCount)
+            {
+            }
+
+            public override BuffInstance Clone() => new BuffInstanceSuperLucky(mBuff, mBuffGuid, mEffectValue, mTimeoutCount);
+
+            public override void Dispose(BuffManager bm)
+            {
+                if (mEffect is not null)
+                {
+                    mEffect.Stop();
+                    mEffect.Dispose();
+                    mEffect = null;
+                }
+                base.Dispose(bm);
+            }
+        }
+
+        public BuffSuperLucky(BuffData data) : base(data)
+        {
+        }
+
+        public override BuffInstance CreateBuffInstance() => new BuffInstanceSuperLucky(this, BuffGuid, EffectValue, TimeoutSimMinutes);
+
+        public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
+        {
+            BuffInstanceSuperLucky superLucky = bi as BuffInstanceSuperLucky;
+            superLucky.mEffect = VisualEffect.Create("ep1EyeCandy");
+            superLucky.mEffect.ParentTo(bm.Actor, Sim.FXJoints.Spine1);
+            superLucky.mEffect.Start();
+            base.OnAddition(bm, bi, travelReaddition);
+        }
+
+        public override void OnRemoval(BuffManager bm, BuffInstance bi) => bi.Dispose(bm);
+    }
 }
