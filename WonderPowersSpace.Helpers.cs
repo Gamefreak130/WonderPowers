@@ -2626,7 +2626,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool WealthActivation(bool _)
 		{
-			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_WealthBuff")))
+			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.TeenOrAbove && !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_WealthBuff")))
 																			.ConvertAll((sim) => sim.SimDescription);
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("WealthDialogTitle"))?.CreatedSim;
 

@@ -6,7 +6,7 @@
 	<Current_Tuning>
 		<Disallow DisallowAutonomous="True" DisallowUserDirected="False" DisallowPlayerSim="False" />
 		<BaseAvailability>
-			<AgeSpeciesAvail AgeSpeciesValue="Y,A,E" />
+			<AgeSpeciesAvail AgeSpeciesValue="T,Y,A,E" />
 			<MotiveThreshold MotiveThresholdType="None" MotiveThresholdValue="0" MotiveBelowCheck="False" />
 			<MoodThreshold MoodThresholdType="None" MoodThresholdValue="0" />
 			<SkillThreshold SkillThresholdType="None" SkillThresholdValue="0" />
