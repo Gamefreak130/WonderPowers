@@ -65,7 +65,7 @@
     <BuffName>Gamefreak130_GoodMoodBuff</BuffName>
     <BuffDescription>Gamefreak130_GoodMoodBuffDescription</BuffDescription>
     <ThumbFilename>goodmood</ThumbFilename>
-    <EffectValue>20</EffectValue>
+    <EffectValue>50</EffectValue>
     <AxisEffected>Happy</AxisEffected>
     <TimeoutLength>180</TimeoutLength>
   </BuffList>
@@ -123,5 +123,14 @@
     <TimeoutLength>720</TimeoutLength>
     <IncreasedEffectiveness>Humor, Impressive, Romance, Social, Talk, AcceptingOfHumor, AcceptingOfImpressive, AcceptingOfRomance, AcceptingOfSocials, AcceptingOfTalk</IncreasedEffectiveness>
     <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffSuperLucky, Gamefreak130.WonderPowers</CustomClassName>
+  </BuffList>
+  <BuffList>
+    <Hex>Gamefreak130_WealthBuff=0x46E4DCC67F89082F</Hex>
+    <BuffName>Gamefreak130_WealthBuff</BuffName>
+    <BuffDescription>Gamefreak130_WealthBuffDescription</BuffDescription>
+    <ThumbFilename>wealth</ThumbFilename>
+    <EffectValue>20</EffectValue>
+    <AxisEffected>Happy</AxisEffected>
+    <TimeoutLength>180</TimeoutLength>
   </BuffList>
 </Gamefreak130_KarmaBuffs>

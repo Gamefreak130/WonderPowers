@@ -749,7 +749,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
         internal static string LocalizeString(string name, params object[] parameters) => Localization.LocalizeString("Gameplay/WonderMode:" + name, parameters);
 
-        /*public static void AddActivePower(WonderPowerActivation activePower)
+		internal static string LocalizeString(bool isFemale, string name, params object[] parameters) => Localization.LocalizeString(isFemale, "Gameplay/WonderMode:" + name, parameters);
+
+		/*public static void AddActivePower(WonderPowerActivation activePower)
 		{
 			sInstance.mActiveWonderPowers.Add(activePower);
 		}
@@ -763,7 +765,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		{
 			return sInstance.mActiveWonderPowers.Count > 0;
 		}*/
-    }
+	}
 
 	/*[Persistable(false)]
 	public abstract class WonderPowerActivation : ScriptObject
@@ -2063,7 +2065,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             {
 				return false;
 			}
-			Audio.StartSound("sting_lifetime_opp_success");
 			if (selectedUrnstone.MyGhost is null or { IsSelectable: false })
             {
 				Sim actor = PlumbBob.SelectedActor;
@@ -2079,7 +2080,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				}
 			}
 			Sim ghost = selectedUrnstone.MyGhost;
-			Camera.FocusOnSim(ghost);
 			InteractionInstance instance = new DivineInterventionResurrect.Definition().CreateInstance(ghost, ghost, new(InteractionPriorityLevel.MaxDeath), false, false);
 			ghost.InteractionQueue.AddNext(instance);
 			return true;
@@ -2616,6 +2616,27 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			selectedSim.BuffManager.AddElement(Buffs.BuffSuperLucky.kBuffSuperLuckyGuid, (Origin)HashString64("FromWonderPower"));
 			WonderPowerManager.TogglePowerRunning();
+			return true;
+		}
+
+		public static bool TransmogrifyActivation(bool _)
+        {
+			throw new NotImplementedException();
+        }
+
+		public static bool WealthActivation(bool _)
+		{
+			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_WealthBuff")))
+																			.ConvertAll((sim) => sim.SimDescription);
+			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("WealthDialogTitle"))?.CreatedSim;
+
+			if (selectedSim is null)
+			{
+				return false;
+			}
+
+			ReceiveMagicalCheck receiveInteraction = new ReceiveMagicalCheck.Definition().CreateInstance(selectedSim, selectedSim, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ReceiveMagicalCheck;
+			selectedSim.InteractionQueue.AddNext(receiveInteraction);
 			return true;
 		}
 

@@ -114,6 +114,8 @@
 <STR>Gameplay/WonderMode:BacklashFailure</STR>
 <KEY>Gameplay/WonderMode:PanicReact</KEY>
 <STR>Gameplay/WonderMode:PanicReact</STR>
+<KEY>Gameplay/WonderMode:ReceiveMagicalCheck</KEY>
+<STR>Gameplay/WonderMode:ReceiveMagicalCheck</STR>
 <KEY>Gameplay/WonderMode:MeteorDestinationTitle</KEY>
 <STR>Gameplay/WonderMode:MeteorDestinationTitle</STR>
 <KEY>Gameplay/WonderMode:MeteorDestinationConfirm</KEY>
@@ -150,8 +152,12 @@
 <STR>Gameplay/WonderMode:StrokeOfGeniusDialogTitle</STR>
 <KEY>Gameplay/WonderMode:SuperLuckyDialogTitle</KEY>
 <STR>Gameplay/WonderMode:SuperLuckyDialogTitle</STR>
+<KEY>Gameplay/WonderMode:WealthDialogTitle</KEY>
+<STR>Gameplay/WonderMode:WealthDialogTitle</STR>
 <KEY>Gameplay/WonderMode:SelectGhost</KEY>
 <STR>Gameplay/WonderMode:SelectGhost</STR>
+<KEY>Gameplay/WonderMode:WealthTNS</KEY>
+<STR>Gameplay/WonderMode:WealthTNS</STR>
 <KEY>Gameplay/Excel/Buffs/BuffOrigins:D30E840A88FBA523</KEY>
 <STR>Gameplay/Excel/Buffs/BuffOrigins:D30E840A88FBA523</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuff</KEY>
@@ -202,5 +208,9 @@
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_SuperLuckyBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_SuperLuckyBuffDescription</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_SuperLuckyBuffDescription</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_WealthBuff</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_WealthBuff</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_WealthBuffDescription</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_WealthBuffDescription</STR>
 <KEY></KEY>
 <STR></STR>

@@ -44,5 +44,11 @@
 
         [Tunable, TunableComment("The multiplier applied to a Sim's motive decay when affected by the Sickness karma power")]
         public static float kSicknessMotiveDecay = 2;
+
+        [Tunable, TunableComment("The minimum amount added to a Sim's household funds when affected by the Wealth karma power")]
+        public static int kWealthMinAmount = 10000;
+
+        [Tunable, TunableComment("The maximum amount added to a Sim's household funds when affected by the Wealth karma power")]
+        public static int kWealthMaxAmount = 50000;
     }
 }
