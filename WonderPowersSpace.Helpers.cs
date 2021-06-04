@@ -2022,7 +2022,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			else
 			{
 				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_CursedBuff"))).ConvertAll((sim) => sim.SimDescription);
-				selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("CurseDialogTitle"))?.CreatedSim;
+				selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("CurseDialogTitle"))?.CreatedSim;
 			}
 			
 			if (selectedSim is null)
@@ -2060,7 +2060,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			List<SimDescription> targets = new List<Urnstone>(Queries.GetObjects<Urnstone>())
 												.ConvertAll((urnstone) => urnstone.DeadSimsDescription)
 												.FindAll((description) => description is not null);
-			Urnstone selectedUrnstone = Urnstone.FindGhostsGrave(SelectTarget(targets, WonderPowerManager.LocalizeString("DivineInterventionDialogTitle")));
+			Urnstone selectedUrnstone = Urnstone.FindGhostsGrave(HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("DivineInterventionDialogTitle")));
 			if (selectedUrnstone is null)
             {
 				return false;
@@ -2101,7 +2101,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
 																				.FindAll((sim) => sim.SimDescription.ChildOrAbove && sim.BuffManager.GetElement(BuffNames.UnicornsIre)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff")
 																				.ConvertAll((sim) => sim.SimDescription);
-				selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("DoomDialogTitle"))?.CreatedSim;
+				selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("DoomDialogTitle"))?.CreatedSim;
 			}
 
 			if (selectedSim is null)
@@ -2198,7 +2198,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			else
 			{
-				selectedLot = SelectTarget(WonderPowerManager.LocalizeString("FireDestinationTitle"), WonderPowerManager.LocalizeString("FireDestinationConfirm"));
+				selectedLot = HelperMethods.SelectTarget(WonderPowerManager.LocalizeString("FireDestinationTitle"), WonderPowerManager.LocalizeString("FireDestinationConfirm"));
 			}
 
 			new FireSituation(selectedLot);
@@ -2210,7 +2210,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
 																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.IsGhostOrHasGhostBuff && !sim.BuffManager.HasElement((BuffNames)Buffs.BuffGhostify.kBuffGhostifyGuid))
 																			.ConvertAll((sim) => sim.SimDescription);
-			Sim sim = SelectTarget(targets, WonderPowerManager.LocalizeString("GhostifyDialogTitle"))?.CreatedSim;
+			Sim sim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("GhostifyDialogTitle"))?.CreatedSim;
 			if (sim is null)
             {
 				return false;
@@ -2240,7 +2240,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			else
 			{
-				selectedLot = SelectTarget(WonderPowerManager.LocalizeString("GhostsDestinationTitle"), WonderPowerManager.LocalizeString("GhostsDestinationConfirm"));
+				selectedLot = HelperMethods.SelectTarget(WonderPowerManager.LocalizeString("GhostsDestinationTitle"), WonderPowerManager.LocalizeString("GhostsDestinationConfirm"));
 			}
 
 			new GhostsSituation(selectedLot);
@@ -2272,7 +2272,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		public static bool InstantBeautyActivation(bool _)
         {
 			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ToddlerOrAbove && !sim.OccultManager.DisallowClothesChange() && !sim.BuffManager.DisallowClothesChange()).ConvertAll((sim) => sim.SimDescription);
-			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("InstantBeautyDialogTitle"))?.CreatedSim;
+			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("InstantBeautyDialogTitle"))?.CreatedSim;
 			if (selectedSim is null)
             {
 				return false;
@@ -2300,7 +2300,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
 																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && sim.BuffManager.GetElement(BuffNames.UnicornsBlessing)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuff")
 																			.ConvertAll((sim) => sim.SimDescription);
-			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("LuckyBreakDialogTitle"))?.CreatedSim;
+			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("LuckyBreakDialogTitle"))?.CreatedSim;
 
 			if (selectedSim is null)
             {
@@ -2331,7 +2331,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
 																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.SimDescription.IsHorse && !sim.BuffManager.HasElement(Buffs.BuffLuckyFind.kBuffLuckyFindGuid))
 																			.ConvertAll((sim) => sim.SimDescription);
-			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("LuckyFindDialogTitle"))?.CreatedSim;
+			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("LuckyFindDialogTitle"))?.CreatedSim;
 
 			if (selectedSim is null)
 			{
@@ -2367,7 +2367,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			else
 			{
-				selectedLot = SelectTarget(WonderPowerManager.LocalizeString("MeteorDestinationTitle"), WonderPowerManager.LocalizeString("MeteorDestinationConfirm"));
+				selectedLot = HelperMethods.SelectTarget(WonderPowerManager.LocalizeString("MeteorDestinationTitle"), WonderPowerManager.LocalizeString("MeteorDestinationConfirm"));
 			}
 
 			Audio.StartSound("sting_meteor_forshadow");
@@ -2382,7 +2382,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
 																			.FindAll((sim) => !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_BoostedBuff")))
 																			.ConvertAll((sim) => sim.SimDescription);
-			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("RayOfSunshineDialogTitle"))?.CreatedSim;
+			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("RayOfSunshineDialogTitle"))?.CreatedSim;
 			if (selectedSim is null)
             {
 				return false;
@@ -2501,7 +2501,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
 																			.FindAll((sim) => !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_SatisfiedBuff")))
 																			.ConvertAll((sim) => sim.SimDescription);
-			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("SatisfactionDialogTitle"))?.CreatedSim;
+			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("SatisfactionDialogTitle"))?.CreatedSim;
 			if (selectedSim is null)
 			{
 				return false;
@@ -2549,7 +2549,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => (WonderPowers.IsKidsMagicInstalled ? sim.SimDescription.ChildOrAbove : sim.SimDescription.TeenOrAbove) && !sim.IsRobot 
 																									&& sim.BuffManager.GetElement(BuffNames.CommodityDecayModifier)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuff" && !sim.BuffManager.HasElement(Buffs.BuffKarmicSickness.kBuffKarmicSicknessGuid))
 																				.ConvertAll((sim) => sim.SimDescription);
-				selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("SicknessDialogTitle"))?.CreatedSim;
+				selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("SicknessDialogTitle"))?.CreatedSim;
 			}
 			// CONSIDER more vis effects?
 			if (selectedSim is null)
@@ -2572,7 +2572,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
 																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement(Buffs.BuffStrokeOfGenius.kBuffStrokeOfGeniusGuid))
 																			.ConvertAll((sim) => sim.SimDescription);
-			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("StrokeOfGeniusDialogTitle"))?.CreatedSim;
+			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("StrokeOfGeniusDialogTitle"))?.CreatedSim;
 
 			if (selectedSim is null)
 			{
@@ -2598,7 +2598,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
 																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement(Buffs.BuffSuperLucky.kBuffSuperLuckyGuid))
 																			.ConvertAll((sim) => sim.SimDescription);
-			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("SuperLuckyDialogTitle"))?.CreatedSim;
+			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("SuperLuckyDialogTitle"))?.CreatedSim;
 
 			if (selectedSim is null)
 			{
@@ -2628,7 +2628,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		{
 			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_WealthBuff")))
 																			.ConvertAll((sim) => sim.SimDescription);
-			Sim selectedSim = SelectTarget(targets, WonderPowerManager.LocalizeString("WealthDialogTitle"))?.CreatedSim;
+			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("WealthDialogTitle"))?.CreatedSim;
 
 			if (selectedSim is null)
 			{
@@ -2638,9 +2638,42 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			ReceiveMagicalCheck receiveInteraction = new ReceiveMagicalCheck.Definition().CreateInstance(selectedSim, selectedSim, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ReceiveMagicalCheck;
 			selectedSim.InteractionQueue.AddNext(receiveInteraction);
 			return true;
+		}	
+	}
+
+	public static class HelperMethods
+    {
+		public static List<GameObject> CreateFogEmittersOnLot(Lot lot)
+		{
+			Vector2 lotDimensions = BinCommon.GetLotDimensions(lot);
+			LotDisplayLevelInfo lotDisplayLevelInfo = World.LotGetDisplayLevelInfo(lot.LotId);
+			float num = 0.01f * lotDimensions.x * lotDimensions.y * (lotDisplayLevelInfo.mMax - lotDisplayLevelInfo.mMin);
+			RandomObjectPlacementParams ropParams = new(true, true);
+			ropParams.ValidFloors = new sbyte[lotDisplayLevelInfo.mMax - lotDisplayLevelInfo.mMin];
+			for (int i = 0; i < ropParams.ValidFloors.Length; i++)
+			{
+				ropParams.ValidFloors[i] = (sbyte)(i + lotDisplayLevelInfo.mMin);
+			}
+			ropParams.FglParams.BooleanConstraints &= ~FindGoodLocationBooleans.PreferEmptyTiles;
+			List<GameObject> list = new();
+			for (int i = 0; i < (int)num; i++)
+			{
+				if (CreateObjectOnLot("fogEmitter", ProductVersion.BaseGame, null, lot, ropParams, true) is not GameObject gameObject)
+				{
+					break;
+				}
+				if (gameObject.IsOutside)
+				{
+					Vector3 position = gameObject.Position;
+					gameObject.SetPosition(new(position.x, World.GetTerrainHeight(position.x, position.z), position.z));
+				}
+				gameObject.OnHandToolPlacementOnTerrainBase();
+				list.Add(gameObject);
+			}
+			return list;
 		}
 
-		private static SimDescription SelectTarget(List<SimDescription> sims, string title)
+		public static SimDescription SelectTarget(List<SimDescription> sims, string title)
 		{
 			SimDescription target = null;
 			if (sims?.Count > 0)
@@ -2671,8 +2704,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			return target;
 		}
 
-		private static Lot SelectTarget(string title, string confirm)
-        {
+		public static Lot SelectTarget(string title, string confirm)
+		{
 			List<IMapTagPickerInfo> list = new();
 			foreach (Lot lot in LotManager.AllLotsWithoutCommonExceptions)
 			{

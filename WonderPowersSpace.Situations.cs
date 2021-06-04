@@ -34,7 +34,11 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
         private List<Sim> mFighters;
 
+        private List<GameObject> mFogEmitters;
+
         private AlarmHandle mExitHandle;
+
+        private uint mSoundHandle;
 
         private class StartSituation : ChildSituation<CryHavocSituation>
         {
@@ -48,20 +52,29 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
             public override void Init(CryHavocSituation parent)
             {
-                //TODO Add fog effect to lot
-                //TODO Change sound, make 3d sound based on lot position
-                //CONSIDER Animation for Sims on exit?
                 //CONSIDER reaction broadcast?
-                //Audio.StartSound("sting_death", new Function(() => Parent.SetState(new EndSituation(Parent))));
+                Parent.mSoundHandle = Audio.StartSound("sting_cryhavoc", Lot.Position);
                 Parent.mExitHandle = AlarmManager.Global.AddAlarm(TunableSettings.kCryHavocLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- CryHavoc Situation Alarm", AlarmType.AlwaysPersisted, null);
                 Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted); //2f is standard lerpTime
                 Parent.mFighters = Lot.GetAllActors().FindAll(IsValidFighter);
+                Parent.mFogEmitters = Helpers.HelperMethods.CreateFogEmittersOnLot(Lot);
 
-                while (Parent.mFighters.Count < TunableSettings.kCryHavocMinSims)
+                if (Parent.mFighters.Count < TunableSettings.kCryHavocMinSims)
                 {
-                    List<Sim> otherSims = new List<Sim>(Queries.GetObjects<Sim>()).FindAll((sim) => !Parent.mFighters.Contains(sim));
-                    if (otherSims.Count == 0) { break; }
-                    Parent.mFighters.Add(GetClosestObject(otherSims, Lot, IsValidFighter));
+                    List<Sim> otherSims = new List<Sim>(Queries.GetObjects<Sim>()).FindAll((sim) => !Parent.mFighters.Contains(sim) && IsValidFighter(sim));
+                    while (Parent.mFighters.Count < TunableSettings.kCryHavocMinSims && otherSims.Count != 0)
+                    {
+                        Sim closestSim = GetClosestObject(otherSims, Lot);
+                        if (closestSim is not null)
+                        {
+                            Parent.mFighters.Add(closestSim);
+                            otherSims.Remove(closestSim);
+                        }
+                        else
+                        {
+                            otherSims.RemoveAt(0);
+                        }
+                    }
                 }
                 PruneFighters();
                 foreach (Sim sim in Parent.mFighters)
@@ -77,8 +90,8 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
             private bool IsValidFighter(Sim sim) => sim is { IsHorse: false, CanBeSocializedWith: true, SimDescription: { TeenOrAbove: true } };
 
-            // Two Sims can fight each other only if they are both pets, both teens, or both adults or above
-            // This method ensures that there are an even number of fighters in each of these three groups
+            // Two Sims can fight each other only if they are both pets, both teens, or both adults or older
+            // This method ensures that there are at least two fighters in each of these three groups
             // So that any Sim always has someone to fight with
             private void PruneFighters()
             {
@@ -106,10 +119,25 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 {
                     if (sim is not null)
                     {
-                        sim.BuffManager.RemoveElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid);
                         sim.RemoveRole(this);
-                        Sim.MakeSimGoHome(sim, false, new(InteractionPriorityLevel.CriticalNPCBehavior));
+                        sim.InteractionQueue.CancelAllInteractions();
+                        sim.OverlayComponent.PlayReaction(ReactionTypes.MotiveFailEnergy, sim, true);
+                        sim.BuffManager.RemoveElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid);
+                        if (!sim.IsAtHome)
+                        {
+                            Sim.MakeSimGoHome(sim, false, new(InteractionPriorityLevel.CriticalNPCBehavior));
+                        }
                     }
+                }
+                foreach (GameObject emitter in mFogEmitters)
+                {
+                    emitter.Destroy();
+                    emitter.Dispose();
+                }
+                if (mSoundHandle != 0U)
+                {
+                    Audio.StopSound(mSoundHandle);
+                    mSoundHandle = 0U;
                 }
                 AlarmManager.RemoveAlarm(mExitHandle);
                 mExitHandle = AlarmHandle.kInvalidHandle;
@@ -327,7 +355,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                             sim.InteractionQueue.CancelAllInteractions();
                         }
                     }
-                    Parent.mCreatedObjects.AddRange(CreateFogEmittersOnLot(Lot));
+                    Parent.mCreatedObjects.AddRange(Helpers.HelperMethods.CreateFogEmittersOnLot(Lot));
 
                     int @int = RandomUtil.GetInt(GhostHunter.kSpiritLightingRed.Length - 1);
                     float r = GhostHunter.kSpiritLightingRed[@int] / 255f;
@@ -352,36 +380,6 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 {
                     Helpers.PowerExceptionLogger.sInstance.Log(e);
                 }
-            }
-
-            private List<GameObject> CreateFogEmittersOnLot(Lot lot)
-            {
-                Vector2 lotDimensions = BinCommon.GetLotDimensions(lot);
-                LotDisplayLevelInfo lotDisplayLevelInfo = World.LotGetDisplayLevelInfo(lot.LotId);
-                float num = 0.01f * lotDimensions.x * lotDimensions.y * (lotDisplayLevelInfo.mMax - lotDisplayLevelInfo.mMin);
-                RandomObjectPlacementParams ropParams = new(true, true);
-                ropParams.ValidFloors = new sbyte[lotDisplayLevelInfo.mMax - lotDisplayLevelInfo.mMin];
-                for (int i = 0; i < ropParams.ValidFloors.Length; i++)
-                {
-                    ropParams.ValidFloors[i] = (sbyte)(i + lotDisplayLevelInfo.mMin);
-                }
-                ropParams.FglParams.BooleanConstraints &= ~FindGoodLocationBooleans.PreferEmptyTiles;
-                List<GameObject> list = new();
-                for (int i = 0; i < (int)num; i++)
-                {
-                    if (CreateObjectOnLot("fogEmitter", ProductVersion.BaseGame, null, lot, ropParams, true) is not GameObject gameObject)
-                    {
-                        break;
-                    }
-                    if (gameObject.IsOutside)
-                    {
-                        Vector3 position = gameObject.Position;
-                        gameObject.SetPosition(new(position.x, World.GetTerrainHeight(position.x, position.z), position.z));
-                    }
-                    gameObject.OnHandToolPlacementOnTerrainBase();
-                    list.Add(gameObject);
-                }
-                return list;
             }
 
             private void CreateAngryGhost()
