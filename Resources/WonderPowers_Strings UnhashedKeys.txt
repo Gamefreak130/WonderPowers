@@ -116,6 +116,8 @@
 <STR>Gameplay/WonderMode:PanicReact</STR>
 <KEY>Gameplay/WonderMode:ReceiveMagicalCheck</KEY>
 <STR>Gameplay/WonderMode:ReceiveMagicalCheck</STR>
+<KEY>Gameplay/WonderMode:BeDoomed</KEY>
+<STR>Gameplay/WonderMode:BeDoomed</STR>
 <KEY>Gameplay/WonderMode:MeteorDestinationTitle</KEY>
 <STR>Gameplay/WonderMode:MeteorDestinationTitle</STR>
 <KEY>Gameplay/WonderMode:MeteorDestinationConfirm</KEY>
@@ -156,6 +158,10 @@
 <STR>Gameplay/WonderMode:WealthDialogTitle</STR>
 <KEY>Gameplay/WonderMode:SelectGhost</KEY>
 <STR>Gameplay/WonderMode:SelectGhost</STR>
+<KEY>Gameplay/WonderMode:CryHavocTNS</KEY>
+<STR>Gameplay/WonderMode:CryHavocTNS</STR>
+<KEY>Gameplay/WonderMode:DoomTNS</KEY>
+<STR>Gameplay/WonderMode:DoomTNS</STR>
 <KEY>Gameplay/WonderMode:WealthTNS</KEY>
 <STR>Gameplay/WonderMode:WealthTNS</STR>
 <KEY>Gameplay/Excel/Buffs/BuffOrigins:D30E840A88FBA523</KEY>

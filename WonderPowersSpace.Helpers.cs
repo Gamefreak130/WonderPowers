@@ -2080,6 +2080,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				}
 			}
 			Sim ghost = selectedUrnstone.MyGhost;
+			Camera.FocusOnSim(ghost);
+			if (ghost.IsSelectable)
+			{
+				PlumbBob.SelectActor(ghost);
+			}
 			InteractionInstance instance = new DivineInterventionResurrect.Definition().CreateInstance(ghost, ghost, new(InteractionPriorityLevel.MaxDeath), false, false);
 			ghost.InteractionQueue.AddNext(instance);
 			return true;
@@ -2109,23 +2114,13 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				return false;
             }
 
-			//CONSIDER animation, visual effect?
-			//CONSIDER Toggle power on sound finish?
-			//CONSIDER Negative trait swap?
-			//TODO cancel all interactions
-			Audio.StartSound("sting_job_demote");
 			Camera.FocusOnSim(selectedSim);
 			if (selectedSim.IsSelectable)
 			{
 				PlumbBob.SelectActor(selectedSim);
 			}
-			selectedSim.BuffManager.AddBuff(BuffNames.UnicornsIre, -40, 1440, false, MoodAxis.None, (Origin)HashString64("FromWonderPower"), true);
-			BuffInstance buff = selectedSim.BuffManager.GetElement(BuffNames.UnicornsIre);
-			buff.mBuffName = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff";
-			buff.mDescription = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuffDescription";
-			// This will automatically trigger the BuffsChanged event, so the UI should refresh itself after this and we won't have to do it manually
-			buff.SetThumbnail("doom", ProductVersion.BaseGame, selectedSim);
-			WonderPowerManager.TogglePowerRunning();
+			InteractionInstance instance = new BeDoomed.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false);
+			selectedSim.InteractionQueue.AddNext(instance);
 			return true;
 		}
 
@@ -2635,6 +2630,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				return false;
 			}
 
+			Camera.FocusOnSim(selectedSim);
+			if (selectedSim.IsSelectable)
+			{
+				PlumbBob.SelectActor(selectedSim);
+			}
 			ReceiveMagicalCheck receiveInteraction = new ReceiveMagicalCheck.Definition().CreateInstance(selectedSim, selectedSim, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ReceiveMagicalCheck;
 			selectedSim.InteractionQueue.AddNext(receiveInteraction);
 			return true;

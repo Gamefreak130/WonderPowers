@@ -21,6 +21,8 @@ using Sims3.SimIFace.CAS;
 using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.ObjectComponents;
+using Sims3.UI;
+using Gamefreak130.WonderPowersSpace.Helpers;
 
 namespace Gamefreak130.WonderPowersSpace.Situations
 {
@@ -86,6 +88,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                         ForceSituationSpecificInteraction(sim, visitLot);
                     }
                 }
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString("CryHavocTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
             }
 
             private bool IsValidFighter(Sim sim) => sim is { IsHorse: false, CanBeSocializedWith: true, SimDescription: { TeenOrAbove: true } };
@@ -145,7 +148,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             }
             finally
             {
-                Helpers.WonderPowerManager.TogglePowerRunning();
+                WonderPowerManager.TogglePowerRunning();
             }
         }
 
@@ -256,7 +259,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
         {
             AlarmManager.RemoveAlarm(mExitHandle);
             mExitHandle = AlarmHandle.kInvalidHandle;
-            Helpers.WonderPowerManager.TogglePowerRunning();
+            WonderPowerManager.TogglePowerRunning();
             base.CleanUp(); 
         }
 
@@ -355,7 +358,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                             sim.InteractionQueue.CancelAllInteractions();
                         }
                     }
-                    Parent.mCreatedObjects.AddRange(Helpers.HelperMethods.CreateFogEmittersOnLot(Lot));
+                    Parent.mCreatedObjects.AddRange(HelperMethods.CreateFogEmittersOnLot(Lot));
 
                     int @int = RandomUtil.GetInt(GhostHunter.kSpiritLightingRed.Length - 1);
                     float r = GhostHunter.kSpiritLightingRed[@int] / 255f;
@@ -378,7 +381,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 }
                 catch (Exception e)
                 {
-                    Helpers.PowerExceptionLogger.sInstance.Log(e);
+                    PowerExceptionLogger.sInstance.Log(e);
                 }
             }
 
@@ -550,7 +553,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             }
             finally
             {
-                Helpers.WonderPowerManager.TogglePowerRunning();
+                WonderPowerManager.TogglePowerRunning();
             }
         }
 
