@@ -2116,9 +2116,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				? GetClosestObject((List<Lot>)LotManager.AllLotsWithoutCommonExceptions, actor)
 				: actor.LotCurrent;
 
-			//TODO Add EOR earthquake sting
-			lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted); //2f is standard lerptime
-			Audio.StartSound("earthquake");
+			//TEST Add EOR earthquake sting
+			Audio.StartSound("earthquake_shake", lot.Position);
+			Audio.StartSound("sting_earthquake");
+			Camera.FocusOnLot(lot.LotId, 2f); //2f is standard lerptime
 			CameraController.Shake(FireFightingJob.kEarthquakeCameraShakeIntensity, FireFightingJob.kEarthquakeCameraShakeDuration);
 			lot.AddAlarm(FireFightingJob.kEarthquakeTimeUntilTNS, TimeUnit.Minutes, WonderPowerManager.TogglePowerRunning, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted);
 
@@ -2137,14 +2138,14 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             }
 
 			List<GameObject> breakableObjects = lot.GetObjects<GameObject>((@object) => @object.Repairable is { Broken: false });
-			int maxBroken = Math.Min(RandomUtil.GetInt(1, TunableSettings.kEarthquakeMaxBroken), breakableObjects.Count);
+			int maxBroken = Math.Min(RandomUtil.GetInt(TunableSettings.kEarthquakeMinBroken, TunableSettings.kEarthquakeMaxBroken), breakableObjects.Count);
 			for (int i = 0; i < maxBroken; i++)
             {
 				GameObject @object = RandomUtil.GetRandomObjectFromList(breakableObjects);
 				@object.Repairable.BreakObject();
 				breakableObjects.Remove(@object);
             }
-			int maxTrash = RandomUtil.GetInt(1, TunableSettings.kEarthquakeMaxTrash);
+			int maxTrash = RandomUtil.GetInt(TunableSettings.kEarthquakeMinTrash, TunableSettings.kEarthquakeMaxTrash);
 			for (int i = 0; i < maxTrash; i++)
             {
 				Vector3 randomPosition = lot.GetRandomPosition(true, true);

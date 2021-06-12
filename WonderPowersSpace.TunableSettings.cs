@@ -18,11 +18,17 @@
         [Tunable, TunableComment("Interactions pets are compelled to perform when affected by the Cry Havoc karma power")]
         public static string[] kCryHavocPetInteractions = { "Fight Pet", "Chase Mean" };
 
+        [Tunable, TunableComment("The minimum number of objects to break during the Quake Maker karma power")]
+        public static int kEarthquakeMinBroken = 5;
+
         [Tunable, TunableComment("The maximum number of objects to break during the Quake Maker karma power")]
-        public static int kEarthquakeMaxBroken = 5;
+        public static int kEarthquakeMaxBroken = 10;
+
+        [Tunable, TunableComment("The minimum number of trash spawned during the Quake Maker karma power")]
+        public static int kEarthquakeMinTrash = 5;
 
         [Tunable, TunableComment("The maximum number of trash spawned during the Quake Maker karma power")]
-        public static int kEarthquakeMaxTrash = 5;
+        public static int kEarthquakeMaxTrash = 10;
 
         [Tunable, TunableComment("The minimum number of fires spawned during the Fire Storm karma power")]
         public static int kFireMin = 3;
