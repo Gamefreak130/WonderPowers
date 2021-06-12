@@ -8,10 +8,10 @@
     <EffectMethod></EffectMethod>
   </Power>
   <Power>
-    <PowerName>Curse</PowerName>
+    <PowerName>Doom</PowerName>
     <IsBad>True</IsBad>
     <Cost>10</Cost>
-    <EffectMethod>CurseActivation</EffectMethod>
+    <EffectMethod>DoomActivation</EffectMethod>
   </Power>
   <Power>
     <PowerName>RayOfSunshine</PowerName>
@@ -32,10 +32,10 @@
     <EffectMethod>CryHavocActivation</EffectMethod>
   </Power>
   <Power>
-    <PowerName>Doom</PowerName>
+    <PowerName>Curse</PowerName>
     <IsBad>True</IsBad>
     <Cost>20</Cost>
-    <EffectMethod>DoomActivation</EffectMethod>
+    <EffectMethod>CurseActivation</EffectMethod>
   </Power>
   <Power>
     <PowerName>InstantBeauty</PowerName>
