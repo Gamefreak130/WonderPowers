@@ -116,6 +116,8 @@
 <STR>Gameplay/WonderMode:PanicReact</STR>
 <KEY>Gameplay/WonderMode:ReceiveMagicalCheck</KEY>
 <STR>Gameplay/WonderMode:ReceiveMagicalCheck</STR>
+<KEY>Gameplay/WonderMode:BeCursed</KEY>
+<STR>Gameplay/WonderMode:BeCursed</STR>
 <KEY>Gameplay/WonderMode:BeDoomed</KEY>
 <STR>Gameplay/WonderMode:BeDoomed</STR>
 <KEY>Gameplay/WonderMode:MeteorDestinationTitle</KEY>
@@ -160,6 +162,8 @@
 <STR>Gameplay/WonderMode:SelectGhost</STR>
 <KEY>Gameplay/WonderMode:CryHavocTNS</KEY>
 <STR>Gameplay/WonderMode:CryHavocTNS</STR>
+<KEY>Gameplay/WonderMode:CurseTNS</KEY>
+<STR>Gameplay/WonderMode:CurseTNS</STR>
 <KEY>Gameplay/WonderMode:DoomTNS</KEY>
 <STR>Gameplay/WonderMode:DoomTNS</STR>
 <KEY>Gameplay/WonderMode:WealthTNS</KEY>

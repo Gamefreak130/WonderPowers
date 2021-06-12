@@ -6,9 +6,12 @@ using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Objects;
+using Sims3.Gameplay.UI;
 using Sims3.SimIFace;
 using Sims3.UI;
+using Sims3.UI.Hud;
 using static Sims3.SimIFace.ResourceUtils;
+using Responder = Sims3.UI.Responder;
 
 namespace Gamefreak130.WonderPowersSpace.Interactions
 {
@@ -117,6 +120,54 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
         }
     }
 
+    public class BeCursed : Interaction<Sim, Sim>
+    {
+        public class Definition : SoloSimInteractionDefinition<BeCursed>
+        {
+            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
+
+            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => WonderPowerManager.LocalizeString("BeCursed");
+        }
+
+        private VisualEffect mEffect;
+
+        public override bool Run()
+        {
+            mEffect = VisualEffect.Create("ep7moodlampimpactred_main");
+            mEffect.ParentTo(Actor, Sim.FXJoints.Pelvis);
+            mEffect.Start();
+            Actor.PlaySoloAnimation("a2o_handiness_fail_electrocution_x", true, ProductVersion.BaseGame);
+            Audio.StartSound("sting_curse");
+            return true;
+        }
+
+        public override void Cleanup()
+        {
+            if (mEffect is not null)
+            {
+                mEffect.Stop();
+                mEffect.Dispose();
+                mEffect = null;
+            }
+            foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(Actor))
+            {
+                Actor.Motives.SetValue(motive, motive is CommodityKind.Bladder ? -100 : TunableSettings.kCurseMotiveAmount);
+            }
+            if ((Actor.CurrentOccultType & OccultTypes.Fairy) is not OccultTypes.None)
+            {
+                Actor.Motives.SetValue(CommodityKind.AuraPower, TunableSettings.kCurseMotiveAmount);
+            }
+            if ((Actor.CurrentOccultType & OccultTypes.Witch) is not OccultTypes.None)
+            {
+                Actor.Motives.SetValue(CommodityKind.MagicFatigue, -TunableSettings.kCurseMotiveAmount);
+            }
+            Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(Actor.IsFemale, "CurseTNS", Actor), StyledNotification.NotificationStyle.kGameMessageNegative);
+            Actor.BuffManager.AddElement(HashString64("Gamefreak130_CursedBuff"), (Origin)HashString64("FromWonderPower"));
+            WonderPowerManager.TogglePowerRunning();
+            base.Cleanup();
+        }
+    }
+    
     public class BeDoomed : Interaction<Sim, Sim>
     {
         public class Definition : SoloSimInteractionDefinition<BeDoomed>
@@ -131,7 +182,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
         public override bool Run()
         {
             Audio.StartSound("sting_job_demote");
-            VisualEffect mEffect = VisualEffect.Create("ep7WandSpellHauntingHit_main");
+            mEffect = VisualEffect.Create("ep7WandSpellHauntingHit_main");
             mEffect.ParentTo(Actor, Sim.FXJoints.Pelvis);
             mEffect.Start();
 

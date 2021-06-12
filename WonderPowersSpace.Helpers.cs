@@ -2013,7 +2013,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			//CONSIDER Pets?
 			if (isBacklash)
 			{
-				List<Sim> validSims = Household.ActiveHousehold.Sims.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_CursedBuff")));
+				List<Sim> validSims = Household.ActiveHousehold.Sims.FindAll((sim) => sim.SimDescription.TeenOrAbove && !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_CursedBuff")));
 				if (validSims.Count > 0)
 				{
 					selectedSim = RandomUtil.GetRandomObjectFromList(validSims);
@@ -2021,7 +2021,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			else
 			{
-				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_CursedBuff"))).ConvertAll((sim) => sim.SimDescription);
+				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.TeenOrAbove && !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_CursedBuff"))).ConvertAll((sim) => sim.SimDescription);
 				selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("CurseDialogTitle"))?.CreatedSim;
 			}
 			
@@ -2030,28 +2030,13 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				return false;
             }
 
-			//CONSIDER visual effect?
-			//CONSIDER Toggle power on sound finish?
-			//TODO Add glissdown
 			Camera.FocusOnSim(selectedSim);
 			if (selectedSim.IsSelectable)
 			{
 				PlumbBob.SelectActor(selectedSim);
 			}
-			foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(selectedSim))
-			{
-				selectedSim.Motives.SetValue(motive, motive is CommodityKind.Bladder ? -100 : TunableSettings.kCurseMotiveAmount);
-			}
-			if ((selectedSim.CurrentOccultType & OccultTypes.Fairy) is not OccultTypes.None)
-            {
-				selectedSim.Motives.SetValue(CommodityKind.AuraPower, TunableSettings.kCurseMotiveAmount);
-            }
-			if ((selectedSim.CurrentOccultType & OccultTypes.Witch) is not OccultTypes.None)
-            {
-				selectedSim.Motives.SetValue(CommodityKind.MagicFatigue, -TunableSettings.kCurseMotiveAmount);
-            }
-			selectedSim.BuffManager.AddElement(HashString64("Gamefreak130_CursedBuff"), (Origin)HashString64("FromWonderPower"));
-			WonderPowerManager.TogglePowerRunning();
+			InteractionInstance instance = new BeCursed.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false);
+			selectedSim.InteractionQueue.AddNext(instance);
 			return true;
         }
 
