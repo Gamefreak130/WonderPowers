@@ -57,9 +57,9 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 //CONSIDER reaction broadcast?
                 Parent.mSoundHandle = Audio.StartSound("sting_cryhavoc", Lot.Position);
                 Parent.mExitHandle = AlarmManager.Global.AddAlarm(TunableSettings.kCryHavocLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- CryHavoc Situation Alarm", AlarmType.AlwaysPersisted, null);
-                Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted); //2f is standard lerpTime
+                Camera.FocusOnLot(Lot.LotId, 2f); //2f is standard lerpTime
                 Parent.mFighters = Lot.GetAllActors().FindAll(IsValidFighter);
-                Parent.mFogEmitters = Helpers.HelperMethods.CreateFogEmittersOnLot(Lot);
+                Parent.mFogEmitters = HelperMethods.CreateFogEmittersOnLot(Lot);
 
                 if (Parent.mFighters.Count < TunableSettings.kCryHavocMinSims)
                 {
@@ -122,9 +122,8 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 {
                     if (sim is not null)
                     {
-                        sim.RemoveRole(this);
                         sim.InteractionQueue.CancelAllInteractions();
-                        sim.OverlayComponent.PlayReaction(ReactionTypes.MotiveFailEnergy, sim, true);
+                        sim.OverlayComponent.PlayReaction(ReactionTypes.MotiveFailEnergy, sim, false);
                         sim.BuffManager.RemoveElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid);
                         if (!sim.IsAtHome)
                         {
