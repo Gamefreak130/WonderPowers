@@ -212,8 +212,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             {
                 try
                 {
-                    //TODO
-                    //Audio.StartSound("sting_firestorm");
+                    Audio.StartSound("sting_firestorm");
                     Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted); //2f is standard lerptime
 
                     // For each fire spawned, there is a 25% chance it will ignite a burnable object,
