@@ -200,7 +200,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				}
                 catch (Exception e)
                 {
-                    // Since this runs on the Simulator, NRaas ErrorTrap can't catch any exceptions that occur
+                    // Since this is a Task, NRaas ErrorTrap can't catch any exceptions that occur
                     // So we'll do it live, f*** it! I'll write it, and we'll do it live!
                     PowerExceptionLogger.sInstance.Log(e);
                     WonderPowerManager.TogglePowerRunning();
@@ -2120,7 +2120,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			Audio.StartSound("sting_earthquake");
 			Camera.FocusOnLot(lot.LotId, 2f); //2f is standard lerptime
 			CameraController.Shake(FireFightingJob.kEarthquakeCameraShakeIntensity, FireFightingJob.kEarthquakeCameraShakeDuration);
-			lot.AddAlarm(FireFightingJob.kEarthquakeTimeUntilTNS, TimeUnit.Minutes, WonderPowerManager.TogglePowerRunning, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted);
+			lot.AddAlarm(FireFightingJob.kEarthquakeTimeUntilTNS, TimeUnit.Minutes, delegate {
+				StyledNotification.Show(new(WonderPowerManager.LocalizeString("EarthquakeTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
+				WonderPowerManager.TogglePowerRunning();
+			}, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted);
 
 			foreach (Sim sim in lot.GetAllActors())
             {
@@ -2186,13 +2189,13 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		}
 
 		public static bool GhostifyActivation(bool _)
-        {
+        {//TODO add interaction w/ animations
 			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
 																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.IsGhostOrHasGhostBuff && !sim.BuffManager.HasElement((BuffNames)Buffs.BuffGhostify.kBuffGhostifyGuid))
 																			.ConvertAll((sim) => sim.SimDescription);
 			Sim sim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("GhostifyDialogTitle"))?.CreatedSim;
 			if (sim is null)
-            {
+			{
 				return false;
 			}
 			Camera.FocusOnSim(sim);
@@ -2202,6 +2205,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			sim.InteractionQueue.CancelAllInteractions();
 			sim.BuffManager.AddElement(Buffs.BuffGhostify.kBuffGhostifyGuid, (Origin)HashString64("FromWonderPower"));
+			sim.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(sim.IsFemale, "GhostifyTNS", sim), StyledNotification.NotificationStyle.kGameMessagePositive);
 			WonderPowerManager.TogglePowerRunning();
 			return true;
 		}
@@ -2211,8 +2215,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			Lot selectedLot;
 			if (isBacklash)
 			{
-				//List<Lot> list = (LotManager.AllLotsWithoutCommonExceptions as List<Lot>).FindAll((lot) => lot.CommercialLotSubType is not CommercialLotSubType.kEP1_HiddenTomb);
-				//selectedLot = RandomUtil.GetRandomObjectFromList(list);
 				Sim actor = PlumbBob.SelectedActor;
 				selectedLot = actor.LotCurrent.IsWorldLot
 					? GetClosestObject((List<Lot>)LotManager.AllLotsWithoutCommonExceptions, actor)

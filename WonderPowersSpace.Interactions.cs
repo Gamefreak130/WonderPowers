@@ -17,30 +17,39 @@ using Responder = Sims3.UI.Responder;
 
 namespace Gamefreak130.WonderPowersSpace.Interactions
 {
-    public class GoToLotAndFight : GoToLot
+    public class ReceiveMagicalCheck : Interaction<Sim, Sim>
     {
-        new public class Definition : GoToLot.Definition
+        public class Definition : SoloSimInteractionDefinition<ReceiveMagicalCheck>
         {
-            public override bool Test(Sim actor, Lot target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
+            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
 
-            public override InteractionInstance CreateInstance(ref InteractionInstanceParameters parameters)
-            {
-                InteractionInstance instance = new GoToLotAndFight() { CancellableByPlayer = parameters.CancellableByPlayer, Hidden = true };
-                instance.Init(ref parameters);
-                return instance;
-            }
-
-            public override string GetInteractionName(Sim actor, Lot target, InteractionObjectPair iop) => base.GetInteractionName(actor, target, new(Singleton, target));
+            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => WonderPowerManager.LocalizeString("ReceiveMagicalCheck");
         }
 
         public override bool Run()
         {
-            bool flag = base.Run();
-            if (flag)
+            Audio.StartSound("sting_wealth");
+            EnterStateMachine("ReceiveMagicalCheck", "WinLottoEnter", "x");
+            AnimateSim("PullOutCheck");
+            AnimateSim("VictoryDance");
+            AnimateSim("WinLottoExit");
+            Actor.BuffManager.AddElement((BuffNames)HashString64("Gamefreak130_WealthBuff"), (Origin)HashString64("FromWonderPower"));
+            return true;
+        }
+
+        public override void Cleanup()
+        {
+            try
             {
-                Actor.BuffManager.AddElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid, (Origin)HashString64("FromWonderPower"));
+                int amount = RandomUtil.GetInt(TunableSettings.kWealthMinAmount, TunableSettings.kWealthMaxAmount);
+                Actor.Household.ModifyFamilyFunds(amount);
+                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(Actor.IsFemale, "WealthTNS", Actor, amount), StyledNotification.NotificationStyle.kGameMessagePositive);
+                base.Cleanup();
             }
-            return flag;
+            finally
+            {
+                WonderPowerManager.TogglePowerRunning();
+            }
         }
     }
 
@@ -68,57 +77,15 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override void Cleanup()
         {
-            WonderPowerManager.TogglePowerRunning();
-            base.Cleanup();
-        }
-    }
-
-    public class EarthquakePanicReact : Interaction<Sim, Sim>
-    {
-        public class Definition : SoloSimInteractionDefinition<EarthquakePanicReact>
-        {
-            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
-
-            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => WonderPowerManager.LocalizeString("PanicReact");
-        }
-
-        public override bool Run()
-        {
-            EnterStateMachine("ReactToFire", "Enter", "x");
-            AnimateSim("Panic");
-            bool result = DoTimedLoop(FireFightingJob.kEarthquakeTimeUntilTNS);
-            AnimateSim("Exit");
-            return result;
-        }
-    }
-
-    public class ReceiveMagicalCheck : Interaction<Sim, Sim>
-    {
-        public class Definition : SoloSimInteractionDefinition<ReceiveMagicalCheck>
-        {
-            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
-
-            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => WonderPowerManager.LocalizeString("ReceiveMagicalCheck");
-        }
-
-        public override bool Run()
-        {
-            Audio.StartSound("sting_wealth");
-            EnterStateMachine("ReceiveMagicalCheck", "WinLottoEnter", "x");
-            AnimateSim("PullOutCheck");
-            AnimateSim("VictoryDance");
-            AnimateSim("WinLottoExit");
-            Actor.BuffManager.AddElement((BuffNames)HashString64("Gamefreak130_WealthBuff"), (Origin)HashString64("FromWonderPower"));
-            return true;
-        }
-
-        public override void Cleanup()
-        {
-            int amount = RandomUtil.GetInt(TunableSettings.kWealthMinAmount, TunableSettings.kWealthMaxAmount);
-            Actor.Household.ModifyFamilyFunds(amount);
-            Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(Actor.IsFemale, "WealthTNS", Actor, amount), StyledNotification.NotificationStyle.kGameMessagePositive);
-            WonderPowerManager.TogglePowerRunning();
-            base.Cleanup();
+            try
+            {
+                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(Actor.IsFemale, "DivineInterventionTNS", Actor), StyledNotification.NotificationStyle.kGameMessagePositive);
+                base.Cleanup();
+            }
+            finally
+            {
+                WonderPowerManager.TogglePowerRunning();
+            }
         }
     }
 
@@ -145,28 +112,34 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override void Cleanup()
         {
-            if (mEffect is not null)
+            try
             {
-                mEffect.Stop();
-                mEffect.Dispose();
-                mEffect = null;
+                if (mEffect is not null)
+                {
+                    mEffect.Stop();
+                    mEffect.Dispose();
+                    mEffect = null;
+                }
+                foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(Actor))
+                {
+                    Actor.Motives.SetValue(motive, motive is CommodityKind.Bladder ? -100 : TunableSettings.kCurseMotiveAmount);
+                }
+                if ((Actor.CurrentOccultType & OccultTypes.Fairy) is not OccultTypes.None)
+                {
+                    Actor.Motives.SetValue(CommodityKind.AuraPower, TunableSettings.kCurseMotiveAmount);
+                }
+                if ((Actor.CurrentOccultType & OccultTypes.Witch) is not OccultTypes.None)
+                {
+                    Actor.Motives.SetValue(CommodityKind.MagicFatigue, -TunableSettings.kCurseMotiveAmount);
+                }
+                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(Actor.IsFemale, "CurseTNS", Actor), StyledNotification.NotificationStyle.kGameMessageNegative);
+                Actor.BuffManager.AddElement(HashString64("Gamefreak130_CursedBuff"), (Origin)HashString64("FromWonderPower"));
+                base.Cleanup();
             }
-            foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(Actor))
+            finally
             {
-                Actor.Motives.SetValue(motive, motive is CommodityKind.Bladder ? -100 : TunableSettings.kCurseMotiveAmount);
+                WonderPowerManager.TogglePowerRunning();
             }
-            if ((Actor.CurrentOccultType & OccultTypes.Fairy) is not OccultTypes.None)
-            {
-                Actor.Motives.SetValue(CommodityKind.AuraPower, TunableSettings.kCurseMotiveAmount);
-            }
-            if ((Actor.CurrentOccultType & OccultTypes.Witch) is not OccultTypes.None)
-            {
-                Actor.Motives.SetValue(CommodityKind.MagicFatigue, -TunableSettings.kCurseMotiveAmount);
-            }
-            Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(Actor.IsFemale, "CurseTNS", Actor), StyledNotification.NotificationStyle.kGameMessageNegative);
-            Actor.BuffManager.AddElement(HashString64("Gamefreak130_CursedBuff"), (Origin)HashString64("FromWonderPower"));
-            WonderPowerManager.TogglePowerRunning();
-            base.Cleanup();
         }
     }
     
@@ -212,21 +185,73 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override void Cleanup()
         {
-            if (mEffect is not null)
+            try
             {
-                mEffect.Stop();
-                mEffect.Dispose();
-                mEffect = null;
+                if (mEffect is not null)
+                {
+                    mEffect.Stop();
+                    mEffect.Dispose();
+                    mEffect = null;
+                }
+                Actor.BuffManager.AddBuff(BuffNames.UnicornsIre, -40, 1440, false, MoodAxis.None, (Origin)HashString64("FromWonderPower"), true);
+                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(Actor.IsFemale, "DoomTNS", Actor), StyledNotification.NotificationStyle.kGameMessageNegative);
+                BuffInstance buff = Actor.BuffManager.GetElement(BuffNames.UnicornsIre);
+                buff.mBuffName = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff";
+                buff.mDescription = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuffDescription";
+                // This will automatically trigger the BuffsChanged event, so the UI should refresh itself after this and we won't have to do it manually
+                buff.SetThumbnail("doom", ProductVersion.BaseGame, Actor);
+                base.Cleanup();
             }
-            Actor.BuffManager.AddBuff(BuffNames.UnicornsIre, -40, 1440, false, MoodAxis.None, (Origin)HashString64("FromWonderPower"), true);
-            Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(Actor.IsFemale, "DoomTNS", Actor), StyledNotification.NotificationStyle.kGameMessageNegative);
-            BuffInstance buff = Actor.BuffManager.GetElement(BuffNames.UnicornsIre);
-            buff.mBuffName = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff";
-            buff.mDescription = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuffDescription";
-            // This will automatically trigger the BuffsChanged event, so the UI should refresh itself after this and we won't have to do it manually
-            buff.SetThumbnail("doom", ProductVersion.BaseGame, Actor);
-            WonderPowerManager.TogglePowerRunning();
-            base.Cleanup();
+            finally
+            {
+                WonderPowerManager.TogglePowerRunning();
+            }
+        }
+    }
+
+    public class GoToLotAndFight : GoToLot
+    {
+        new public class Definition : GoToLot.Definition
+        {
+            public override bool Test(Sim actor, Lot target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
+
+            public override InteractionInstance CreateInstance(ref InteractionInstanceParameters parameters)
+            {
+                InteractionInstance instance = new GoToLotAndFight() { CancellableByPlayer = parameters.CancellableByPlayer, Hidden = true };
+                instance.Init(ref parameters);
+                return instance;
+            }
+
+            public override string GetInteractionName(Sim actor, Lot target, InteractionObjectPair iop) => base.GetInteractionName(actor, target, new(Singleton, target));
+        }
+
+        public override bool Run()
+        {
+            bool flag = base.Run();
+            if (flag)
+            {
+                Actor.BuffManager.AddElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid, (Origin)HashString64("FromWonderPower"));
+            }
+            return flag;
+        }
+    }
+
+    public class EarthquakePanicReact : Interaction<Sim, Sim>
+    {
+        public class Definition : SoloSimInteractionDefinition<EarthquakePanicReact>
+        {
+            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
+
+            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => WonderPowerManager.LocalizeString("PanicReact");
+        }
+
+        public override bool Run()
+        {
+            EnterStateMachine("ReactToFire", "Enter", "x");
+            AnimateSim("Panic");
+            bool result = DoTimedLoop(FireFightingJob.kEarthquakeTimeUntilTNS);
+            AnimateSim("Exit");
+            return result;
         }
     }
 

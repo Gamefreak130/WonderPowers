@@ -197,68 +197,61 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             {
             }
 
-            private List<GameObject> mBurnableObjects;
-
-            private List<Sim> mBurnableSims;
-
             public override void Init(FireSituation parent)
             {
-                mBurnableObjects = Lot.GetObjects<GameObject>((@object) => @object is not Sim && @object.GetFireType() is not FireType.DoesNotBurn && !@object.Charred);
-                mBurnableSims = Lot.GetSims((sim) => sim.IsHuman && sim.SimDescription.ChildOrAbove);
-                Parent.mExitHandle = AlarmManager.Global.AddAlarm(1f, TimeUnit.Seconds, StartFires, "Gamefreak130 wuz here -- Fire situation alarm", AlarmType.AlwaysPersisted, null);
-            }
+                Audio.StartSound("sting_firestorm");
+                Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted); //2f is standard lerptime
 
-            private void StartFires()
-            {
-                try
+                // For each fire spawned, there is a 25% chance it will ignite a burnable object,
+                // A 25% chance it will ignite a valid sim on the lot,
+                // And a 50% chance it will spawn directly on the ground
+                List<GameObject> burnableObjects = Lot.GetObjects<GameObject>((@object) => @object is not Sim and not PlumbBob && @object.GetFireType() is not FireType.DoesNotBurn && !@object.Charred);
+                List<Sim> burnableSims = Lot.GetSims((sim) => sim.IsHuman && sim.SimDescription.ChildOrAbove);
+                int numFires = RandomUtil.GetInt(TunableSettings.kFireMin, TunableSettings.kFireMax);
+                for (int i = 0; i < numFires; i++)
                 {
-                    Audio.StartSound("sting_firestorm");
-                    Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted); //2f is standard lerptime
-
-                    // For each fire spawned, there is a 25% chance it will ignite a burnable object,
-                    // A 25% chance it will ignite a valid sim on the lot,
-                    // And a 50% chance it will spawn directly on the ground
-                    int numFires = RandomUtil.GetInt(TunableSettings.kFireMin, TunableSettings.kFireMax);
-                    for (int i = 0; i < numFires; i++)
+                    if (RandomUtil.CoinFlip())
                     {
-                        VisualEffect effect;
-                        if (RandomUtil.CoinFlip())
+                        if (RandomUtil.CoinFlip() && burnableObjects.Count != 0)
                         {
-                            if (RandomUtil.CoinFlip() && mBurnableObjects.Count != 0)
-                            {
-                                GameObject @object = RandomUtil.GetRandomObjectFromList(mBurnableObjects);
-                                FireManager.AddFire(@object.PositionOnFloor, true);
-                                effect = VisualEffect.Create("ep2DetonateMedium");
+                            GameObject @object = RandomUtil.GetRandomObjectFromList(burnableObjects);
+                            FireManager.AddFire(@object.PositionOnFloor, true);
+                            AlarmManager.Global.AddAlarm(30f, TimeUnit.Seconds, delegate {
+                                VisualEffect effect = VisualEffect.Create("ep2DetonateMedium");
                                 effect.SetPosAndOrient(@object.Position, @object.ForwardVector, @object.UpVector);
                                 effect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
-                                mBurnableObjects.Remove(@object);
-                                continue;
-                            }
-                            else if (mBurnableSims.Count != 0)
-                            {
-                                Sim sim = RandomUtil.GetRandomObjectFromList(mBurnableSims);
-                                sim.BuffManager.AddElement(BuffNames.OnFire, (Origin)HashString64("FromWonderPower"));
-                                mBurnableSims.Remove(sim);
-                                continue;
-                            }
+                            }, "Gamefreak130 wuz here -- visual effect alarm", AlarmType.NeverPersisted, null);
+                            burnableObjects.Remove(@object);
+                            continue;
                         }
-                        Vector3 pos = Lot.GetRandomPosition(true, true);
-                        FireManager.AddFire(pos, true);
+                        else if (burnableSims.Count != 0)
+                        {
+                            Sim sim = RandomUtil.GetRandomObjectFromList(burnableSims);
+                            sim.BuffManager.AddElement(BuffNames.OnFire, (Origin)HashString64("FromWonderPower"));
+                            burnableSims.Remove(sim);
+                            continue;
+                        }
                     }
+                    Vector3 pos = Lot.GetRandomPosition(true, true);
+                    FireManager.AddFire(pos, true);
                 }
-                finally
-                {
-                    Parent.CheckForExit();
-                }
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString("FireTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
+                Parent.CheckForExit();
             }
         }
 
         public override void CleanUp() 
         {
-            AlarmManager.RemoveAlarm(mExitHandle);
-            mExitHandle = AlarmHandle.kInvalidHandle;
-            WonderPowerManager.TogglePowerRunning();
-            base.CleanUp(); 
+            try
+            {
+                AlarmManager.RemoveAlarm(mExitHandle);
+                mExitHandle = AlarmHandle.kInvalidHandle;
+                base.CleanUp();
+            }
+            finally
+            {
+                WonderPowerManager.TogglePowerRunning();
+            }
         }
 
         private void CheckForExit()
@@ -344,43 +337,36 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
             public override void Init(GhostsSituation parent)
             {
-                try
+                Parent.mMusicHandle = Audio.StartSound("sting_ghosts", Lot.Position);
+                Parent.mExitHandle = AlarmManager.Global.AddAlarm(TunableSettings.kGhostInvasionLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- GhostInvasion Situation Alarm", AlarmType.AlwaysPersisted, null);
+                Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted);
+                foreach (Sim sim in Lot.GetSims())
                 {
-                    Parent.mMusicHandle = Audio.StartSound("sting_ghosts", Lot.Position);
-                    Parent.mExitHandle = AlarmManager.Global.AddAlarm(TunableSettings.kGhostInvasionLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- GhostInvasion Situation Alarm", AlarmType.AlwaysPersisted, null);
-                    Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted);
-                    foreach (Sim sim in Lot.GetSims())
+                    if (sim.IsSleeping)
                     {
-                        if (sim.IsSleeping)
-                        {
-                            sim.InteractionQueue.CancelAllInteractions();
-                        }
+                        sim.InteractionQueue.CancelAllInteractions();
                     }
-                    Parent.mCreatedObjects.AddRange(HelperMethods.CreateFogEmittersOnLot(Lot));
-
-                    int @int = RandomUtil.GetInt(GhostHunter.kSpiritLightingRed.Length - 1);
-                    float r = GhostHunter.kSpiritLightingRed[@int] / 255f;
-                    float g = GhostHunter.kSpiritLightingGreen[@int] / 255f;
-                    float b = GhostHunter.kSpiritLightingBlue[@int] / 255f;
-                    foreach (LightGameObject lightGameObject in Lot.GetObjects<LightGameObject>())
-                    {
-                        Parent.mPrevColorInfo[lightGameObject] = new(lightGameObject.Color, new(lightGameObject.CustomColorRed, lightGameObject.CustomColorGreen, lightGameObject.CustomColorBlue));
-                        lightGameObject.SwitchLight(true, false);
-                        World.LightSetColor(lightGameObject.Proxy.ObjectId, r, g, b);
-                        lightGameObject.DisableInteractions();
-                    }
-                    Parent.mPanicBroadcaster = new(Lot, GhostHunter.kReactionParametersGhostlyPresence, OnPanicStart);
-
-                    for (int i = 0; i < RandomUtil.GetInt(TunableSettings.kFireMin, TunableSettings.kFireMax); i++)
-                    {
-                        Simulator.AddObject(new OneShotFunction(CreateAngryGhost));
-                    }
-                    
                 }
-                catch (Exception e)
+                Parent.mCreatedObjects.AddRange(HelperMethods.CreateFogEmittersOnLot(Lot));
+
+                int @int = RandomUtil.GetInt(GhostHunter.kSpiritLightingRed.Length - 1);
+                float r = GhostHunter.kSpiritLightingRed[@int] / 255f;
+                float g = GhostHunter.kSpiritLightingGreen[@int] / 255f;
+                float b = GhostHunter.kSpiritLightingBlue[@int] / 255f;
+                foreach (LightGameObject lightGameObject in Lot.GetObjects<LightGameObject>())
                 {
-                    PowerExceptionLogger.sInstance.Log(e);
+                    Parent.mPrevColorInfo[lightGameObject] = new(lightGameObject.Color, new(lightGameObject.CustomColorRed, lightGameObject.CustomColorGreen, lightGameObject.CustomColorBlue));
+                    lightGameObject.SwitchLight(true, false);
+                    World.LightSetColor(lightGameObject.Proxy.ObjectId, r, g, b);
+                    lightGameObject.DisableInteractions();
                 }
+                Parent.mPanicBroadcaster = new(Lot, GhostHunter.kReactionParametersGhostlyPresence, OnPanicStart);
+
+                for (int i = 0; i < RandomUtil.GetInt(TunableSettings.kFireMin, TunableSettings.kFireMax); i++)
+                {
+                    Simulator.AddObject(new OneShotFunction(CreateAngryGhost));
+                }
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString("GhostsTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
             }
 
             private void OnPanicStart(Sim actor, ReactionBroadcaster broadcaster)
