@@ -2116,7 +2116,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				? GetClosestObject((List<Lot>)LotManager.AllLotsWithoutCommonExceptions, actor)
 				: actor.LotCurrent;
 
-			//TEST Add EOR earthquake sting
 			Audio.StartSound("earthquake_shake", lot.Position);
 			Audio.StartSound("sting_earthquake");
 			Camera.FocusOnLot(lot.LotId, 2f); //2f is standard lerptime

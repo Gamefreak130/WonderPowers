@@ -1,28 +1,28 @@
-﻿using static Sims3.Gameplay.GlobalFunctions;
+﻿using Gamefreak130.WonderPowersSpace.Helpers;
+using Gamefreak130.WonderPowersSpace.Interactions;
+using Sims3.Gameplay;
+using Sims3.Gameplay.Abstracts;
+using Sims3.Gameplay.ActiveCareer.ActiveCareers;
 using Sims3.Gameplay.Actors;
+using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.CAS;
+using Sims3.Gameplay.Controllers;
 using Sims3.Gameplay.Core;
+using Sims3.Gameplay.Interactions;
+using Sims3.Gameplay.Interfaces;
+using Sims3.Gameplay.ObjectComponents;
+using Sims3.Gameplay.Services;
+using Sims3.Gameplay.Socializing;
+using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
+using Sims3.SimIFace.CAS;
+using Sims3.UI;
 using System;
 using System.Collections.Generic;
-using Sims3.Gameplay;
-using Queries = Sims3.Gameplay.Queries;
-using Sims3.Gameplay.Interactions;
-using Sims3.Gameplay.ActorSystems;
-using Sims3.Gameplay.Utilities;
-using Gamefreak130.WonderPowersSpace.Interactions;
-using Sims3.Gameplay.Abstracts;
-using Sims3.Gameplay.Controllers;
+using static Sims3.Gameplay.GlobalFunctions;
 using static Sims3.SimIFace.ResourceUtils;
-using Sims3.Gameplay.Services;
-using Sims3.Gameplay.ActiveCareer.ActiveCareers;
-using Sims3.Gameplay.CAS;
-using Sims3.SimIFace.CAS;
-using Sims3.Gameplay.Interfaces;
-using Sims3.Gameplay.Socializing;
-using Sims3.Gameplay.ObjectComponents;
-using Sims3.UI;
-using Gamefreak130.WonderPowersSpace.Helpers;
+using Queries = Sims3.Gameplay.Queries;
 
 namespace Gamefreak130.WonderPowersSpace.Situations
 {
@@ -286,6 +286,8 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
         private List<Sim> mGhosts = new();
 
+        private ReactionBroadcaster mPanicBroadcaster;
+
         private readonly Dictionary<LightGameObject, ColorInfo> mPrevColorInfo = new();
 
         private AlarmHandle mExitHandle;
@@ -344,9 +346,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             {
                 try
                 {
-                    //TODO extract file out to avoid EP2 dependency
-                    //CONSIDER reaction broadcast?
-                    Parent.mMusicHandle = Audio.StartSound("sting_ghost_invasion", Lot.Position);
+                    Parent.mMusicHandle = Audio.StartSound("sting_ghosts", Lot.Position);
                     Parent.mExitHandle = AlarmManager.Global.AddAlarm(TunableSettings.kGhostInvasionLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- GhostInvasion Situation Alarm", AlarmType.AlwaysPersisted, null);
                     Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted);
                     foreach (Sim sim in Lot.GetSims())
@@ -369,8 +369,8 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                         World.LightSetColor(lightGameObject.Proxy.ObjectId, r, g, b);
                         lightGameObject.DisableInteractions();
                     }
+                    Parent.mPanicBroadcaster = new(Lot, GhostHunter.kReactionParametersGhostlyPresence, OnPanicStart);
 
-                    
                     for (int i = 0; i < RandomUtil.GetInt(TunableSettings.kFireMin, TunableSettings.kFireMax); i++)
                     {
                         Simulator.AddObject(new OneShotFunction(CreateAngryGhost));
@@ -380,6 +380,16 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 catch (Exception e)
                 {
                     PowerExceptionLogger.sInstance.Log(e);
+                }
+            }
+
+            private void OnPanicStart(Sim actor, ReactionBroadcaster broadcaster)
+            {
+                if (GhostHunter.GhostHunterJob.ShouldPanic(actor, broadcaster.BroadcastingObject))
+                {
+                    InteractionInstance interactionInstance = ReactToGhost.Singleton.CreateInstance(actor, actor, new(InteractionPriorityLevel.Autonomous), false, true);
+                    interactionInstance.Hidden = true;
+                    actor.InteractionQueue.Add(interactionInstance);
                 }
             }
 
@@ -515,13 +525,17 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                     Audio.StopSound(mMusicHandle);
                     mMusicHandle = 0;
                 }
+                if (mPanicBroadcaster is not null)
+                {
+                    mPanicBroadcaster.Dispose();
+                    mPanicBroadcaster = null;
+                }
                 Sim[] ghosts = new Sim[mGhosts.Count];
                 mGhosts.CopyTo(ghosts);
                 mGhosts = null;
                 for (int i = ghosts.Length - 1; i >= 0; i--)
                 {
                     Sim sim = ghosts[i];
-                    // TODO see if this can be extracted out too
                     VisualEffect visualEffect = VisualEffect.Create("ep6GenieTargetSimDisappear_main");
                     visualEffect.ParentTo(sim, Sim.FXJoints.Spine0);
                     visualEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);

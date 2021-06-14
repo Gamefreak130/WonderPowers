@@ -6,6 +6,8 @@ using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Objects;
+using Sims3.Gameplay.Services;
+using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.UI;
 using Sims3.SimIFace;
 using Sims3.UI;
@@ -225,6 +227,61 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             buff.SetThumbnail("doom", ProductVersion.BaseGame, Actor);
             WonderPowerManager.TogglePowerRunning();
             base.Cleanup();
+        }
+    }
+
+    public class ReactToGhost : GhostHunter.ReactToAngryGhost
+    {
+        new public class Definition : GhostHunter.ReactToAngryGhost.Definition
+        {
+            public override InteractionInstance CreateInstance(ref InteractionInstanceParameters parameters)
+            {
+                InteractionInstance instance = new ReactToGhost();
+                instance.Init(ref parameters);
+                return instance;
+            }
+
+            public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => ShouldReactToAngryGhost(a);
+
+            public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop) => base.GetInteractionName(actor, target, new(GhostHunter.ReactToAngryGhost.Singleton, target));
+        }
+
+        new public static InteractionDefinition Singleton = new Definition();
+
+        private static bool ShouldReactToAngryGhost(Sim actor) => actor is { Service: not GrimReaper, OccupationAsActiveCareer: not GhostHunter, IsGhostOrHasGhostBuff: false };
+
+        public override bool Run()
+        {
+            BeginCommodityUpdates();
+            ActiveTopic.AddToSim(Actor, "Tell Ghost Story");
+            if ((!Actor.TraitManager.HasAnyElement(new TraitNames[] { TraitNames.Brave, TraitNames.Daredevil }) && !Actor.BuffManager.HasElement(BuffNames.Blizzard)) || !RandomUtil.RandomChance01(kNotScaredChance))
+            {
+                if ((Actor.TraitManager.HasAnyElement(new TraitNames[] { TraitNames.Childish, TraitNames.Daredevil }) || Actor.BuffManager.HasAnyElement(new BuffNames[] { BuffNames.OddlyPowerful, BuffNames.Blizzard })) && Actor.MoodManager.MoodValue >= kPositiveReactionMinimumMood && RandomUtil.RandomChance01(kPositiveReactionChance))
+                {
+                    Actor.GhostReactionPositive(Target);
+                }
+                else
+                {
+                    Actor.BuffManager.AddElement(BuffNames.Scared, Origin.FromGhost);
+                    ((BuffScared.BuffInstanceScared)Actor.BuffManager.GetElement(BuffNames.Scared)).ScaryObject = Target;
+                    float num = kFaintChance;
+                    if (Actor.HasTrait(TraitNames.Coward))
+                    {
+                        num *= kFaintChanceMultiplierCoward;
+                    }
+                    if (RandomUtil.RandomChance01(num))
+                    {
+                        InteractionPriority priority = new(Actor.InheritedPriority().Level, Actor.InheritedPriority().Value + 1f);
+                        Actor.InteractionQueue.AddNext(TraitFunctions.CowardTraitFaint.Singleton.CreateInstance(Actor, Actor, priority, false, false));
+                    }
+                    else
+                    {
+                        Actor.GhostReactionNegative(Target);
+                    }
+                }
+            }
+            EndCommodityUpdates(true);
+            return true;
         }
     }
 }
