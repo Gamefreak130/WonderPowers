@@ -22,21 +22,19 @@ using Responder = Sims3.UI.Responder;
 
 namespace Gamefreak130.Common
 {
-    public delegate T GenericDelegate<T>();
-
     public class RepeatingFunctionTask : Task
     {
         private StopWatch mTimer;
 
         private readonly int mDelay;
 
-        private readonly GenericDelegate<bool> mFunction;
+        private readonly Func<bool> mFunction;
 
-        public RepeatingFunctionTask(GenericDelegate<bool> function) : this(function, 500)
+        public RepeatingFunctionTask(Func<bool> function) : this(function, 500)
         {
         }
 
-        public RepeatingFunctionTask(GenericDelegate<bool> function, int delay)
+        public RepeatingFunctionTask(Func<bool> function, int delay)
         {
             mFunction = function;
             mDelay = delay;

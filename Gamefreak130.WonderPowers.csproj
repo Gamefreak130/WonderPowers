@@ -93,6 +93,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common.cs" />
+    <Compile Include="LinqBridge.cs" />
     <Compile Include="WonderPowersSpace.Buffs.cs" />
     <Compile Include="WonderPowersSpace.Helpers.cs" />
     <Compile Include="WonderPowers.cs" />
