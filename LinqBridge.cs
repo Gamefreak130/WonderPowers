@@ -29,11 +29,12 @@
 
 // $Id: Enumerable.cs c08984d432b1 2012/04/17 16:05:19 azizatif $
 
+#pragma warning disable IDE0011 // Add braces
 namespace System.Linq
 {
     #region Imports
 
-    using LinqBridge;
+    using Gamefreak130.Common.LinqBridge;
     using System;
     using System.Collections;
     using System.Collections.Generic;
@@ -45,7 +46,6 @@ namespace System.Linq
     /// querying objects that implement <see cref="IEnumerable{T}" />.
     /// </summary>
 
-#pragma warning disable IDE0011 // Add braces
     static partial class Enumerable
     {
         /// <summary>
@@ -2806,7 +2806,7 @@ namespace System.Linq
 
 // $Id: Internal.cs 1567e00f1a20 2012/04/17 16:09:51 azizatif $
 
-namespace LinqBridge
+namespace Gamefreak130.Common.LinqBridge
 {
     #region Imports
 
@@ -2826,7 +2826,8 @@ namespace LinqBridge
 
         public DelegatingComparer(Func<T, T, int> comparer)
         {
-            if (comparer == null) throw new ArgumentNullException("comparer");
+            if (comparer == null)
+                throw new ArgumentNullException("comparer");
             _comparer = comparer;
         }
 
@@ -2838,10 +2839,11 @@ namespace LinqBridge
     /// It may be removed or changed in a future version without notice.
     /// </remarks>
 
-    struct Key<T>
+    public struct Key<T>
     {
-        public Key(T value) : this() { Value = value; }
-        public T Value { get; private set; }
+        private readonly T value;
+        public Key(T val) : this() { value = val; }
+        public T Value => value;
     }
 
     /// <remarks>
@@ -2849,7 +2851,7 @@ namespace LinqBridge
     /// It may be removed or changed in a future version without notice.
     /// </remarks>
 
-    sealed class KeyComparer<T> : IEqualityComparer<Key<T>>
+    public sealed class KeyComparer<T> : IEqualityComparer<Key<T>>
     {
         private readonly IEqualityComparer<T> _innerComparer;
 
@@ -2898,7 +2900,7 @@ namespace System.Linq
 {
     #region Imports
 
-    using LinqBridge;
+    using Gamefreak130.Common.LinqBridge;
     using System;
     using System.Collections;
     using System.Collections.Generic;
@@ -2999,7 +3001,7 @@ namespace System.Linq
 
 // $Id: OrderedEnumerable.cs 71137f497bf2 2012/04/16 20:01:27 azizatif $
 
-namespace LinqBridge
+namespace Gamefreak130.Common.LinqBridge
 {
     #region Imports
 
@@ -3015,34 +3017,36 @@ namespace LinqBridge
         private readonly IEnumerable<T> _source;
         private readonly Func<T[], IComparer<int>, IComparer<int>> _comparerComposer;
 
-        public OrderedEnumerable(IEnumerable<T> source, 
+        public OrderedEnumerable(IEnumerable<T> source,
             Func<T, K> keySelector, IComparer<K> comparer, bool descending) :
-            this(source, (_, next) => next, keySelector, comparer, descending) {}
+            this(source, (_, next) => next, keySelector, comparer, descending)
+        { 
+        }
 
-        private OrderedEnumerable(IEnumerable<T> source, 
+        private OrderedEnumerable(IEnumerable<T> source,
             Func<T[], IComparer<int>, IComparer<int>> parent,
             Func<T, K> keySelector, IComparer<K> comparer, bool descending)
         {
-            if (source == null) throw new ArgumentNullException("source");
-            if (keySelector == null) throw new ArgumentNullException("keySelector");
+            if (source == null)
+                throw new ArgumentNullException("source");
+            if (keySelector == null)
+                throw new ArgumentNullException("keySelector");
             //Debug.Assert(parent != null);
-            
+
             _source = source;
-            
+
             comparer = comparer ?? Comparer<K>.Default;
             var direction = descending ? -1 : 1;
-            
-            _comparerComposer = (items, next) =>
-            {
+
+            _comparerComposer = (items, next) => {
                 //Debug.Assert(items != null);
                 //Debug.Assert(next != null);
 
                 var keys = new K[items.Length];
                 for (var i = 0; i < items.Length; i++)
                     keys[i] = keySelector(items[i]);
-                
-                return parent(items, new DelegatingComparer<int>((i, j) =>
-                {
+
+                return parent(items, new DelegatingComparer<int>((i, j) => {
                     var result = direction * comparer.Compare(keys[i], keys[j]);
                     return result != 0 ? result : next.Compare(i, j);
                 }));
@@ -3072,7 +3076,7 @@ namespace LinqBridge
             for (var i = 0; i < keys.Length; i++)
                 keys[i] = i;
             Array.Sort(keys, items, comparer);
-            return ((IEnumerable<T>) items).GetEnumerator();
+            return ((IEnumerable<T>)items).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

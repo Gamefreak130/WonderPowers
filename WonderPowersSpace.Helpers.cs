@@ -1,55 +1,45 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using Gamefreak130.Common;
+using Gamefreak130.WonderPowersSpace.Interactions;
+using Gamefreak130.WonderPowersSpace.Situations;
+using Gamefreak130.WonderPowersSpace.UI;
 using Sims3.Gameplay;
 using Sims3.Gameplay.Abstracts;
+using Sims3.Gameplay.ActiveCareer.ActiveCareers;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
+using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.DreamsAndPromises;
 using Sims3.Gameplay.Interactions;
-using Sims3.Gameplay.ObjectComponents;
-using Sims3.Gameplay.Objects.Vehicles;
-using Sims3.Gameplay.Socializing;
-using Sims3.Gameplay.ThoughtBalloons;
-using Sims3.Gameplay.Utilities;
-using static Sims3.Gameplay.UI.PieMenu;
-using Sims3.SimIFace;
-using Sims3.SimIFace.CAS;
-using Sims3.SimIFace.RouteDestinations;
-using Sims3.UI;
-using Sims3.UI.Hud;
-using Gamefreak130.WonderPowersSpace.UI;
-using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Interfaces;
-using System.Reflection;
-using Sims3.Gameplay.CAS;
-using System.Xml;
-using Sims3.Gameplay.UI;
-using Sims3.Gameplay.MapTags;
-using Gameflow = Sims3.Gameplay.Gameflow;
-using static Sims3.SimIFace.Gameflow.GameSpeed;
-using static Sims3.Gameplay.GlobalFunctions;
-using Gamefreak130.WonderPowersSpace.Situations;
-using Sims3.Gameplay.Objects.Miscellaneous;
-using Responder = Sims3.UI.Responder;
-using Queries = Sims3.Gameplay.Queries;
+using Sims3.Gameplay.ObjectComponents;
 using Sims3.Gameplay.Objects;
-using Gamefreak130.WonderPowersSpace.Interactions;
-using Sims3.Gameplay.ActiveCareer.ActiveCareers;
-using Sims3.SimIFace.Enums;
-using static Sims3.SimIFace.ResourceUtils;
-using Gamefreak130.Common;
-using System.Text;
-using System.Collections.ObjectModel;
-using Sims3.UI.CAS;
 using Sims3.Gameplay.Objects.Beds;
 using Sims3.Gameplay.Objects.FoodObjects;
-using static Sims3.Gameplay.ActorSystems.BuffCommodityDecayModifier;
+using Sims3.Gameplay.Objects.Miscellaneous;
+using Sims3.Gameplay.UI;
+using Sims3.Gameplay.Utilities;
+using Sims3.SimIFace;
+using Sims3.SimIFace.Enums;
+using Sims3.UI;
+using Sims3.UI.CAS;
+using Sims3.UI.Hud;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reflection;
+using static Sims3.Gameplay.GlobalFunctions;
+using static Sims3.SimIFace.Gameflow.GameSpeed;
+using static Sims3.SimIFace.ResourceUtils;
+using Gameflow = Sims3.Gameplay.Gameflow;
+using Queries = Sims3.Gameplay.Queries;
+using Responder = Sims3.UI.Responder;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
-	public abstract class PowerBooter
+    public abstract class PowerBooter
     {
 		private readonly string mXmlName;
 
@@ -713,17 +703,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 		}
 
-		public static WonderPower GetByName(string name)
-		{
-			foreach (WonderPower mAllWonderPower in sAllWonderPowers)
-			{
-				if (name.Equals(mAllWonderPower?.WonderPowerName, StringComparison.InvariantCultureIgnoreCase))
-				{
-					return mAllWonderPower;
-				}
-			}
-			return null;
-		}
+        public static WonderPower GetByName(string name) => sAllWonderPowers.Find(power => name.Equals(power?.WonderPowerName, StringComparison.InvariantCultureIgnoreCase));
 
         public static ReadOnlyCollection<WonderPower> GetWonderPowerList() => sAllWonderPowers.AsReadOnly();
 
@@ -747,9 +727,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 		}*/
 
-        internal static string LocalizeString(string name, params object[] parameters) => Localization.LocalizeString("Gameplay/WonderMode:" + name, parameters);
+        internal static string LocalizeString(string name, params object[] parameters) => Localization.LocalizeString($"Gameplay/WonderMode:{name}", parameters);
 
-		internal static string LocalizeString(bool isFemale, string name, params object[] parameters) => Localization.LocalizeString(isFemale, "Gameplay/WonderMode:" + name, parameters);
+		internal static string LocalizeString(bool isFemale, string name, params object[] parameters) => Localization.LocalizeString(isFemale, $"Gameplay/WonderMode:{name}", parameters);
 
 		/*public static void AddActivePower(WonderPowerActivation activePower)
 		{
@@ -2000,7 +1980,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
         {
 			Sim sim = PlumbBob.SelectedActor;
 			Lot lot = sim.LotCurrent.IsWorldLot 
-				? GetClosestObject((List<Lot>)LotManager.AllLotsWithoutCommonExceptions, sim) 
+				? GetClosestObject(LotManager.AllLotsWithoutCommonExceptions.Cast<Lot>(), sim) 
 				: sim.LotCurrent;
 
 			new CryHavocSituation(lot);
@@ -2013,7 +1993,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			//CONSIDER Pets?
 			if (isBacklash)
 			{
-				List<Sim> validSims = Household.ActiveHousehold.Sims.FindAll((sim) => sim.SimDescription.TeenOrAbove && !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_CursedBuff")));
+				List<Sim> validSims = Household.ActiveHousehold.Sims.FindAll(sim => sim.SimDescription.TeenOrAbove && !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_CursedBuff")));
 				if (validSims.Count > 0)
 				{
 					selectedSim = RandomUtil.GetRandomObjectFromList(validSims);
@@ -2021,7 +2001,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			else
 			{
-				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.TeenOrAbove && !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_CursedBuff"))).ConvertAll((sim) => sim.SimDescription);
+				IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetSims(sim => sim.SimDescription.TeenOrAbove && !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_CursedBuff")))
+													  select sim.SimDescription;
 				selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("CurseDialogTitle"))?.CreatedSim;
 			}
 			
@@ -2042,9 +2023,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool DivineInterventionActivation(bool _)
         {
-			List<SimDescription> targets = new List<Urnstone>(Queries.GetObjects<Urnstone>())
-												.ConvertAll((urnstone) => urnstone.DeadSimsDescription)
-												.FindAll((description) => description is not null);
+			IEnumerable<SimDescription> targets = from urnstone in Queries.GetObjects<Urnstone>()
+												  select urnstone.DeadSimsDescription into simDescription
+												  where simDescription is not null
+												  select simDescription;
 			Urnstone selectedUrnstone = Urnstone.FindGhostsGrave(HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("DivineInterventionDialogTitle")));
 			if (selectedUrnstone is null)
             {
@@ -2080,7 +2062,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			Sim selectedSim = null;
 			if (isBacklash)
 			{
-				List<Sim> validSims = Household.ActiveHousehold.AllActors.FindAll((sim) => sim.SimDescription.ChildOrAbove && sim.BuffManager.GetElement(BuffNames.UnicornsIre)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff");
+				List<Sim> validSims = Household.ActiveHousehold.AllActors.FindAll(sim => sim.SimDescription.ChildOrAbove && sim.BuffManager.GetElement(BuffNames.UnicornsIre)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff");
 				if (validSims.Count > 0)
 				{
 					selectedSim = RandomUtil.GetRandomObjectFromList(validSims);
@@ -2088,9 +2070,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			else
 			{
-				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
-																				.FindAll((sim) => sim.SimDescription.ChildOrAbove && sim.BuffManager.GetElement(BuffNames.UnicornsIre)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff")
-																				.ConvertAll((sim) => sim.SimDescription);
+				IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors() 
+													  where sim.SimDescription.ChildOrAbove && sim.BuffManager.GetElement(BuffNames.UnicornsIre)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff" 
+													  select sim.SimDescription;
 				selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("DoomDialogTitle"))?.CreatedSim;
 			}
 
@@ -2113,7 +2095,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
         {
 			Sim actor = PlumbBob.SelectedActor;
 			Lot lot = actor.LotCurrent.IsWorldLot
-				? GetClosestObject((List<Lot>)LotManager.AllLotsWithoutCommonExceptions, actor)
+				? GetClosestObject(LotManager.AllLotsWithoutCommonExceptions.Cast<Lot>(), actor)
 				: actor.LotCurrent;
 
 			Audio.StartSound("earthquake_shake", lot.Position);
@@ -2139,10 +2121,12 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
                 }
             }
 
-			List<GameObject> breakableObjects = lot.GetObjects<GameObject>((@object) => @object.Repairable is { Broken: false });
+			List<GameObject> breakableObjects = lot.GetObjects<GameObject>(@object => @object.Repairable is { Broken: false });
 			int maxBroken = Math.Min(RandomUtil.GetInt(TunableSettings.kEarthquakeMinBroken, TunableSettings.kEarthquakeMaxBroken), breakableObjects.Count);
 			for (int i = 0; i < maxBroken; i++)
             {
+				if (breakableObjects.Count == 0) { break; }
+
 				GameObject @object = RandomUtil.GetRandomObjectFromList(breakableObjects);
 				@object.Repairable.BreakObject();
 				breakableObjects.Remove(@object);
@@ -2156,9 +2140,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				if (PlaceAtGoodLocation(trashPile, fglParams, true))
                 {
 					trashPile.AddToWorld();
-					continue;
                 }
-				i--;
             }
 			return true;
         }
@@ -2176,7 +2158,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				Sim actor = PlumbBob.SelectedActor;
 				selectedLot = actor.LotCurrent.IsWorldLot
-					? GetClosestObject((List<Lot>)LotManager.AllLotsWithoutCommonExceptions, actor)
+					? GetClosestObject(LotManager.AllLotsWithoutCommonExceptions.Cast<Lot>(), actor)
 					: actor.LotCurrent;
 			}
 			else
@@ -2190,22 +2172,22 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool GhostifyActivation(bool _)
         {//TODO add interaction w/ animations
-			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
-																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.IsGhostOrHasGhostBuff && !sim.BuffManager.HasElement((BuffNames)Buffs.BuffGhostify.kBuffGhostifyGuid))
-																			.ConvertAll((sim) => sim.SimDescription);
-			Sim sim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("GhostifyDialogTitle"))?.CreatedSim;
-			if (sim is null)
+			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors()
+												  where sim.SimDescription.ChildOrAbove && !sim.IsGhostOrHasGhostBuff && !sim.BuffManager.HasElement((BuffNames)Buffs.BuffGhostify.kBuffGhostifyGuid)
+												  select sim.SimDescription;
+			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("GhostifyDialogTitle"))?.CreatedSim;
+			if (selectedSim is null)
 			{
 				return false;
 			}
-			Camera.FocusOnSim(sim);
-			if (sim.IsSelectable)
+			Camera.FocusOnSim(selectedSim);
+			if (selectedSim.IsSelectable)
 			{
-				PlumbBob.SelectActor(sim);
+				PlumbBob.SelectActor(selectedSim);
 			}
-			sim.InteractionQueue.CancelAllInteractions();
-			sim.BuffManager.AddElement(Buffs.BuffGhostify.kBuffGhostifyGuid, (Origin)HashString64("FromWonderPower"));
-			sim.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(sim.IsFemale, "GhostifyTNS", sim), StyledNotification.NotificationStyle.kGameMessagePositive);
+			selectedSim.InteractionQueue.CancelAllInteractions();
+			selectedSim.BuffManager.AddElement(Buffs.BuffGhostify.kBuffGhostifyGuid, (Origin)HashString64("FromWonderPower"));
+			selectedSim.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(selectedSim.IsFemale, "GhostifyTNS", selectedSim), StyledNotification.NotificationStyle.kGameMessagePositive);
 			WonderPowerManager.TogglePowerRunning();
 			return true;
 		}
@@ -2217,7 +2199,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				Sim actor = PlumbBob.SelectedActor;
 				selectedLot = actor.LotCurrent.IsWorldLot
-					? GetClosestObject((List<Lot>)LotManager.AllLotsWithoutCommonExceptions, actor)
+					? GetClosestObject(LotManager.AllLotsWithoutCommonExceptions.Cast<Lot>(), actor)
 					: actor.LotCurrent;
 			}
 			else
@@ -2237,12 +2219,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				//CONSIDER visual effect?
 				//CONSIDER Toggle power on sound finish?
-				foreach (BuffInstance bi in new List<BuffInstance>(sim.BuffManager.Buffs))
+				foreach (BuffInstance bi in new List<BuffInstance>(sim.BuffManager.Buffs
+																				  .Where(bi => bi is { Guid: not (BuffNames.Singed or BuffNames.HavingAMidlifeCrisis or BuffNames.HavingAMidlifeCrisisWithPromise or BuffNames.MalePregnancy), EffectValue: < 0 })))
                 {
-					if (bi is {Guid: not (BuffNames.Singed or BuffNames.HavingAMidlifeCrisis or BuffNames.HavingAMidlifeCrisisWithPromise or BuffNames.MalePregnancy), EffectValue: < 0})
-                    {
-						sim.BuffManager.ForceRemoveBuff(bi.Guid);
-                    }
+					sim.BuffManager.ForceRemoveBuff(bi.Guid);
                 }
 				sim.BuffManager.AddElement(HashString64("Gamefreak130_GoodMoodBuff"), (Origin)HashString64("FromWonderPower"));
 			}
@@ -2253,7 +2233,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool InstantBeautyActivation(bool _)
         {
-			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.ToddlerOrAbove && !sim.OccultManager.DisallowClothesChange() && !sim.BuffManager.DisallowClothesChange()).ConvertAll((sim) => sim.SimDescription);
+			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetSims(sim => sim.SimDescription.ToddlerOrAbove && !sim.OccultManager.DisallowClothesChange() && !sim.BuffManager.DisallowClothesChange())
+												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("InstantBeautyDialogTitle"))?.CreatedSim;
 			if (selectedSim is null)
             {
@@ -2279,9 +2260,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool LuckyBreakActivation(bool _)
 		{
-			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
-																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && sim.BuffManager.GetElement(BuffNames.UnicornsBlessing)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuff")
-																			.ConvertAll((sim) => sim.SimDescription);
+			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors()
+												  where sim.SimDescription.ChildOrAbove && sim.BuffManager.GetElement(BuffNames.UnicornsBlessing)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuff"
+												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("LuckyBreakDialogTitle"))?.CreatedSim;
 
 			if (selectedSim is null)
@@ -2310,9 +2291,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool LuckyFindActivation(bool _)
 		{
-			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
-																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.SimDescription.IsHorse && !sim.BuffManager.HasElement(Buffs.BuffLuckyFind.kBuffLuckyFindGuid))
-																			.ConvertAll((sim) => sim.SimDescription);
+			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors()
+												  where sim.SimDescription.ChildOrAbove && !sim.SimDescription.IsHorse && !sim.BuffManager.HasElement(Buffs.BuffLuckyFind.kBuffLuckyFindGuid)
+												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("LuckyFindDialogTitle"))?.CreatedSim;
 
 			if (selectedSim is null)
@@ -2344,7 +2325,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				//selectedLot = RandomUtil.GetRandomObjectFromList(list);
 				Sim actor = PlumbBob.SelectedActor;
 				selectedLot = actor.LotCurrent.IsWorldLot
-					? GetClosestObject((List<Lot>)LotManager.AllLotsWithoutCommonExceptions, actor)
+					? GetClosestObject(LotManager.AllLotsWithoutCommonExceptions.Cast<Lot>(), actor)
 					: actor.LotCurrent;
 			}
 			else
@@ -2361,9 +2342,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool RayOfSunshineActivation(bool _)
         {
-			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
-																			.FindAll((sim) => !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_BoostedBuff")))
-																			.ConvertAll((sim) => sim.SimDescription);
+			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors()
+												  where !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_BoostedBuff"))
+												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("RayOfSunshineDialogTitle"))?.CreatedSim;
 			if (selectedSim is null)
             {
@@ -2460,12 +2441,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 						if (gameObject is IBed bed && bed.UseCount == 0 && !bed.IsMade())
                         {
 							//TODO visual effect
-							foreach (PartData data in bed.PartComponent.PartDataList.Values)
+							foreach (BedData bedData in bed.PartComponent.PartDataList.Values)
 							{
-								if (data is BedData bedData)
-								{
-									bedData.BedMade = true;
-								}
+								bedData.BedMade = true;
 							}
 							bed.ResetBindPose();
 						}
@@ -2480,9 +2458,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool SatisfactionActivation(bool _)
         {
-			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
-																			.FindAll((sim) => !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_SatisfiedBuff")))
-																			.ConvertAll((sim) => sim.SimDescription);
+			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors() 
+												  where !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_SatisfiedBuff")) 
+												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("SatisfactionDialogTitle"))?.CreatedSim;
 			if (selectedSim is null)
 			{
@@ -2528,9 +2506,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 			else
 			{
-				List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => (WonderPowers.IsKidsMagicInstalled ? sim.SimDescription.ChildOrAbove : sim.SimDescription.TeenOrAbove) && !sim.IsRobot 
-																									&& sim.BuffManager.GetElement(BuffNames.CommodityDecayModifier)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuff" && !sim.BuffManager.HasElement(Buffs.BuffKarmicSickness.kBuffKarmicSicknessGuid))
-																				.ConvertAll((sim) => sim.SimDescription);
+				IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => (WonderPowers.IsKidsMagicInstalled ? sim.SimDescription.ChildOrAbove : sim.SimDescription.TeenOrAbove) && !sim.IsRobot 
+																														&& sim.BuffManager.GetElement(BuffNames.CommodityDecayModifier)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuff" && !sim.BuffManager.HasElement(Buffs.BuffKarmicSickness.kBuffKarmicSicknessGuid))
+													  select sim.SimDescription;
 				selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("SicknessDialogTitle"))?.CreatedSim;
 			}
 			// CONSIDER more vis effects?
@@ -2551,9 +2529,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool StrokeOfGeniusActivation(bool _)
         {
-			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
-																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement(Buffs.BuffStrokeOfGenius.kBuffStrokeOfGeniusGuid))
-																			.ConvertAll((sim) => sim.SimDescription);
+			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors() 
+												  where sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement(Buffs.BuffStrokeOfGenius.kBuffStrokeOfGeniusGuid) 
+												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("StrokeOfGeniusDialogTitle"))?.CreatedSim;
 
 			if (selectedSim is null)
@@ -2577,9 +2555,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool SuperLuckyActivation(bool _)
 		{
-			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetAllActors()
-																			.FindAll((sim) => sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement(Buffs.BuffSuperLucky.kBuffSuperLuckyGuid))
-																			.ConvertAll((sim) => sim.SimDescription);
+			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors() 
+												  where sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement(Buffs.BuffSuperLucky.kBuffSuperLuckyGuid) 
+												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("SuperLuckyDialogTitle"))?.CreatedSim;
 
 			if (selectedSim is null)
@@ -2608,8 +2586,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool WealthActivation(bool _)
 		{
-			List<SimDescription> targets = PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.TeenOrAbove && !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_WealthBuff")))
-																			.ConvertAll((sim) => sim.SimDescription);
+			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => sim.SimDescription.TeenOrAbove && !sim.BuffManager.HasElement((BuffNames)HashString64("Gamefreak130_WealthBuff")))
+												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("WealthDialogTitle"))?.CreatedSim;
 
 			if (selectedSim is null)
@@ -2660,24 +2638,23 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			return list;
 		}
 
-		public static SimDescription SelectTarget(List<SimDescription> sims, string title)
+		public static SimDescription SelectTarget(IEnumerable<SimDescription> sims, string title)
 		{
 			SimDescription target = null;
-			if (sims?.Count > 0)
+			if (sims?.Count() > 0)
 			{
 				List<ObjectPicker.HeaderInfo> list = new()
 				{
 					new("Ui/Caption/ObjectPicker:Name", "Ui/Tooltip/ObjectPicker:Name", 500)
 				};
-				List<ObjectPicker.RowInfo> list2 = new();
-				foreach (SimDescription description in sims)
-				{
-					ObjectPicker.RowInfo item = new(description, new()
+
+				List<ObjectPicker.RowInfo> list2 = sims.Select(simDescription => {
+					return new ObjectPicker.RowInfo(simDescription, new()
 					{
-						new ObjectPicker.ThumbAndTextColumn(description.GetThumbnailKey(ThumbnailSize.Large, 0), description.FullName)
+						new ObjectPicker.ThumbAndTextColumn(simDescription.GetThumbnailKey(ThumbnailSize.Large, 0), simDescription.FullName)
 					});
-					list2.Add(item);
-				}
+				}).ToList();
+
 				List<ObjectPicker.TabInfo> list3 = new()
 				{
 					new("shop_all_r2", Localization.LocalizeString("Ui/Tooltip/CAS/LoadSim:Header"), list2)
@@ -2693,16 +2670,14 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static Lot SelectTarget(string title, string confirm)
 		{
-			List<IMapTagPickerInfo> list = new();
-			foreach (Lot lot in LotManager.AllLotsWithoutCommonExceptions)
-			{
-				if (lot.CommercialLotSubType is not CommercialLotSubType.kEP1_HiddenTomb)
-				{
-					list.Add(new MapTagPickerLotInfo(lot, lot.IsPlayerHomeLot ? MapTagType.HomeLot
-														: lot.IsResidentialLot ? MapTagType.NeighborLot
-														: MapTagType.Venue));
-				}
-			}
+			List<IMapTagPickerInfo> list = LotManager.AllLotsWithoutCommonExceptions
+													 .Cast<Lot>()
+													 .Where(lot => lot.CommercialLotSubType is not CommercialLotSubType.kEP1_HiddenTomb)
+													 .Select(lot => new MapTagPickerLotInfo(lot, lot.IsPlayerHomeLot ? MapTagType.HomeLot
+																													 : lot.IsResidentialLot ? MapTagType.NeighborLot
+																													 : MapTagType.Venue))
+													 .Cast<IMapTagPickerInfo>().ToList();
+
 			IMapTagPickerInfo info = MapTagPickerUncancellable.Show(list, title, confirm);
 			return LotManager.GetLot(info.LotId);
 		}

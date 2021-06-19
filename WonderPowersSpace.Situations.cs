@@ -20,6 +20,7 @@ using Sims3.SimIFace.CAS;
 using Sims3.UI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static Sims3.Gameplay.GlobalFunctions;
 using static Sims3.SimIFace.ResourceUtils;
 using Queries = Sims3.Gameplay.Queries;
@@ -63,7 +64,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
                 if (Parent.mFighters.Count < TunableSettings.kCryHavocMinSims)
                 {
-                    List<Sim> otherSims = new List<Sim>(Queries.GetObjects<Sim>()).FindAll((sim) => !Parent.mFighters.Contains(sim) && IsValidFighter(sim));
+                    List<Sim> otherSims = Queries.GetObjects<Sim>().Where(sim => !Parent.mFighters.Contains(sim) && IsValidFighter(sim)).ToList();
                     while (Parent.mFighters.Count < TunableSettings.kCryHavocMinSims && otherSims.Count != 0)
                     {
                         Sim closestSim = GetClosestObject(otherSims, Lot);
@@ -79,14 +80,11 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                     }
                 }
                 PruneFighters();
-                foreach (Sim sim in Parent.mFighters)
+                foreach (Sim sim in Parent.mFighters.Where(sim => sim is not null))
                 {
-                    if (sim is not null)
-                    {
-                        sim.AssignRole(Parent);
-                        GoToLotAndFight visitLot = new GoToLotAndFight.Definition().CreateInstance(Lot, sim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as GoToLotAndFight;
-                        ForceSituationSpecificInteraction(sim, visitLot);
-                    }
+                    sim.AssignRole(Parent);
+                    GoToLotAndFight visitLot = new GoToLotAndFight.Definition().CreateInstance(Lot, sim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as GoToLotAndFight;
+                    ForceSituationSpecificInteraction(sim, visitLot);
                 }
                 StyledNotification.Show(new(WonderPowerManager.LocalizeString("CryHavocTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
             }
@@ -106,7 +104,8 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 
                 foreach (Predicate<Sim> predicate in predicates)
                 {
-                    if (Parent.mFighters.FindAll(predicate).Count == 1)
+                    int predicateCount = Parent.mFighters.FindAll(predicate).Count;
+                    if (predicateCount > 0 && predicateCount % 2 == 0)
                     {
                         Parent.mFighters.RemoveAt(Parent.mFighters.FindIndex(predicate));
                     }
@@ -118,17 +117,14 @@ namespace Gamefreak130.WonderPowersSpace.Situations
         {
             try
             {
-                foreach (Sim sim in mFighters)
+                foreach (Sim sim in mFighters.Where(sim => sim is not null))
                 {
-                    if (sim is not null)
+                    sim.InteractionQueue.CancelAllInteractions();
+                    sim.OverlayComponent.PlayReaction(ReactionTypes.MotiveFailEnergy, sim, false);
+                    sim.BuffManager.RemoveElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid);
+                    if (!sim.IsAtHome)
                     {
-                        sim.InteractionQueue.CancelAllInteractions();
-                        sim.OverlayComponent.PlayReaction(ReactionTypes.MotiveFailEnergy, sim, false);
-                        sim.BuffManager.RemoveElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid);
-                        if (!sim.IsAtHome)
-                        {
-                            Sim.MakeSimGoHome(sim, false, new(InteractionPriorityLevel.CriticalNPCBehavior));
-                        }
+                        Sim.MakeSimGoHome(sim, false, new(InteractionPriorityLevel.CriticalNPCBehavior));
                     }
                 }
                 foreach (GameObject emitter in mFogEmitters)
@@ -205,8 +201,8 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 // For each fire spawned, there is a 25% chance it will ignite a burnable object,
                 // A 25% chance it will ignite a valid sim on the lot,
                 // And a 50% chance it will spawn directly on the ground
-                List<GameObject> burnableObjects = Lot.GetObjects<GameObject>((@object) => @object is not Sim and not PlumbBob && @object.GetFireType() is not FireType.DoesNotBurn && !@object.Charred);
-                List<Sim> burnableSims = Lot.GetSims((sim) => sim.IsHuman && sim.SimDescription.ChildOrAbove);
+                List<GameObject> burnableObjects = Lot.GetObjects<GameObject>(@object => @object is not Sim and not PlumbBob && @object.GetFireType() is not FireType.DoesNotBurn && !@object.Charred);
+                List<Sim> burnableSims = Lot.GetSims(sim => sim.IsHuman && sim.SimDescription.ChildOrAbove);
                 int numFires = RandomUtil.GetInt(TunableSettings.kFireMin, TunableSettings.kFireMax);
                 for (int i = 0; i < numFires; i++)
                 {
@@ -256,7 +252,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
         private void CheckForExit()
         {
-            if ((Lot.FireManager is null or { NoFire: true }) && Lot.GetSims((sim) => FirefighterSituation.IsSimOnFire(sim)).Count == 0)
+            if ((Lot.FireManager is null or { NoFire: true }) && Lot.GetSims(sim => FirefighterSituation.IsSimOnFire(sim)).Count == 0)
             {
                 Exit();
             }
@@ -340,12 +336,9 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 Parent.mMusicHandle = Audio.StartSound("sting_ghosts", Lot.Position);
                 Parent.mExitHandle = AlarmManager.Global.AddAlarm(TunableSettings.kGhostInvasionLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- GhostInvasion Situation Alarm", AlarmType.AlwaysPersisted, null);
                 Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted);
-                foreach (Sim sim in Lot.GetSims())
+                foreach (Sim sim in Lot.GetSims(sim => sim.IsSleeping))
                 {
-                    if (sim.IsSleeping)
-                    {
-                        sim.InteractionQueue.CancelAllInteractions();
-                    }
+                    sim.InteractionQueue.CancelAllInteractions();
                 }
                 Parent.mCreatedObjects.AddRange(HelperMethods.CreateFogEmittersOnLot(Lot));
 
@@ -362,7 +355,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 }
                 Parent.mPanicBroadcaster = new(Lot, GhostHunter.kReactionParametersGhostlyPresence, OnPanicStart);
 
-                for (int i = 0; i < RandomUtil.GetInt(TunableSettings.kFireMin, TunableSettings.kFireMax); i++)
+                for (int i = 0; i < RandomUtil.GetInt(TunableSettings.kGhostsMin, TunableSettings.kGhostsMax); i++)
                 {
                     Simulator.AddObject(new OneShotFunction(CreateAngryGhost));
                 }
@@ -393,12 +386,12 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 SimDescription ghost;
                 if (GameUtils.IsFutureWorld() && RandomUtil.CoinFlip())
                 {
-                    ghost = OccultRobot.MakeRobot(CASAgeGenderFlags.Adult, (CASAgeGenderFlags)Common.Helpers.CoinFlipSelect(CASAgeGenderFlags.Male, CASAgeGenderFlags.Female), (RobotForms)Common.Helpers.CoinFlipSelect(RobotForms.Hovering, RobotForms.Humanoid));
+                    ghost = OccultRobot.MakeRobot(CASAgeGenderFlags.Adult, Common.Helpers.CoinFlipSelect(CASAgeGenderFlags.Male, CASAgeGenderFlags.Female), Common.Helpers.CoinFlipSelect(RobotForms.Hovering, RobotForms.Humanoid));
                     ghost.SetDeathStyle(SimDescription.DeathType.Robot, false);
                 }
                 else
                 {
-                    ghost = Genetics.MakeSim((CASAgeGenderFlags)Common.Helpers.CoinFlipSelect(CASAgeGenderFlags.Adult, CASAgeGenderFlags.Elder), (CASAgeGenderFlags)Common.Helpers.CoinFlipSelect(CASAgeGenderFlags.Male, CASAgeGenderFlags.Female), randomObjectFromList, 4294967295u);
+                    ghost = Genetics.MakeSim(Common.Helpers.CoinFlipSelect(CASAgeGenderFlags.Adult, CASAgeGenderFlags.Elder), Common.Helpers.CoinFlipSelect(CASAgeGenderFlags.Male, CASAgeGenderFlags.Female), randomObjectFromList, 4294967295u);
                     ghost.FirstName = SimUtils.GetRandomGivenName(ghost.IsMale, randomObjectFromList);
                     ghost.LastName = SimUtils.GetRandomFamilyName(randomObjectFromList);
                     ghost.SetDeathStyle(RandomUtil.GetRandomObjectFromList(sValidDeathTypes), false);
@@ -455,7 +448,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             }
 
             private IGameObject CreateGhostJig()
-            {
+            {//TODO let ghosts spawn outside if no indoor rooms
                 int randomRoomWeightedBySize = GetRandomRoomWeightedBySize();
                 if (randomRoomWeightedBySize == 36863)
                 {
@@ -488,13 +481,9 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 LotDisplayLevelInfo levelInfo = World.LotGetDisplayLevelInfo(Lot.LotId);
                 for (int i = levelInfo.mMin; i <= levelInfo.mMax; i++)
                 {
-                    foreach (int num in World.GetInsideRoomsAtLevel(Lot.LotId, i, eRoomDefinition.LightBlocking))
-                    {
-                        if (num != 0 && !base.Lot.IsRoomHidden(num))
-                        {
-                            list.Add(new(base.Lot, num));
-                        }
-                    }
+                    list.AddRange(World.GetInsideRoomsAtLevel(Lot.LotId, i, eRoomDefinition.LightBlocking)
+                                       .Where(roomNum => roomNum != 0 && !base.Lot.IsRoomHidden(roomNum))
+                                       .Select(roomNum => new GhostHunter.GhostHunterJob.RoomSizeInfo(base.Lot, roomNum)));
                 }
                 return list.Count > 0 ? RandomUtil.GetWeightedRandomObjectFromList(list).RoomId : 36863;
             }

@@ -1,21 +1,23 @@
-﻿using Sims3.SimIFace;
+﻿using Gamefreak130.Common.Buffs;
+using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
+using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
-using Sims3.UI;
-using Sims3.Gameplay.Utilities;
-using Sims3.Gameplay.CAS;
-using Sims3.SimIFace.CAS;
-using System.Collections.Generic;
 using Sims3.Gameplay.Objects;
-using Sims3.Gameplay.Autonomy;
-using static Sims3.SimIFace.ResourceUtils;
 using Sims3.Gameplay.UI;
-using Responder = Sims3.UI.Responder;
+using Sims3.Gameplay.Utilities;
+using Sims3.SimIFace;
+using Sims3.SimIFace.CAS;
+using Sims3.UI;
+using Sims3.UI.CAS;
+using System.Collections.Generic;
+using System.Linq;
 using static Sims3.Gameplay.ActorSystems.BuffCommodityDecayModifier;
-using Sims3.Gameplay.Abstracts;
-using Gamefreak130.Common.Buffs;
+using static Sims3.SimIFace.ResourceUtils;
+using Responder = Sims3.UI.Responder;
 
 namespace Gamefreak130.WonderPowersSpace.Buffs
 {
@@ -131,30 +133,23 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
             SimDescription.DeathType ghostType = SimDescription.DeathType.None;
             if (sim is not null)
             {
-                List<SimDescription.DeathType> types;
-                if (sim.IsHuman)
-                {
-                    types = new(sHumanDeathTypes);
-                }
-                else
+                if (!sim.IsHuman)
                 {
                     return (uint)Common.Helpers.CoinFlipSelect(SimDescription.DeathType.PetOldAgeGood, SimDescription.DeathType.PetOldAgeBad);
                 }
-
+                    
                 List<ObjectPicker.HeaderInfo> list = new()
                 {
                     new("Ui/Caption/ObjectPicker:Ghost", "Ui/Caption/ObjectPicker:Ghost", 300)
                 };
-                List<ObjectPicker.RowInfo> list2 = new();
-                foreach (SimDescription.DeathType current in types)
-                {
-                    string name = Sims3.UI.CAS.CASBasics.mGhostDeathNames[types.IndexOf(current)];
-                    ObjectPicker.RowInfo item = new(current, new()
+
+                List<ObjectPicker.RowInfo> list2 = sHumanDeathTypes.Select((deathType, i) => {
+                    return new ObjectPicker.RowInfo(deathType, new()
                     {
-                        new ObjectPicker.ThumbAndTextColumn(new ThumbnailKey(ResourceKey.CreatePNGKey(name, 0u), ThumbnailSize.ExtraLarge), Urnstone.DeathTypeToLocalizedString(current))
+                        new ObjectPicker.ThumbAndTextColumn(new ThumbnailKey(ResourceKey.CreatePNGKey(CASBasics.mGhostDeathNames[i], 0u), ThumbnailSize.ExtraLarge), Urnstone.DeathTypeToLocalizedString(deathType))
                     });
-                    list2.Add(item);
-                }
+                }).ToList();
+
                 List<ObjectPicker.TabInfo> list3 = new()
                 {
                     new("shop_all_r2", Helpers.WonderPowerManager.LocalizeString("SelectGhost"), list2)
@@ -296,10 +291,10 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
             {
                 sim.BuffManager.AddElement(kBuffKarmicSicknessGuid, (Origin)HashString64("FromWonderPower"));
                 sim.BuffManager.AddBuff(BuffNames.CommodityDecayModifier, 0, 1440, false, MoodAxis.Uncomfortable, (Origin)HashString64("FromWonderPower"), true);
-                BuffInstance buff = sim.BuffManager.GetElement(BuffNames.CommodityDecayModifier);
+                BuffInstanceCommodityDecayModifier buff = sim.BuffManager.GetElement(BuffNames.CommodityDecayModifier) as BuffInstanceCommodityDecayModifier;
                 foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(sim))
                 {
-                    (buff as BuffInstanceCommodityDecayModifier).AddCommodityMultiplier(motive, TunableSettings.kSicknessMotiveDecay);
+                    buff.AddCommodityMultiplier(motive, TunableSettings.kSicknessMotiveDecay);
                 }
                 buff.mBuffName = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuff";
                 buff.mDescription = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuffDescription";

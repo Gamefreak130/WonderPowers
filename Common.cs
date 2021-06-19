@@ -15,6 +15,7 @@ using Sims3.SimIFace.Enums;
 using Sims3.UI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Environment = System.Environment;
@@ -130,7 +131,7 @@ namespace Gamefreak130.Common
             CodeVersion = oldTuning.CodeVersion,
             FullInteractionName = oldTuning.FullInteractionName,
             FullObjectName = oldTuning.FullObjectName,
-            mChecks = Helpers.CloneList(oldTuning.mChecks),
+            mChecks = new(oldTuning.mChecks),
             mTradeoff = CloneTradeoff(oldTuning.mTradeoff),
             PosturePreconditions = oldTuning.PosturePreconditions,
             ScoringFunction = oldTuning.ScoringFunction,
@@ -143,10 +144,10 @@ namespace Gamefreak130.Common
         private static Tradeoff CloneTradeoff(Tradeoff old) => new()
         {
             mFlags = old.mFlags,
-            mInputs = Helpers.CloneList(old.mInputs),
+            mInputs = new(old.mInputs),
             mName = old.mName,
             mNumParameters = old.mNumParameters,
-            mOutputs = Helpers.CloneList(old.mOutputs),
+            mOutputs = new(old.mOutputs),
             mVariableRestrictions = old.mVariableRestrictions,
             TimeEstimate = old.TimeEstimate
         };
@@ -157,22 +158,22 @@ namespace Gamefreak130.Common
             AgeSpeciesAvailabilityFlags = old.AgeSpeciesAvailabilityFlags,
             CareerThresholdType = old.CareerThresholdType,
             CareerThresholdValue = old.CareerThresholdValue,
-            ExcludingBuffs = Helpers.CloneList(old.ExcludingBuffs),
-            ExcludingTraits = Helpers.CloneList(old.ExcludingTraits),
+            ExcludingBuffs = new(old.ExcludingBuffs),
+            ExcludingTraits = new(old.ExcludingTraits),
             MoodThresholdType = old.MoodThresholdType,
             MoodThresholdValue = old.MoodThresholdValue,
             MotiveThresholdType = old.MotiveThresholdType,
             MotiveThresholdValue = old.MotiveThresholdValue,
-            RequiredBuffs = Helpers.CloneList(old.RequiredBuffs),
-            RequiredTraits = Helpers.CloneList(old.RequiredTraits),
+            RequiredBuffs = new(old.RequiredBuffs),
+            RequiredTraits = new(old.RequiredTraits),
             SkillThresholdType = old.SkillThresholdType,
             SkillThresholdValue = old.SkillThresholdValue,
             WorldRestrictionType = old.WorldRestrictionType,
             OccultRestrictions = old.OccultRestrictions,
             OccultRestrictionType = old.OccultRestrictionType,
             SnowLevelValue = old.SnowLevelValue,
-            WorldRestrictionWorldNames = Helpers.CloneList(old.WorldRestrictionWorldNames),
-            WorldRestrictionWorldTypes = Helpers.CloneList(old.WorldRestrictionWorldTypes)
+            WorldRestrictionWorldNames = new(old.WorldRestrictionWorldNames),
+            WorldRestrictionWorldTypes = new(old.WorldRestrictionWorldTypes)
         };
     }
 
@@ -263,12 +264,12 @@ namespace Gamefreak130.Common
         private StringBuilder GenerateAssemblyList()
         {
             StringBuilder result = new();
-            List<string> assemblies = new List<Assembly>(AppDomain.CurrentDomain.GetAssemblies())
-                                            .ConvertAll((assembly) => assembly.GetName().Name);
-            assemblies.Sort();
-            foreach (string assembly in assemblies)
+            IEnumerable<string> assemblyNames = from assembly in AppDomain.CurrentDomain.GetAssemblies() 
+                                                select assembly.GetName().Name 
+                                                into name orderby name select name;
+            foreach (string name in assemblyNames)
             {
-                result.AppendLine(" " + assembly);
+                result.AppendLine(" " + name);
             }
             return result;
         }
@@ -322,25 +323,25 @@ namespace Gamefreak130.Common
 
         static Ferry()
         {
-            FieldInfo[] fields = FindPersistableStatics();
-            if (fields.Length == 0)
+            IEnumerable<FieldInfo> fields = FindPersistableStatics();
+            if (fields.Count() == 0)
             {
                 throw new NotSupportedException($"There are no PersistableStatic fields declared in {typeof(T)}.");
             }
-            mCargo = new(fields.Length);
+            mCargo = new(fields.Count());
             foreach (FieldInfo current in fields)
             {
                 mCargo[current] = null;
             }
         }
 
-        private static FieldInfo[] FindPersistableStatics()
+        private static IEnumerable<FieldInfo> FindPersistableStatics()
         {
             MemberInfo[] fieldMembers = typeof(T).FindMembers(MemberTypes.Field,
                 BindingFlags.Static | BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic,
                 (info, criteria) => info.GetCustomAttributes(typeof(PersistableStaticAttribute), false).Length > 0, null);
 
-            return Array.ConvertAll(fieldMembers, (x) => (FieldInfo)x);
+            return fieldMembers.Cast<FieldInfo>();
         }
 
         public static void UnloadCargo()
@@ -371,25 +372,13 @@ namespace Gamefreak130.Common
     {
         public static void ForceSocial(Sim actor, Sim target, string socialName, InteractionPriorityLevel priority, bool isCancellable)
         {
-            SocialInteractionA.Definition definition = null;
-            foreach (InteractionObjectPair iop in target.Interactions)
-            {
-                if (iop.InteractionDefinition is SocialInteractionA.Definition social && social.ActionKey == socialName)
-                {
-                    definition = social;
-                }
-            }
-            if (definition is null)
-            {
-                definition = new(socialName, new string[0], null, false);
-            }
+            SocialInteractionA.Definition definition = target.Interactions.Find(iop => iop.InteractionDefinition is SocialInteractionA.Definition social && social.ActionKey == socialName)?.InteractionDefinition as SocialInteractionA.Definition 
+                ?? new(socialName, new string[0], null, false);
             InteractionInstance instance = definition.CreateInstance(target, actor, new(priority), false, isCancellable);
             actor.InteractionQueue.Add(instance);
         }
 
-        public static List<T> CloneList<T>(IEnumerable<T> old) => old is not null ? new(old) : null;
-
-        public static object CoinFlipSelect(object obj1, object obj2) => RandomUtil.CoinFlip() ? obj1 : obj2;
+        public static T CoinFlipSelect<T>(T obj1, T obj2) => RandomUtil.CoinFlip() ? obj1 : obj2;
     }
 }
 
@@ -423,12 +412,12 @@ namespace Gamefreak130.Common.Buffs
             public void AddTemporaryTrait(TraitNames trait, bool hidden)
             {
                 TraitManager traitManager = mTargetSim.TraitManager;
-                if (traitManager.HasElement(trait) || (!hidden && TraitsAdded.FindAll(guid => TraitManager.GetTraitFromDictionary(guid).IsVisible).Count == traitManager.CountVisibleTraits()))
+                if (traitManager.HasElement(trait) || (!hidden && TraitsAdded.Where(guid => TraitManager.GetTraitFromDictionary(guid).IsVisible).Count() == traitManager.CountVisibleTraits()))
                 {
                     return;
                 }
-                List<Trait> conflictingTraits = traitManager.GetDictionaryConflictingTraits(trait).FindAll(x => mTargetSim.HasTrait(x.Guid));
-                if (conflictingTraits.Count > 0)
+                IEnumerable<Trait> conflictingTraits = traitManager.GetDictionaryConflictingTraits(trait).Where(x => mTargetSim.HasTrait(x.Guid));
+                if (conflictingTraits.Count() > 0)
                 {
                     foreach (Trait conflictingTrait in conflictingTraits)
                     {

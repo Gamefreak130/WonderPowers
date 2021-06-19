@@ -12,6 +12,7 @@ using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
 using System;
+using System.Linq;
 using System.Reflection;
 
 namespace Gamefreak130
@@ -19,6 +20,8 @@ namespace Gamefreak130
     //TODO Cleanup LAYO
     //TODO Check code for unused blocks, zero references, notimplementedexceptions
     //TODO Command to set karma, reset cooldown
+    //TODO Cleanup unused methods in LinqBridge
+    //CONSIDER Common exception catching for alarms and tasks
     //CONSIDER SortedList for powers (by cost)
     //CONSIDER Powers implement IWeightable for karmic backlash selection
     public static class WonderPowers
@@ -43,24 +46,23 @@ namespace Gamefreak130
             bool flag = true;
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                if (assembly.GetName().Name == "Skydome_KidsMagic")
+                string name = assembly.GetName().Name;
+                if (name == "Skydome_KidsMagic")
                 {
                     IsKidsMagicInstalled = true;
                 }
 
-                if (assembly.GetName().Name == "Gamefreak130.LTRMenuMusicReplacement")
+                if (name == "Gamefreak130.LTRMenuMusicReplacement")
                 {
                     flag = false;
                 }
                 else
                 {
-                    foreach (Type type in assembly.GetExportedTypes())
+                    foreach (Type type in assembly.GetExportedTypes()
+                                                  .Where(type => !type.IsAbstract && !type.IsGenericTypeDefinition && typeof(PowerBooter).IsAssignableFrom(type)))
                     {
-                        if (!type.IsAbstract && !type.IsGenericTypeDefinition && typeof(PowerBooter).IsAssignableFrom(type))
-                        {
-                            PowerBooter booter = type.GetConstructor(new Type[0]).Invoke(null) as PowerBooter;
-                            booter.LoadPowers();
-                        }
+                        PowerBooter booter = type.GetConstructor(new Type[0]).Invoke(null) as PowerBooter;
+                        booter.LoadPowers();
                     }
                 }
             }

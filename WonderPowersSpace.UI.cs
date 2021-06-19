@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Xml;
-using Gamefreak130.WonderPowersSpace.Helpers;
+﻿using Gamefreak130.WonderPowersSpace.Helpers;
 using Sims3.Gameplay;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Passport;
@@ -15,11 +11,15 @@ using Sims3.UI.CAS;
 using Sims3.UI.Dialogs;
 using Sims3.UI.GameEntry;
 using Sims3.UI.Hud;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml;
 using static Sims3.SimIFace.ResourceUtils;
 
 namespace Gamefreak130.WonderPowersSpace.UI
 {
-	public class WonderModeMenu : ModalDialog
+    public class WonderModeMenu : ModalDialog
 	{
 		private enum ControlIds : uint
 		{
@@ -196,7 +196,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 			}
         }
 
-		private static string LocalizeString(string name, params object[] parameters) => Localization.LocalizeString("UI/WonderMode/KarmaMenu:" + name, parameters);
+		private static string LocalizeString(string name, params object[] parameters) => Localization.LocalizeString($"UI/WonderMode/KarmaMenu:{name}", parameters);
 
 		public override bool OnEnd(uint endID)
 		{
@@ -528,13 +528,9 @@ namespace Gamefreak130.WonderPowersSpace.UI
 						button = OptionsDialog.sDialog.mModalDialogWindow.GetChildByID(2822726299u, true) as Button;
 						button.Click += OnMusicSelectionClicked;
 						ParseXml("MusicEntriesKarmaLoad");
-						foreach (uint num in Enum.GetValues(typeof(ProductVersion)))
+						foreach (ProductVersion version in (Enum.GetValues(typeof(ProductVersion)) as ProductVersion[]).Where(pv => GameUtils.IsInstalled(pv)))
 						{
-							if (GameUtils.IsInstalled((ProductVersion)num))
-							{
-								string name = ((ProductVersion)num).ToString();
-								ParseXml("MusicEntriesKarmaLoad" + name);
-							}
+							ParseXml($"MusicEntriesKarmaLoad{version}");
 						}
 						mOptionsInjectionHandled = true;
 					}
