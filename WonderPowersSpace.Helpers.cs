@@ -18,9 +18,12 @@ using Sims3.Gameplay.Objects;
 using Sims3.Gameplay.Objects.Beds;
 using Sims3.Gameplay.Objects.FoodObjects;
 using Sims3.Gameplay.Objects.Miscellaneous;
+using Sims3.Gameplay.Skills;
+using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.UI;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
+using Sims3.SimIFace.CAS;
 using Sims3.SimIFace.Enums;
 using Sims3.UI;
 using Sims3.UI.CAS;
@@ -2149,7 +2152,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
         {
 			//TODO this
 			throw new NotImplementedException();
-        }
+		}
 
 		public static bool FireActivation(bool isBacklash)
         {
@@ -2580,9 +2583,153 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		}
 
 		public static bool TransmogrifyActivation(bool _)
-        {
-			throw new NotImplementedException();
-        }
+		{
+			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors()
+												  where sim.SimDescription.ToddlerOrAbove && !sim.OccultManager.DisallowClothesChange() && !sim.BuffManager.DisallowClothesChange()
+												  select sim.SimDescription;
+			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("TransmogrifyDialogTitle"))?.CreatedSim;
+			if (selectedSim is null)
+			{
+				return false;
+			}
+			// CONSIDER anim/vis effect and sting?
+			SimDescription oldDescription = selectedSim.SimDescription;
+			CASAgeGenderFlags newSpecies = CASAgeGenderFlags.None;
+			CASAgeGenderFlags newAge = oldDescription.Age switch 
+			{
+				CASAgeGenderFlags.Toddler or CASAgeGenderFlags.Child or CASAgeGenderFlags.Teen  => CASAgeGenderFlags.Child,
+				CASAgeGenderFlags.YoungAdult or CASAgeGenderFlags.Adult                         => CASAgeGenderFlags.Adult,
+				CASAgeGenderFlags.Elder                                                         => CASAgeGenderFlags.Elder,
+				_                                                                               => CASAgeGenderFlags.None
+			};
+
+			List<ObjectPicker.HeaderInfo> list = new()
+			{
+				new("Ui/Tooltip/CAS/Load:SpeciesAll", "Ui/Tooltip/CAS/Load:SpeciesAll", 300)
+			};
+
+			List<ObjectPicker.RowInfo> list2 = new()
+			{
+				new(CASAgeGenderFlags.Human, new()
+				{
+					new ObjectPicker.ThumbAndTextColumn(new ThumbnailKey(ResourceKey.CreatePNGKey("Select_Human", 0u), ThumbnailSize.ExtraLarge), Localization.LocalizeString("Ui/Tooltip/CAS/Load:SpeciesSim"))
+				}),
+				new(CASAgeGenderFlags.Dog, new()
+				{
+					new ObjectPicker.ThumbAndTextColumn(new ThumbnailKey(ResourceKey.CreatePNGKey("moodlet_dog", 0x48000000u), ThumbnailSize.ExtraLarge), WonderPowerManager.LocalizeString("LargeDogMenuItem"))
+				}),
+				new(CASAgeGenderFlags.LittleDog, new()
+				{
+					new ObjectPicker.ThumbAndTextColumn(new ThumbnailKey(ResourceKey.CreatePNGKey("moodlet_puppy", 0x48000000u), ThumbnailSize.ExtraLarge), Localization.LocalizeString("Ui/Tooltip/CAS/Load:DogBodyLittle"))
+				}),
+				new(CASAgeGenderFlags.Cat, new()
+				{
+					new ObjectPicker.ThumbAndTextColumn(new ThumbnailKey(ResourceKey.CreatePNGKey("moodlet_cats", 0x48000000u), ThumbnailSize.ExtraLarge), Localization.LocalizeString("Ui/Tooltip/CAS/Load:SpeciesCat"))
+				}),
+				new(CASAgeGenderFlags.Horse, new()
+				{
+					new ObjectPicker.ThumbAndTextColumn(new ThumbnailKey(ResourceKey.CreatePNGKey("moodlet_horsie", 0x48000000u), ThumbnailSize.ExtraLarge), Localization.LocalizeString("Ui/Tooltip/CAS/Load:SpeciesHorse"))
+				})
+			};
+			list2.Remove(list2.Find(row => oldDescription.Species == (CASAgeGenderFlags)row.Item));
+
+			List<ObjectPicker.TabInfo> list3 = new()
+			{
+				new("shop_all_r2", WonderPowerManager.LocalizeString("SelectSpecies"), list2)
+			};
+
+			while ((newSpecies & CASAgeGenderFlags.SpeciesMask) is CASAgeGenderFlags.None)
+			{
+				List<ObjectPicker.RowInfo> selection = ObjectPickerDialog.Show(true, ModalDialog.PauseMode.PauseSimulator, WonderPowerManager.LocalizeString("TransmogrifyDialogTitle"), Localization.LocalizeString("Ui/Caption/ObjectPicker:OK"),
+																				Localization.LocalizeString("Ui/Caption/ObjectPicker:Cancel"), list3, list, 1, false);
+				newSpecies = selection is not null ? (CASAgeGenderFlags)selection[0].Item : CASAgeGenderFlags.None;
+			}
+
+			bool turnIntoUnicorn = (oldDescription.IsGenie || oldDescription.IsWitch || oldDescription.IsFairy) && newSpecies is CASAgeGenderFlags.Horse;
+			SimDescription newDescription = newSpecies is CASAgeGenderFlags.Human ? Genetics.MakeSim(newAge, oldDescription.Gender, oldDescription.HomeWorld, uint.MaxValue) 
+																				  : turnIntoUnicorn
+																				  ? GeneticsPet.MakePet(newAge, oldDescription.Gender, newSpecies, OccultUnicorn.NPCOutfit(oldDescription.IsFemale, newAge))
+																				  : GeneticsPet.MakeRandomPet(newAge, oldDescription.Gender, newSpecies);
+			if (newDescription is null)
+            {
+				return false;
+            }
+			// TODO check for asymmetric relationship conflict
+			foreach (Relationship oldRelationship in Relationship.GetRelationships(oldDescription))
+			{
+				if (oldRelationship is not null)
+				{
+					Sim otherSim = oldRelationship.GetOtherSim(selectedSim);
+					if (otherSim is not null)
+					{
+						Relationship newRelationship = Relationship.Get(newDescription, otherSim.SimDescription, true);
+						newRelationship?.LTR.CopyLtr(oldRelationship.LTR);
+						newRelationship?.LTR.UpdateLTR();
+					}
+				}
+			}
+			newDescription.FirstName = oldDescription.FirstName;
+			newDescription.LastName = oldDescription.LastName;
+			oldDescription.Genealogy.ClearAllGenealogyInformation();
+			newDescription.mLifetimeHappiness = oldDescription.mLifetimeHappiness;
+			newDescription.mSpendableHappiness = oldDescription.mSpendableHappiness;
+			// TODO trait mapping garbage
+			// CONSIDER copy over stattrackers, VisaManager and/or LifeEventManager data
+			if (turnIntoUnicorn)
+            {
+				newDescription.OccultManager.AddOccultType(OccultTypes.Unicorn, true, false, false);
+				SkillManager skillManager = newDescription.SkillManager;
+				Racing skill = skillManager.AddElement(SkillNames.Racing) as Racing;
+				skill.ForceSkillLevelUp(10);
+				Jumping skill2 = skillManager.AddElement(SkillNames.Jumping) as Jumping;
+				skill2.ForceSkillLevelUp(10);
+			}
+			if (oldDescription.IsUnicorn && newSpecies is CASAgeGenderFlags.Human)
+            {
+				newDescription.OccultManager.AddOccultType(RandomUtil.GetRandomObjectFromList(OccultTypes.Fairy, OccultTypes.Witch, OccultTypes.Genie), true, false, false);
+			}
+			if (oldDescription.IsGhost)
+			{
+				newDescription.IsGhost = true;
+				newDescription.mDeathStyle = oldDescription.mDeathStyle;
+			}
+			if (selectedSim.IsActiveSim)
+			{
+				UserToolUtils.OnClose();
+				LotManager.SelectNextSim();
+			}
+			Vector3 position = selectedSim.Position;
+			Household household = selectedSim.Household;
+			selectedSim.Destroy();
+			oldDescription.Dispose();
+			household.Add(newDescription);
+			selectedSim = newDescription.Instantiate(position);
+			if (selectedSim.SimDescription.IsGhost)
+			{
+				Urnstone.SimToPlayableGhost(selectedSim);
+			}
+			// TODO Custom CAS state? Or maybe merge with our existing one?
+			if (!(newDescription.IsPet && newDescription.Child))
+			{
+				GameStates.TransitionToCASMode();
+				CASLogic singleton = CASLogic.GetSingleton();
+				singleton.LoadSim(selectedSim.SimDescription, selectedSim.CurrentOutfitCategory, 0);
+				singleton.UseTempSimDesc = true;
+				while (GameStates.NextInWorldStateId is not InWorldState.SubState.LiveMode)
+				{
+					Simulator.Sleep(1U);
+				}
+			}
+			// TODO Add buff and TNS
+			Camera.FocusOnSim(selectedSim);
+			if (selectedSim.IsSelectable)
+			{
+				PlumbBob.SelectActor(selectedSim);
+			}
+			selectedSim.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(selectedSim.IsFemale, "TransmogrifyTNS", selectedSim), StyledNotification.NotificationStyle.kGameMessagePositive);
+			WonderPowerManager.TogglePowerRunning();
+			return true;
+		}
 
 		public static bool WealthActivation(bool _)
 		{
