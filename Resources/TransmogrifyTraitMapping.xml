@@ -1,0 +1,532 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<TransmogrifyTraitMapping>
+  <TraitMapping>
+    <TraitName></TraitName>
+    <MapsTo></MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>AbsentMinded</TraitName>
+    <MapsTo>CluelessPet, UntrainedHorse</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Adventurous</TraitName>
+    <MapsTo>AdventurousPet, BravePet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Ambitious</TraitName>
+    <MapsTo>HyperPet, FastPet, AgilePet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Angler</TraitName>
+    <MapsTo>HunterPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>AnimalLover</TraitName>
+    <MapsTo>FriendlyPet, PlayfulPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Artistic</TraitName>
+    <MapsTo>ProudPet, UntrainedHorse</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Athletic</TraitName>
+    <MapsTo>DestructivePet, HyperPet, LikesSwimmingPet, AgilePet, FastPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>AvantGarde</TraitName>
+    <MapsTo>ProudPet, IndependentPet, MeanPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Bookworm</TraitName>
+    <MapsTo>GeniusPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>BornSalesman</TraitName>
+    <MapsTo>NoisyPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>BotFan</TraitName>
+    <MapsTo>IndependentPet, QuietPet, HydrophobicPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Brave</TraitName>
+    <MapsTo>BravePet, LoyalPet, AdventurousPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>BroodingTrait</TraitName>
+    <MapsTo>IndependentPet, ShyPet, QuietPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>CantStandArt</TraitName>
+    <MapsTo>DestructivePet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>CatPerson</TraitName>
+    <MapsTo>FriendlyPet, PlayfulPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Charismatic</TraitName>
+    <MapsTo>FriendlyPet, NoisyPet, LoyalPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Childish</TraitName>
+    <MapsTo>HyperPet, PlayfulPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Clumsy</TraitName>
+    <MapsTo>HatesJumpingPet, UntrainedHorse, SkittishPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>CommitmentIssues</TraitName>
+    <MapsTo>MeanPet, IndependentPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>ComputerWhiz</TraitName>
+    <MapsTo>GeniusPet, IndependentPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>CouchPotato</TraitName>
+    <MapsTo>LazyPet, LazyHorse, PiggyPet, HatesJumpingPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Coward</TraitName>
+    <MapsTo>SkittishPet, NervousPet, HydrophobicPet, ShyPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Daredevil</TraitName>
+    <MapsTo>AdventurousPet, HyperPet, BravePet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Disciplined</TraitName>
+    <MapsTo>HunterPet, QuietPet, NonDestructivePet, FastPet, AgilePet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>DislikesChildren</TraitName>
+    <MapsTo>MeanPet, ProudPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Diva</TraitName>
+    <MapsTo>ProudPet, AggressivePet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>DogPerson</TraitName>
+    <MapsTo>FriendlyPet, PlayfulPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Dramatic</TraitName>
+    <MapsTo>ProudPet, NoisyPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>EasilyImpressed</TraitName>
+    <MapsTo>CluelessPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Eccentric</TraitName>
+    <MapsTo>GeniusPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>EnvironmentallyConscious</TraitName>
+    <MapsTo>NonDestructivePet, NeatPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Equestrian</TraitName>
+    <MapsTo>AgilePet, FastPet, GentlePet, FriendlyPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Evil</TraitName>
+    <MapsTo>AggressivePet, MeanPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Excitable</TraitName>
+    <MapsTo>HyperPet, PlayfulPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>FamilyOriented</TraitName>
+    <MapsTo>LoyalPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Flirty</TraitName>
+    <MapsTo>HunterPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Friendly</TraitName>
+    <MapsTo>FriendlyPet, GentlePet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Frugal</TraitName>
+    <MapsTo>NonDestructivePet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>GathererTrait</TraitName>
+    <MapsTo>HunterPet, AdventurousPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Genius</TraitName>
+    <MapsTo>GeniusPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Good</TraitName>
+    <MapsTo>GentlePet, FriendlyPet, LoyalPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>GoodSenseOfHumor</TraitName>
+    <MapsTo>FriendlyPet, MeanPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>GreatKisser</TraitName>
+    <MapsTo>FriendlyPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>GreenThumb</TraitName>
+    <MapsTo>NonDestructivePet, UntrainedHorse</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Grumpy</TraitName>
+    <MapsTo>AggressivePet, MeanPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Handy</TraitName>
+    <MapsTo>NonDestructivePet, GeniusPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>HatesOutdoors</TraitName>
+    <MapsTo>HydrophobicPet, NeatPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>HeavySleeper</TraitName>
+    <MapsTo>LazyPet, LazyHorse</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>HopelessRomantic</TraitName>
+    <MapsTo>LoyalPet, ShyPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>HotHeaded</TraitName>
+    <MapsTo>AggressivePet, MeanPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Hydrophobic</TraitName>
+    <MapsTo>HydrophobicPet, SkittishPet, NervousPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Inappropriate</TraitName>
+    <MapsTo>MeanPet, PlayfulPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Insane</TraitName>
+    <MapsTo>HyperPet, HydrophobicPet, SkittishPet, NervousPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Irresistible</TraitName>
+    <MapsTo>ProudPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Kleptomaniac</TraitName>
+    <MapsTo>DestructivePet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>LightSleeper</TraitName>
+    <MapsTo>HyperPet, SkittishPet, NervousPet, FastPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Loner</TraitName>
+    <MapsTo>IndependentPet, QuietPet, UntrainedHorse</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Loser</TraitName>
+    <MapsTo>HatesJumpingPet, UntrainedHorse, SkittishPet, NervousPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>LovesTheCold</TraitName>
+    <MapsTo>AdventurousPet, PlayfulPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>LovesTheHeat</TraitName>
+    <MapsTo>AdventurousPet, LikesSwimmingPet, PlayfulPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>LovesTheOutdoors</TraitName>
+    <MapsTo>AdventurousPet, LikesSwimmingPet, UntrainedHorse</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>LovesToSwim</TraitName>
+    <MapsTo>LikesSwimmingPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Lucky</TraitName>
+    <MapsTo>LoyalPet, BravePet, ProudPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>MeanSpirited</TraitName>
+    <MapsTo>MeanPet, AggressivePet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Mooch</TraitName>
+    <MapsTo>PiggyPet, LazyPet, LazyHorse</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>NaturalBornPerformer</TraitName>
+    <MapsTo>AgilePet, FastPet, NoisyPet, PlayfulPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>NaturalCook</TraitName>
+    <MapsTo>PiggyPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Neat</TraitName>
+    <MapsTo>NeatPet, NonDestructivePet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Neurotic</TraitName>
+    <MapsTo>SkittishPet, NervousPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>NeverNude</TraitName>
+    <MapsTo>SkittishPet, NervousPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>NightOwlTrait</TraitName>
+    <MapsTo>PlayfulPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>NoSenseOfHumor</TraitName>
+    <MapsTo>CluelessPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Nurturing</TraitName>
+    <MapsTo>FriendlyPet, GentlePet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>OverEmotional</TraitName>
+    <MapsTo>HyperPet, NoisyPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>PartyAnimal</TraitName>
+    <MapsTo>HyperPet, PlayfulPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Perceptive</TraitName>
+    <MapsTo>HunterPet, GeniusPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Perfectionist</TraitName>
+    <MapsTo>GeniusPet, FastPet, AgilePet, HunterPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>PhotographersEye</TraitName>
+    <MapsTo>HunterPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Proper</TraitName>
+    <MapsTo>ProudPet, NeatPet, NonDestructivePet, QuietPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Rebellious</TraitName>
+    <MapsTo>MeanPet, AggressivePet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Sailor</TraitName>
+    <MapsTo>LikesSwimmingPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>SavvySculptor</TraitName>
+    <MapsTo>ProudPet, QuietPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Schmoozer</TraitName>
+    <MapsTo>NoisyPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Shy</TraitName>
+    <MapsTo>ShyPet, QuietPet, UntrainedHorse</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Slob</TraitName>
+    <MapsTo>DestructivePet, PiggyPet, LazyPet, LazyHorse</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Snob</TraitName>
+    <MapsTo>ProudPet, MeanPet, HatesJumpingPet, NeatPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>SocialButterfly</TraitName>
+    <MapsTo>NoisyPet, FriendlyPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>SociallyAwkward</TraitName>
+    <MapsTo>CluelessPet, GeniusPet, QuietPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>XFactor</TraitName>
+    <MapsTo>ProudPet, FastPet, AgilePet</MapsTo>
+  </TraitMapping>
+  <!--Supernaturals DESTROYED with facts and logic-->
+  <TraitMapping>
+    <TraitName>SupernaturalFanTrait</TraitName>
+    <MapsTo>CluelessPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>SupernaturalSkeptic</TraitName>
+    <MapsTo>GeniusPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>AntiTV</TraitName>
+    <MapsTo>SkittishPet, DestructivePet, NervousPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Unflirty</TraitName>
+    <MapsTo>CluelessPet, QuietPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Unlucky</TraitName>
+    <MapsTo>SkittishPet, NervousPet</MapsTo>
+  </TraitMapping>
+  <!--Unstable is a wild card that can stand in for any pet trait-->
+  <TraitMapping>
+    <TraitName>Unstable</TraitName>
+    <MapsTo>AdventurousPet, AggressivePet, AgilePet, BravePet, CluelessPet, DestructivePet, FastPet, FriendlyPet, GeniusPet, GentlePet, HatesJumpingPet, HunterPet, HyperPet, HydrophobicPet, IndependentPet, LikesSwimmingPet, 
+      LazyPet, LazyHorse, LoyalPet, MeanPet, NeatPet, NervousPet, NoisyPet, NonDestructivePet, PiggyPet, PlayfulPet, ProudPet, QuietPet, ShyPet, SkittishPet, UntrainedHorse</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Vegetarian</TraitName>
+    <MapsTo>NonDestructivePet, UntrainedHorse</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>VehicleEnthusiast</TraitName>
+    <MapsTo>IndependentPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Virtuoso</TraitName>
+    <MapsTo>NoisyPet, GeniusPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>Workaholic</TraitName>
+    <MapsTo>HyperPet, FastPet, AgilePet</MapsTo>
+  </TraitMapping>
+  
+  <!--Most pet traits should map to themselves to preserve them when moving across pet species-->
+  <TraitMapping>
+    <TraitName>AdventurousPet</TraitName>
+    <MapsTo>AdventurousPet, BravePet, LikesSwimmingPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>AggressivePet</TraitName>
+    <MapsTo>AggressivePet, MeanPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>AgilePet</TraitName>
+    <MapsTo>HyperPet, LikesSwimmingPet, HunterPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>BravePet</TraitName>
+    <MapsTo>LoyalPet, AdventurousPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>CluelessPet</TraitName>
+    <MapsTo>CluelessPet, UntrainedHorse, NervousPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>DestructivePet</TraitName>
+    <MapsTo>DestructivePet, MeanPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>FastPet</TraitName>
+    <MapsTo>HyperPet, LikesSwimmingPet, HunterPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>FriendlyPet</TraitName>
+    <MapsTo>FriendlyPet, GentlePet, LoyalPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>GeniusPet</TraitName>
+    <MapsTo>GeniusPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>GentlePet</TraitName>
+    <MapsTo>FriendlyPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>HatesJumpingPet</TraitName>
+    <MapsTo>LazyPet, HydrophobicPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>HunterPet</TraitName>
+    <MapsTo>HunterPet, FastPet, AgilePet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>HyperPet</TraitName>
+    <MapsTo>HyperPet, FastPet, AgilePet, PlayfulPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>HydrophobicPet</TraitName>
+    <MapsTo>NervousPet, SkittishPet, HatesJumpingPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>IndependentPet</TraitName>
+    <MapsTo>IndependentPet, MeanPet, QuietPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>LikesSwimmingPet</TraitName>
+    <MapsTo>AdventurousPet, PlayfulPet, AgilePet, FastPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>LazyPet</TraitName>
+    <MapsTo>LazyPet, LazyHorse, HatesJumpingPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>LazyHorse</TraitName>
+    <MapsTo>LazyPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>LoyalPet</TraitName>
+    <MapsTo>BravePet, FriendlyPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>MeanPet</TraitName>
+    <MapsTo>AggressivePet, IndependentPet, ProudPet, DestructivePet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>NeatPet</TraitName>
+    <MapsTo>NeatPet, NonDestructivePet, ProudPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>NervousPet</TraitName>
+    <MapsTo>SkittishPet, HydrophobicPet, CluelessPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>NoisyPet</TraitName>
+    <MapsTo>NoisyPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>NonDestructivePet</TraitName>
+    <MapsTo>NonDestructivePet, NeatPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>PiggyPet</TraitName>
+    <MapsTo>PiggyPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>PlayfulPet</TraitName>
+    <MapsTo>PlayfulPet, HyperPet, LikesSwimmingPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>ProudPet</TraitName>
+    <MapsTo>ProudPet, NeatPet, MeanPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>QuietPet</TraitName>
+    <MapsTo>QuietPet, IndependentPet, ShyPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>ShyPet</TraitName>
+    <MapsTo>ShyPet, QuietPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>SkittishPet</TraitName>
+    <MapsTo>SkittishPet, NervousPet, HydrophobicPet</MapsTo>
+  </TraitMapping>
+  <TraitMapping>
+    <TraitName>UntrainedHorse</TraitName>
+    <MapsTo>CluelessPet</MapsTo>
+  </TraitMapping>
+</TransmogrifyTraitMapping>

@@ -23,8 +23,39 @@ using Responder = Sims3.UI.Responder;
 
 namespace Gamefreak130.Common
 {
-    public class RepeatingFunctionTask : Task
+    public abstract class CommonTask : Task 
     {
+        public override void Dispose()
+        {
+            if (ObjectId != ObjectGuid.InvalidObjectGuid)
+            {
+                Simulator.DestroyObject(ObjectId);
+                ObjectId = ObjectGuid.InvalidObjectGuid;
+            }
+            base.Dispose();
+        }
+
+        protected abstract void Run();
+
+        public override void Simulate()
+        {
+            try
+            {
+                Run();
+            }
+            catch (Exception e)
+            {
+                ExceptionLogger.sInstance.Log(e);
+            }
+            finally
+            {
+                Dispose();
+            }
+        }
+    }
+
+    public class RepeatingFunctionTask : CommonTask
+    {//TEST
         private StopWatch mTimer;
 
         private readonly int mDelay;
@@ -45,49 +76,33 @@ namespace Gamefreak130.Common
         {
             mTimer?.Dispose();
             mTimer = null;
-            if (ObjectId != ObjectGuid.InvalidObjectGuid)
-            {
-                Simulator.DestroyObject(ObjectId);
-                ObjectId = ObjectGuid.InvalidObjectGuid;
-            }
             base.Dispose();
         }
 
-        public override void Simulate()
+        protected override void Run()
         {
-            try
+            mTimer = StopWatch.Create(StopWatch.TickStyles.Milliseconds);
+            mTimer.Start();
+            do
             {
-                mTimer = StopWatch.Create(StopWatch.TickStyles.Milliseconds);
-                mTimer.Start();
-                do
+                mTimer.Restart();
+                while (mTimer?.GetElapsedTime() < mDelay)
                 {
-                    mTimer.Restart();
-                    while (mTimer?.GetElapsedTime() < mDelay)
-                    {
-                        if (Simulator.CheckYieldingContext(false))
-                        {
-                            Simulator.Sleep(0u);
-                        }
-                    }
-                    if (!mFunction())
-                    {
-                        break;
-                    }
                     if (Simulator.CheckYieldingContext(false))
                     {
                         Simulator.Sleep(0u);
                     }
                 }
-                while (mTimer is not null);
+                if (!mFunction())
+                {
+                    break;
+                }
+                if (Simulator.CheckYieldingContext(false))
+                {
+                    Simulator.Sleep(0u);
+                }
             }
-            catch (Exception e)
-            {
-                ExceptionLogger.sInstance.Log(e);
-            }
-            finally
-            {
-                Dispose();
-            }
+            while (mTimer is not null);
         }
     }
 
@@ -196,6 +211,303 @@ namespace Gamefreak130.Common
                 BuffManager.ParseBuffData(xmlDbData, true);
             }
         }
+    }
+
+    
+    public interface IGraph<T>
+    {
+        interface IEdge<TItem>
+        {
+        }
+
+        /// <summary>
+        /// Gets a sequence of all items contained within the graph
+        /// </summary>
+        public IEnumerable<T> Nodes { get; }
+
+        /// <summary>
+        /// Gets a sequence of all edges in the graph, represented as an <see cref="IEdge{T}"/>
+        /// </summary>
+        public IEnumerable<IEdge<T>> Edges { get; }
+
+        /// <summary>
+        /// Gets the number of nodes in the graph
+        /// </summary>
+        public int NodeCount { get; }
+
+        /// <summary>
+        /// Gets the number of edges in the graph
+        /// </summary>
+        public int EdgeCount { get; }
+
+        /// <summary>
+        /// Adds a new node to the graph representing an item <typeparamref name="T"/>
+        /// </summary>
+        /// <param name="item">The item the new node will represent</param>
+        public void AddNode(T item);
+
+        /// <summary>
+        /// Determines whether the graph contains a given item
+        /// </summary>
+        /// <param name="item">The item to search for</param>
+        /// <returns><c>true</c> if <paramref name="item"/> is contained in the graph; otherwise, <c>false</c></returns>
+        public bool ContainsNode(T item);
+
+        /// <summary>
+        /// Removes an item from the graph, if it exists
+        /// </summary>
+        /// <param name="item">The item to remove</param>
+        public void RemoveNode(T item);
+
+        /// <summary>
+        /// Determines whether the graph contains an edge between two nodes within it
+        /// </summary>
+        /// <param name="u">The first vertex of the edge</param>
+        /// <param name="v">The second vertex of the edge</param>
+        /// <returns></returns>
+        public bool ContainsEdge(T u, T v);
+
+        /// <summary>
+        /// Removes an edge between two nodes in the graph, if such an edge exists
+        /// </summary>
+        /// <param name="u">The first vertex of the edge</param>
+        /// <param name="v">The second vertex of the edge</param>
+        public void RemoveEdge(T u, T v);
+
+        /// <summary>
+        /// Returns a sequence of the items connected to a given item in the graph
+        /// </summary>
+        /// <param name="item">The starting item</param>
+        public IEnumerable<T> GetNeighbors(T item);
+    }
+
+    public interface IWeightedGraph<T> : IGraph<T>
+    {
+        /// <summary>
+        /// Sets the weight of the edge between two nodes in the graph, adding it if it does not already exist
+        /// </summary>
+        /// <param name="u">The first vertex of the edge</param>
+        /// <param name="v">The second vertex of the edge</param>
+        /// <param name="weight">The weight value the edge will have</param>
+        public void SetEdge(T u, T v, int weight = 1);
+
+        /// <summary>
+        /// Gets the weight of the edge between two nodes in the graph, if such an edge exists
+        /// </summary>
+        /// <param name="u">The first vertex of the edge</param>
+        /// <param name="v">The second vertex of the edge</param>
+        /// <param name="weight">The weight value of the edge, if it exists</param>
+        /// <returns><c>true</c> if an edge between <paramref name="u"/> and <paramref name="v"/> exists in the graph; otherwise, <c>false</c></returns>
+        public bool TryGetEdge(T u, T v, out int weight);
+    }
+
+    public interface IUnweightedGraph<T> : IGraph<T>
+    {
+        /// <summary>
+        /// A simple data structure representing an edge between two vertices of an unweighted graph
+        /// </summary>
+        /// <typeparam name="TItem">The type of the edge vertices</typeparam>
+        public class Edge<TItem> : IGraph<TItem>.IEdge<TItem>
+        {
+            public TItem Vertex1 { get; private set; }
+
+            public TItem Vertex2 { get; private set; }
+
+            public Edge(TItem item1, TItem item2)
+            {
+                Vertex1 = item1;
+                Vertex2 = item2;
+            }
+        }
+
+        /// <summary>
+        /// Adds an edge between two nodes in the graph if one does not already exist
+        /// </summary>
+        /// <param name="u">The first vertex of the edge</param>
+        /// <param name="v">The second vertex of the edge</param>
+        public void AddEdge(T u, T v);
+    }
+
+    /// <summary>
+    /// A simple unweighted and directed adjacency list graph implementation with unique node values
+    /// </summary>
+    /// <typeparam name="T">The type of item the graph will contain</typeparam>
+    public class UDGraph<T> : IUnweightedGraph<T>
+    {
+        private class Node<TItem>
+        {
+            private readonly List<Node<TItem>> mNeighbors = new();
+
+            public TItem Item { get; private set; }
+
+            public IEnumerable<TItem> Neighbors => mNeighbors.Select(node => node.Item);
+
+            public Node(TItem item) => Item = item;
+
+            public void AddNeighbor(Node<TItem> item) => mNeighbors.Add(item);
+
+            public void RemoveNeighbor(Node<T> item)
+            {
+                int index = mNeighbors.FindIndex(x => x.Equals(item));
+                if (index >= 0)
+                {
+                    mNeighbors.RemoveAt(index);
+                }
+            }
+        }
+
+        private readonly List<Node<T>> mSpine = new();
+
+        public IEnumerable<T> Nodes => mSpine.Select(node => node.Item);
+
+        IEnumerable<IGraph<T>.IEdge<T>> IGraph<T>.Edges => Edges.Cast<IGraph<T>.IEdge<T>>();
+
+        public IEnumerable<IUnweightedGraph<T>.Edge<T>> Edges => mSpine.SelectMany(node => node.Neighbors.Select(item => new IUnweightedGraph<T>.Edge<T>(node.Item, item)));
+
+        public int NodeCount => mSpine.Count;
+
+        public int EdgeCount => mSpine.Sum(node => node.Neighbors.Count());
+
+        public UDGraph(params T[] items)
+        {
+            foreach (T item in items)
+            {
+                AddNode(item);
+            }
+        }
+
+        public void AddNode(T item)
+        {
+            if (item is null)
+            {
+                throw new ArgumentNullException();
+            }
+            if (ContainsNode(item))
+            {
+                throw new ArgumentException("Item already exists in graph");
+            }
+            mSpine.Add(new(item));
+        }
+
+        public bool ContainsNode(T item) => mSpine.Exists(node => node.Item.Equals(item));
+
+        private Node<T> GetNode(T item) => mSpine.Find(node => node.Item.Equals(item));
+
+        public void RemoveNode(T item)
+        {
+            if (ContainsNode(item))
+            {
+                Node<T> itemNode = GetNode(item);
+                mSpine.Remove(itemNode);
+                foreach (Node<T> node in mSpine)
+                {
+                    node.RemoveNeighbor(itemNode);
+                }
+            }
+        }
+
+        public void AddEdge(T from, T to)
+        {
+            if (!ContainsNode(from))
+            {
+                throw new ArgumentException("Item does not exist in graph", "u");
+            }
+            if (!ContainsNode(to))
+            {
+                throw new ArgumentException("Item does not exist in graph", "v");
+            }
+            if (ContainsEdge(from, to))
+            {
+                throw new ArgumentException("Edge already exists in graph");
+            }
+            GetNode(from).AddNeighbor(GetNode(to));
+        }
+
+        public bool ContainsEdge(T from, T to) => !ContainsNode(from)
+                ? throw new ArgumentException("Item does not exist in graph", "u")
+                : !ContainsNode(to) ? throw new ArgumentException("Item does not exist in graph", "v") : GetNeighbors(from).Contains(to);
+
+        public void RemoveEdge(T from, T to)
+        {
+            if (!ContainsNode(from))
+            {
+                throw new ArgumentException("Item does not exist in graph", "u");
+            }
+            if (!ContainsNode(to))
+            {
+                throw new ArgumentException("Item does not exist in graph", "v");
+            }
+            Node<T> fromNode = GetNode(from), toNode = GetNode(to);
+            fromNode.RemoveNeighbor(toNode);
+        }
+
+        public IEnumerable<T> GetNeighbors(T item) => !ContainsNode(item) ? throw new ArgumentException("Item does not exist in graph", "u") : GetNode(item).Neighbors;
+    }
+
+    /// <summary>
+    /// A simple unweighted and undirected adjacency list graph implementation with unique node values
+    /// </summary>
+    /// <typeparam name="T">The type of item the graph will contain</typeparam>
+    public class UUGraph<T> : IUnweightedGraph<T>
+    {
+        private readonly UDGraph<T> mGraph;
+
+        public IEnumerable<T> Nodes => mGraph.Nodes;
+
+        IEnumerable<IGraph<T>.IEdge<T>> IGraph<T>.Edges => Edges.Cast<IGraph<T>.IEdge<T>>();
+
+        public IEnumerable<IUnweightedGraph<T>.Edge<T>> Edges
+        {
+            get
+            {
+                List<T> visited = new();
+                foreach (var edge in mGraph.Edges)
+                {
+                    if (!visited.Contains(edge.Vertex1))
+                    {
+                        visited.Add(edge.Vertex1);
+                    }
+                    if (!visited.Contains(edge.Vertex2) || edge.Vertex1.Equals(edge.Vertex2))
+                    {
+                        yield return edge;
+                    }
+                }
+            }
+        }
+
+        public int NodeCount => mGraph.NodeCount;
+
+        public int EdgeCount => Edges.Count();
+
+        public UUGraph(params T[] items) => mGraph = new(items);
+
+        public void AddNode(T item) => mGraph.AddNode(item);
+
+        public bool ContainsNode(T item) => mGraph.ContainsNode(item);
+
+        public void RemoveNode(T item) => mGraph.RemoveNode(item);
+
+        public void AddEdge(T u, T v)
+        {
+            mGraph.AddEdge(u, v);
+            if (!u.Equals(v))
+            {
+                mGraph.AddEdge(v, u);
+            }
+        }
+
+        public bool ContainsEdge(T u, T v) => mGraph.ContainsEdge(u, v);
+
+        public void RemoveEdge(T u, T v)
+        {
+            mGraph.RemoveEdge(u, v);
+            if (!u.Equals(v))
+            {
+                mGraph.RemoveEdge(v, u);
+            }
+        }
+
+        public IEnumerable<T> GetNeighbors(T item) => mGraph.GetNeighbors(item);
     }
 
     public abstract class Logger<T>

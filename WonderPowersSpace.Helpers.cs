@@ -57,10 +57,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				foreach (XmlDbRow row in xmlDbTable.Rows)
 				{
-					string name = row.GetString("PowerName");
+					string name = row["PowerName"];
 					if (row.TryGetEnum("ProductVersion", out ProductVersion version, ProductVersion.Undefined) && GameUtils.IsInstalled(version) && !string.IsNullOrEmpty(name))
 					{
-						string runMethod = row.GetString("EffectMethod");
+						string runMethod = row["EffectMethod"];
 						if (!string.IsNullOrEmpty(runMethod))
 						{
 							bool isBad = row.GetBool("IsBad");
@@ -2673,7 +2673,37 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			oldDescription.Genealogy.ClearAllGenealogyInformation();
 			newDescription.mLifetimeHappiness = oldDescription.mLifetimeHappiness;
 			newDescription.mSpendableHappiness = oldDescription.mSpendableHappiness;
-			// TODO trait mapping garbage
+
+			// Pick traits for new Sim based on old Sim's traits
+			IEnumerable<TraitNames> mappingTraits = oldDescription.TraitManager.List
+																			   .Where(trait => trait.IsVisible)
+																			   .SelectMany(trait => TransmogrifyTraitMapping.sInstance.GetMappedTraits(newDescription, trait.Guid));
+			List<TraitNames> traitsToAdd = mappingTraits.Distinct().ToList();
+			List<float> weightsToAdd = Enumerable.Repeat(0f, traitsToAdd.Count).ToList();
+			foreach (TraitNames mappingTrait in mappingTraits)
+            {
+				weightsToAdd[traitsToAdd.IndexOf(mappingTrait)]++;
+            }
+
+			// Manually tune the weight of the unstable trait, since it is mapped to every pet trait
+			int unstableIndex = traitsToAdd.IndexOf(TraitNames.Unstable);
+			if (unstableIndex > -1)
+            {
+				weightsToAdd[unstableIndex] = 1;
+            }
+
+			int numToAdd = newSpecies is CASAgeGenderFlags.Human ? newDescription.TraitManager.NumTraitsForAge() : 3;
+			while (traitsToAdd.Count > 0 && newDescription.CountVisibleTraits() < numToAdd)
+            {
+				TraitNames traitToAdd = RandomUtil.GetWeightedRandomObjectFromList(weightsToAdd, traitsToAdd);
+				newDescription.TraitManager.AddElement(traitToAdd);
+				int indexAdded = traitsToAdd.IndexOf(traitToAdd);
+				traitsToAdd.RemoveAt(indexAdded);
+				weightsToAdd.RemoveAt(indexAdded);
+			}
+			// If not all trait slots are filled out, fill the remaining slots out at random
+			newDescription.TraitManager.AddRandomTrait(numToAdd - newDescription.CountVisibleTraits());
+
 			// CONSIDER copy over stattrackers, VisaManager and/or LifeEventManager data
 			if (turnIntoUnicorn)
             {
@@ -2828,6 +2858,60 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			IMapTagPickerInfo info = MapTagPickerUncancellable.Show(list, title, confirm);
 			return LotManager.GetLot(info.LotId);
 		}
+	}
+
+	public class TransmogrifyTraitMapping
+	{
+		private readonly UUGraph<TraitNames> mGraph = new();
+
+		public static readonly TransmogrifyTraitMapping sInstance = new();
+
+		private TransmogrifyTraitMapping()
+		{
+		}
+
+		public static void Init() => sInstance.ParseMappingData("TransmogrifyTraitMapping");
+
+		private void ParseMappingData(string xmlName)
+		{
+			XmlDbData xmlDbData = XmlDbData.ReadData(xmlName);
+			XmlDbTable xmlDbTable = null;
+			xmlDbData?.Tables.TryGetValue("TraitMapping", out xmlDbTable);
+			if (xmlDbTable is not null)
+			{
+				foreach (XmlDbRow row in xmlDbTable.Rows)
+				{
+					if (row.TryGetEnum("TraitName", out TraitNames trait, TraitNames.Unknown))
+					{
+						if (!mGraph.ContainsNode(trait))
+						{
+							mGraph.AddNode(trait);
+						}
+						if (ParserFunctions.TryParseCommaSeparatedList(row["MapsTo"], out List<TraitNames> mappingTraits, TraitNames.Unknown))
+						{
+							foreach (TraitNames mappingTrait in mappingTraits)
+							{
+								if (!mGraph.ContainsNode(mappingTrait))
+								{
+									mGraph.AddNode(mappingTrait);
+								}
+								if (!mGraph.ContainsEdge(trait, mappingTrait))
+								{
+									mGraph.AddEdge(trait, mappingTrait);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+        public IEnumerable<TraitNames> GetMappedTraits(SimDescription sim, TraitNames trait)
+			=> mGraph.ContainsNode(trait)
+                ? from mappedTrait in mGraph.GetNeighbors(trait)
+                  where TraitManager.GetTraitFromDictionary(mappedTrait).TraitValidForAgeSpecies(sim.GetCASAGSAvailabilityFlags()) && sim.TraitManager.CanAddTrait((ulong)mappedTrait)
+                  select mappedTrait
+                : new TraitNames[0];
 	}
 
 	public class CASWonderModeState : CASFullModeState

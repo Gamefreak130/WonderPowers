@@ -120,6 +120,7 @@
     <Content Include="Resources\MusicEntriesKarmaLoadSP2.xml" />
     <Content Include="Resources\WonderPowers_Strings UnhashedKeys.txt" />
     <Content Include="Resources\Gamefreak130_KarmaBuffs.xml" />
+    <Content Include="Resources\TransmogrifyTraitMapping.xml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\S3_025C95B6_00000000_A72BB6B7B4B9DD84_HUDRewardTraitsPanel%25%25+LAYO.layout" />

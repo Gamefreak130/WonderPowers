@@ -74,6 +74,10 @@ namespace Gamefreak130
 
         private static void OnPreLoad()
         {
+            if (GameUtils.IsInstalled(ProductVersion.EP5))
+            {
+                TransmogrifyTraitMapping.Init();
+            }
             new BuffBooter("Gamefreak130_KarmaBuffs").LoadBuffData();
             if (GenericManager<BuffNames, BuffInstance, BuffInstance>.sDictionary.TryGetValue((ulong)BuffNames.UnicornsBlessing, out BuffInstance buff))
             {
