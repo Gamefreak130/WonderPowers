@@ -289,7 +289,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		private static WitchingHourState smWitchingHourState = WitchingHourState.NONE;
 
-		[PersistableStatic]
+		[PersistableStatic(true)]
 		private static WonderPowerManager sInstance;
 
         private static readonly List<WonderPower> sAllWonderPowers = new();
@@ -668,19 +668,19 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			//Simulator.AddObject(sInstance);
 		}
 
-        internal static void ReInit()
+        /*internal static void ReInit()
 		{
-			/*foreach (WonderPowerActivation mActiveWonderPower in sInstance.mActiveWonderPowers)
+			foreach (WonderPowerActivation mActiveWonderPower in sInstance.mActiveWonderPowers)
 			{
 				mActiveWonderPower.CleanupAfterPower();
-			}*/
+			}
 			Ferry<WonderPowerManager>.LoadCargo();
 			sCurrentBadKarmaChance = 0f;
 			//sInstance.Destroy();
 			Init();
-		}
+		}*/
 
-		internal static void LoadValues() => Ferry<WonderPowerManager>.UnloadCargo();
+		//internal static void LoadValues() => Ferry<WonderPowerManager>.UnloadCargo();
 
         public static void Add(WonderPower s) => sAllWonderPowers.Add(s);
 
@@ -2175,6 +2175,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool GhostifyActivation(bool _)
         {//TODO add interaction w/ animations (custom jazz is in package already lol)
+			//TODO make permanent
 			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors()
 												  where sim.SimDescription.ChildOrAbove && !sim.IsGhostOrHasGhostBuff && !sim.BuffManager.HasElement((BuffNames)Buffs.BuffGhostify.kBuffGhostifyGuid)
 												  select sim.SimDescription;
@@ -2695,6 +2696,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             {
 				return false;
             }
+			// TODO fix for asymmetric relationships
 			foreach (Relationship oldRelationship in Relationship.GetRelationships(oldDescription))
 			{
 				if (oldRelationship is not null)
@@ -2961,7 +2963,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
                   where TraitManager.GetTraitFromDictionary(mappedTrait).TraitValidForAgeSpecies(sim.GetCASAGSAvailabilityFlags()) && sim.TraitManager.CanAddTrait((ulong)mappedTrait)
                   select mappedTrait
                 : new TraitNames[0];
-	}
+    }
 
 	public class CASWonderModeState : CASFullModeState
     {

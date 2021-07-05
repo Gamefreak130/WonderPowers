@@ -1,5 +1,4 @@
-﻿using Sims3.Gameplay;
-using Sims3.Gameplay.Actors;
+﻿using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.CAS;
@@ -55,7 +54,7 @@ namespace Gamefreak130.Common
     }
 
     public class RepeatingFunctionTask : CommonTask
-    {//TEST
+    {
         private StopWatch mTimer;
 
         private readonly int mDelay;
@@ -213,7 +212,6 @@ namespace Gamefreak130.Common
         }
     }
 
-    
     public interface IGraph<T>
     {
         interface IEdge<TItem>
@@ -332,8 +330,10 @@ namespace Gamefreak130.Common
     /// A simple unweighted and directed adjacency list graph implementation with unique node values
     /// </summary>
     /// <typeparam name="T">The type of item the graph will contain</typeparam>
+    [Persistable]
     public class UDGraph<T> : IUnweightedGraph<T>
     {
+        [Persistable]
         private class Node<TItem>
         {
             private readonly List<Node<TItem>> mNeighbors = new();
@@ -341,6 +341,10 @@ namespace Gamefreak130.Common
             public TItem Item { get; private set; }
 
             public IEnumerable<TItem> Neighbors => mNeighbors.Select(node => node.Item);
+
+            public Node()
+            {
+            }
 
             public Node(TItem item) => Item = item;
 
@@ -367,6 +371,10 @@ namespace Gamefreak130.Common
         public int NodeCount => mSpine.Count;
 
         public int EdgeCount => mSpine.Sum(node => node.Neighbors.Count());
+
+        public UDGraph()
+        {
+        }
 
         public UDGraph(params T[] items)
         {
@@ -448,6 +456,7 @@ namespace Gamefreak130.Common
     /// A simple unweighted and undirected adjacency list graph implementation with unique node values
     /// </summary>
     /// <typeparam name="T">The type of item the graph will contain</typeparam>
+    [Persistable]
     public class UUGraph<T> : IUnweightedGraph<T>
     {
         private readonly UDGraph<T> mGraph;
@@ -478,6 +487,8 @@ namespace Gamefreak130.Common
         public int NodeCount => mGraph.NodeCount;
 
         public int EdgeCount => Edges.Count();
+
+        public UUGraph() => mGraph = new();
 
         public UUGraph(params T[] items) => mGraph = new(items);
 
@@ -629,7 +640,7 @@ namespace Gamefreak130.Common
     /// will not have their declared Cargo saved unless a separate Ferry is called for them as well.</para></remarks>
     /// <typeparam name="T">The type containing PersistableStatic data to be ferried</typeparam>
     /// <exception cref="NotSupportedException"><typeparamref name="T">T</typeparamref> does not contain PersistableStatic members</exception>
-    public static class Ferry<T>
+    /*public static class Ferry<T>
     {
         private static readonly Dictionary<FieldInfo, object> mCargo;
 
@@ -678,7 +689,7 @@ namespace Gamefreak130.Common
                 }
             }
         }
-    }
+    }*/
 
     public static class Helpers
     {

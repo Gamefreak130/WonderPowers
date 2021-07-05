@@ -36,7 +36,6 @@ namespace Gamefreak130
             World.OnStartupAppEventHandler += OnStartupApp;
             World.OnWorldLoadFinishedEventHandler += OnWorldLoadFinished;
             LoadSaveManager.ObjectGroupsPreLoad += OnPreLoad;
-            LoadSaveManager.ObjectGroupsPostLoad += OnPostLoad;
             World.OnWorldQuitEventHandler += OnWorldQuit;
         }
 
@@ -78,6 +77,10 @@ namespace Gamefreak130
             {
                 TransmogrifyTraitMapping.Init();
             }
+            if (!GameStates.IsTravelling)
+            {
+                WonderPowerManager.Init();
+            }
             new BuffBooter("Gamefreak130_KarmaBuffs").LoadBuffData();
             if (GenericManager<BuffNames, BuffInstance, BuffInstance>.sDictionary.TryGetValue((ulong)BuffNames.UnicornsBlessing, out BuffInstance buff))
             {
@@ -92,11 +95,6 @@ namespace Gamefreak130
             Tunings.Inject(GhostHunter.ReactToAngryGhost.Singleton.GetType(), typeof(Sim), typeof(WonderPowersSpace.Interactions.ReactToGhost.Definition), typeof(Sim), true);
         }
 
-        private static void OnPostLoad()
-        {
-            WonderPowerManager.LoadValues();
-        }
-
         private static void OnWorldLoadFinished(object sender, EventArgs e)
         {
             EventTracker.AddListener(EventTypeId.kEnterInWorldSubState, OnEnteredWorld);
@@ -104,7 +102,7 @@ namespace Gamefreak130
 
         private static void OnWorldQuit(object sender, EventArgs e)
         {
-            WonderPowerManager.ReInit();
+            //TODO remove if still empty once we're done lol
         }
 
         private static ListenerAction OnEnteredWorld(Event e)
