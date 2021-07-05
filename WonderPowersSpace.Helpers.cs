@@ -2174,7 +2174,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		}
 
 		public static bool GhostifyActivation(bool _)
-        {//TODO add interaction w/ animations
+        {//TODO add interaction w/ animations (custom jazz is in package already lol)
 			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors()
 												  where sim.SimDescription.ChildOrAbove && !sim.IsGhostOrHasGhostBuff && !sim.BuffManager.HasElement((BuffNames)Buffs.BuffGhostify.kBuffGhostifyGuid)
 												  select sim.SimDescription;
@@ -2592,7 +2592,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				return false;
 			}
-			// CONSIDER anim/vis effect and sting?
 			SimDescription oldDescription = selectedSim.SimDescription;
 			CASAgeGenderFlags newSpecies = CASAgeGenderFlags.None;
 			CASAgeGenderFlags newAge = oldDescription.Age switch 
@@ -2645,16 +2644,57 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				newSpecies = selection is not null ? (CASAgeGenderFlags)selection[0].Item : CASAgeGenderFlags.None;
 			}
 
+			Camera.FocusOnSim(selectedSim);
+			if (selectedSim.IsSelectable)
+			{
+				PlumbBob.SelectActor(selectedSim);
+			}
+			Audio.StartSound(newSpecies is CASAgeGenderFlags.Human ? "sting_transmogrifytohuman" : "sting_transmogrifytopet", selectedSim.Position);
+			VisualEffect effect = VisualEffect.Create("ep11portalspawn_main");
+			effect.SetPosAndOrient(selectedSim.Position, selectedSim.ForwardVector, selectedSim.UpVector);
+			effect.Start();
+
+			string animName = oldDescription switch
+			{
+				{ IsFoal: true }                        => "ch_whinny_x",
+				{ IsHorse: true }                       => "ah_whinny_x",
+				{ IsFullSizeDog: true, IsPuppy: true }  => "cd_react_stand_whimper_x",
+				{ IsFullSizeDog: true }                 => "ad_react_stand_whimper_x",
+				{ IsLittleDog: true, IsPuppy: true }    => "cl_react_stand_whimper_x",
+				{ IsLittleDog: true }                   => "al_react_stand_whimper_x",
+				{ IsKitten: true }                      => "cc_petNeeds_standing_hunger_whinyMeow_x",
+				{ IsCat: true }                         => "ac_petNeeds_standing_hunger_whinyMeow_x",
+				{ Child: true }                         => "c_buff_wallFlower_x",
+				{ TeenOrAbove: true }                   => "a_buff_wallFlower_x",
+				_                                       => null
+			};
+
+			if (!string.IsNullOrEmpty(animName))
+			{
+				float num = SimClock.ElapsedTime(TimeUnit.Minutes);
+				while (SimClock.ElapsedTime(TimeUnit.Minutes) - num < 0.5f)
+				{
+					Simulator.Sleep(1U);
+				}
+				selectedSim.PlaySoloAnimation(animName, false, selectedSim.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+			}
+
+			float num2 = SimClock.ElapsedTime(TimeUnit.Minutes);
+			while (SimClock.ElapsedTime(TimeUnit.Minutes) - num2 < 2.75f)
+			{
+				Simulator.Sleep(1U);
+			}
+
 			bool turnIntoUnicorn = (oldDescription.IsGenie || oldDescription.IsWitch || oldDescription.IsFairy) && newSpecies is CASAgeGenderFlags.Horse;
-			SimDescription newDescription = newSpecies is CASAgeGenderFlags.Human ? Genetics.MakeSim(newAge, oldDescription.Gender, oldDescription.HomeWorld, uint.MaxValue) 
-																				  : turnIntoUnicorn
-																				  ? GeneticsPet.MakePet(newAge, oldDescription.Gender, newSpecies, OccultUnicorn.NPCOutfit(oldDescription.IsFemale, newAge))
-																				  : GeneticsPet.MakeRandomPet(newAge, oldDescription.Gender, newSpecies);
+			SimDescription newDescription = newSpecies is CASAgeGenderFlags.Human 
+										  ? Genetics.MakeSim(newAge, oldDescription.Gender, oldDescription.HomeWorld, uint.MaxValue) 
+										  : turnIntoUnicorn
+										  ? GeneticsPet.MakePet(newAge, oldDescription.Gender, newSpecies, OccultUnicorn.NPCOutfit(oldDescription.IsFemale, newAge))
+										  : GeneticsPet.MakeRandomPet(newAge, oldDescription.Gender, newSpecies);
 			if (newDescription is null)
             {
 				return false;
             }
-			// TODO check for asymmetric relationship conflict
 			foreach (Relationship oldRelationship in Relationship.GetRelationships(oldDescription))
 			{
 				if (oldRelationship is not null)
@@ -2689,7 +2729,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			int unstableIndex = traitsToAdd.IndexOf(TraitNames.Unstable);
 			if (unstableIndex > -1)
             {
-				weightsToAdd[unstableIndex] = 1;
+				weightsToAdd[unstableIndex] = 0.75f;
             }
 
 			int numToAdd = newSpecies is CASAgeGenderFlags.Human ? newDescription.TraitManager.NumTraitsForAge() : 3;
@@ -2704,7 +2744,14 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			// If not all trait slots are filled out, fill the remaining slots out at random
 			newDescription.TraitManager.AddRandomTrait(numToAdd - newDescription.CountVisibleTraits());
 
-			// CONSIDER copy over stattrackers, VisaManager and/or LifeEventManager data
+			// CONSIDER copy over stattrackers and/or VisaManager
+			LifeEventManager newManager = newDescription.LifeEventManager, oldManager = oldDescription.LifeEventManager;
+			newManager.ProcessPendingLifeEvents(true);
+			newManager.mActiveNodes = oldManager.mActiveNodes;
+			newManager.mCurrentNumberOfVisibleLifeEvents = oldManager.mCurrentNumberOfVisibleLifeEvents;
+			newManager.mHasShownWarningDialog = oldManager.mHasShownWarningDialog;
+			newManager.mLifeEvents = oldManager.mLifeEvents;
+			newManager.mTimeOfDeath = oldManager.mTimeOfDeath;
 			if (turnIntoUnicorn)
             {
 				newDescription.OccultManager.AddOccultType(OccultTypes.Unicorn, true, false, false);
@@ -2741,6 +2788,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			// TODO Custom CAS state? Or maybe merge with our existing one?
 			if (!(newDescription.IsPet && newDescription.Child))
 			{
+				effect.Stop();
+				effect.Dispose();
 				GameStates.TransitionToCASMode();
 				CASLogic singleton = CASLogic.GetSingleton();
 				singleton.LoadSim(selectedSim.SimDescription, selectedSim.CurrentOutfitCategory, 0);
@@ -2750,7 +2799,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 					Simulator.Sleep(1U);
 				}
 			}
-			// TODO Add buff and TNS
+			// TODO Add buff
 			Camera.FocusOnSim(selectedSim);
 			if (selectedSim.IsSelectable)
 			{
