@@ -158,7 +158,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
         {
             Audio.StartSound("sting_job_demote");
             mEffect = VisualEffect.Create("ep7WandSpellHauntingHit_main");
-            mEffect.ParentTo(Actor, Sim.FXJoints.Pelvis);
+            mEffect.ParentTo(Actor, Sim.FXJoints.Head);
             mEffect.Start();
 
             string animName = Actor.SimDescription switch 
