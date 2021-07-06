@@ -333,44 +333,18 @@ namespace Gamefreak130.Common
     [Persistable]
     public class UDGraph<T> : IUnweightedGraph<T>
     {
-        [Persistable]
-        private class Node<TItem>
-        {
-            private readonly List<Node<TItem>> mNeighbors = new();
 
-            public TItem Item { get; private set; }
+        private readonly Dictionary<T, List<T>> mSpine = new();
 
-            public IEnumerable<TItem> Neighbors => mNeighbors.Select(node => node.Item);
-
-            public Node()
-            {
-            }
-
-            public Node(TItem item) => Item = item;
-
-            public void AddNeighbor(Node<TItem> item) => mNeighbors.Add(item);
-
-            public void RemoveNeighbor(Node<T> item)
-            {
-                int index = mNeighbors.FindIndex(x => x.Equals(item));
-                if (index >= 0)
-                {
-                    mNeighbors.RemoveAt(index);
-                }
-            }
-        }
-
-        private readonly List<Node<T>> mSpine = new();
-
-        public IEnumerable<T> Nodes => mSpine.Select(node => node.Item);
+        public IEnumerable<T> Nodes => mSpine.Keys;
 
         IEnumerable<IGraph<T>.IEdge<T>> IGraph<T>.Edges => Edges.Cast<IGraph<T>.IEdge<T>>();
 
-        public IEnumerable<IUnweightedGraph<T>.Edge<T>> Edges => mSpine.SelectMany(node => node.Neighbors.Select(item => new IUnweightedGraph<T>.Edge<T>(node.Item, item)));
+        public IEnumerable<IUnweightedGraph<T>.Edge<T>> Edges => mSpine.SelectMany(kvp => kvp.Value.Select(item => new IUnweightedGraph<T>.Edge<T>(kvp.Key, item)));
 
         public int NodeCount => mSpine.Count;
 
-        public int EdgeCount => mSpine.Sum(node => node.Neighbors.Count());
+        public int EdgeCount => mSpine.Sum(kvp => kvp.Value.Count());
 
         public UDGraph()
         {
@@ -394,22 +368,19 @@ namespace Gamefreak130.Common
             {
                 throw new ArgumentException("Item already exists in graph");
             }
-            mSpine.Add(new(item));
+            mSpine[item] = new();
         }
 
-        public bool ContainsNode(T item) => mSpine.Exists(node => node.Item.Equals(item));
-
-        private Node<T> GetNode(T item) => mSpine.Find(node => node.Item.Equals(item));
+        public bool ContainsNode(T item) => mSpine.ContainsKey(item);
 
         public void RemoveNode(T item)
         {
             if (ContainsNode(item))
             {
-                Node<T> itemNode = GetNode(item);
-                mSpine.Remove(itemNode);
-                foreach (Node<T> node in mSpine)
+                mSpine.Remove(item);
+                foreach (T node in mSpine.Keys)
                 {
-                    node.RemoveNeighbor(itemNode);
+                    mSpine[node].Remove(item);
                 }
             }
         }
@@ -418,38 +389,37 @@ namespace Gamefreak130.Common
         {
             if (!ContainsNode(from))
             {
-                throw new ArgumentException("Item does not exist in graph", "u");
+                throw new ArgumentException("Item does not exist in graph", "from");
             }
             if (!ContainsNode(to))
             {
-                throw new ArgumentException("Item does not exist in graph", "v");
+                throw new ArgumentException("Item does not exist in graph", "to");
             }
-            if (ContainsEdge(from, to))
+            if (mSpine[from].Contains(to))
             {
                 throw new ArgumentException("Edge already exists in graph");
             }
-            GetNode(from).AddNeighbor(GetNode(to));
+            mSpine[from].Add(to);
         }
 
         public bool ContainsEdge(T from, T to) => !ContainsNode(from)
-                ? throw new ArgumentException("Item does not exist in graph", "u")
-                : !ContainsNode(to) ? throw new ArgumentException("Item does not exist in graph", "v") : GetNeighbors(from).Contains(to);
+                ? throw new ArgumentException("Item does not exist in graph", "from")
+                : !ContainsNode(to) ? throw new ArgumentException("Item does not exist in graph", "to") : mSpine[from].Contains(to);
 
         public void RemoveEdge(T from, T to)
         {
             if (!ContainsNode(from))
             {
-                throw new ArgumentException("Item does not exist in graph", "u");
+                throw new ArgumentException("Item does not exist in graph", "from");
             }
             if (!ContainsNode(to))
             {
-                throw new ArgumentException("Item does not exist in graph", "v");
+                throw new ArgumentException("Item does not exist in graph", "to");
             }
-            Node<T> fromNode = GetNode(from), toNode = GetNode(to);
-            fromNode.RemoveNeighbor(toNode);
+            mSpine[from].Remove(to);
         }
 
-        public IEnumerable<T> GetNeighbors(T item) => !ContainsNode(item) ? throw new ArgumentException("Item does not exist in graph", "u") : GetNode(item).Neighbors;
+        public IEnumerable<T> GetNeighbors(T item) => !ContainsNode(item) ? throw new ArgumentException("Item does not exist in graph", "item") : mSpine[item];
     }
 
     /// <summary>
