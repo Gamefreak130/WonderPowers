@@ -2696,7 +2696,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             {
 				return false;
             }
-			// TODO fix for asymmetric relationships
+			Relationship.sAllRelationships[newDescription] = new();
 			foreach (Relationship oldRelationship in Relationship.GetRelationships(oldDescription))
 			{
 				if (oldRelationship is not null)
@@ -2704,14 +2704,31 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 					Sim otherSim = oldRelationship.GetOtherSim(selectedSim);
 					if (otherSim is not null)
 					{
-						Relationship newRelationship = Relationship.Get(newDescription, otherSim.SimDescription, true);
-						newRelationship?.LTR.CopyLtr(oldRelationship.LTR);
-						newRelationship?.LTR.UpdateLTR();
+						Relationship newRelationship = new(newDescription, otherSim.SimDescription);
+						Relationship.sAllRelationships[newDescription].Add(otherSim.SimDescription, newRelationship);
+						// If game is using asymmetric relationships, copy each half of the pair
+						// Otherwise, both Sims will share a common relationship
+						Relationship oldRelationship2 = Relationship.Get(otherSim, selectedSim, false);
+						if (oldRelationship != oldRelationship2)
+                        {
+							Relationship newRelationship2 = new(otherSim.SimDescription, newDescription);
+							Relationship.sAllRelationships[otherSim.SimDescription].Add(newDescription, newRelationship2);
+							newRelationship2.LTR.CopyLtr(oldRelationship2.LTR);
+							newRelationship2.LTR.UpdateLTR();
+                        }
+						else
+                        {
+							Relationship.sAllRelationships[otherSim.SimDescription].Add(newDescription, newRelationship);
+						}
+						newRelationship.LTR.CopyLtr(oldRelationship.LTR);
+						newRelationship.LTR.UpdateLTR();
 					}
 				}
 			}
-			newDescription.FirstName = oldDescription.FirstName;
-			newDescription.LastName = oldDescription.LastName;
+			newDescription.FirstName = oldDescription.FirstNameUnlocalized;
+			newDescription.LastName = oldDescription.LastNameUnlocalized;
+			newDescription.Bio = oldDescription.BioUnlocalized;
+			newDescription.VoicePitchModifier = oldDescription.VoicePitchModifier;
 			oldDescription.Genealogy.ClearAllGenealogyInformation();
 			newDescription.mLifetimeHappiness = oldDescription.mLifetimeHappiness;
 			newDescription.mSpendableHappiness = oldDescription.mSpendableHappiness;

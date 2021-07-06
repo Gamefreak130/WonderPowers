@@ -21,7 +21,7 @@ namespace Gamefreak130
     //TODO Check code for unused blocks, zero references, notimplementedexceptions
     //TODO Command to set karma, reset cooldown
     //TODO Cleanup unused methods in LinqBridge
-    //CONSIDER Common exception catching for alarms and tasks
+    //CONSIDER Common exception catching for alarms
     //CONSIDER SortedList for powers (by cost)
     //CONSIDER Powers implement IWeightable for karmic backlash selection
     public static class WonderPowers
