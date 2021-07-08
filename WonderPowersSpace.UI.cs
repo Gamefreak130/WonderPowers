@@ -472,7 +472,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 			GameStates.mQuittingTaskStarted = false;
 		}
 
-		public static void OnCloseClick(WindowBase sender, UIButtonClickEventArgs eventArgs)
+		/*public static void OnCloseClick(WindowBase sender, UIButtonClickEventArgs eventArgs)
 		{
 			if (CASPuck.Instance is not CASPuck puck || puck.UiBusy || puck.mLeaveCAS)
 			{
@@ -498,15 +498,23 @@ namespace Gamefreak130.WonderPowersSpace.UI
 				puck.UiBusy = false;
 			}));
 			eventArgs.Handled = true;
-		}
+		}*/
 
-		public static void HideCharacterSheetElement(uint id)
+		public static void HideElementById(WindowBase containingWindow, uint id)
 		{
-			if (CASCharacterSheet.gSingleton?.GetChildByID(id, true) is WindowBase window)
+			if (containingWindow.GetChildByID(id, true) is WindowBase window)
 			{
 				window.Visible = false;
 			}
 		}
+
+		public static void DisableElementById(WindowBase containingWindow, uint id)
+        {
+			if (containingWindow.GetChildByID(id, true) is WindowBase window)
+            {
+				window.Enabled = false;
+            } 
+        }
 	}
 
 	internal static class OptionsInjector

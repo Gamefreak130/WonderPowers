@@ -117,7 +117,8 @@ namespace Gamefreak130
                 //TEST travel while powers running
                 button.Enabled = !WonderPowerManager.IsPowerRunning;
             }
-            GameStates.sSingleton.mInWorldState.mStateMachine.AddState(new CASWonderModeState());
+            GameStates.sSingleton.mInWorldState.mStateMachine.AddState(new CASInstantBeautyState());
+            GameStates.sSingleton.mInWorldState.mStateMachine.AddState(new CASTransmogrifyState());
             return ListenerAction.Remove;
         }
     }

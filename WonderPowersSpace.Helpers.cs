@@ -27,6 +27,7 @@ using Sims3.SimIFace.CAS;
 using Sims3.SimIFace.Enums;
 using Sims3.UI;
 using Sims3.UI.CAS;
+using Sims3.UI.CAS.CAP;
 using Sims3.UI.Hud;
 using System;
 using System.Collections.Generic;
@@ -262,7 +263,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		private int mTotalPromisesFulfilled;
 
 		[Tunable, TunableComment("How many karma points the player starts with")]
-		private static readonly int kInitialKarmaLevel = 0;
+		private static readonly int kInitialKarmaLevel = 100;
 
 		[Tunable, TunableComment("How much karma is gained daily, low range")]
 		private static readonly float kKarmaDailyRationLow = 9f;
@@ -2245,7 +2246,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				return false;
             }
             // CONSIDER anim/vis effect and sting?
-            GameStates.sSingleton.mInWorldState.GotoCASMode((InWorldState.SubState)HashString32("CASWonderModeState"));
+            GameStates.sSingleton.mInWorldState.GotoCASMode((InWorldState.SubState)HashString32("CASInstantBeautyState"));
 			CASLogic singleton = CASLogic.GetSingleton();
 			singleton.LoadSim(selectedSim.SimDescription, selectedSim.CurrentOutfitCategory, 0);
 			singleton.UseTempSimDesc = true;
@@ -2729,6 +2730,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			newDescription.LastName = oldDescription.LastNameUnlocalized;
 			newDescription.Bio = oldDescription.BioUnlocalized;
 			newDescription.VoicePitchModifier = oldDescription.VoicePitchModifier;
+			if (newSpecies is CASAgeGenderFlags.Human)
+            {
+				newDescription.VoiceVariation = (VoiceVariationType)RandomUtil.GetInt(2);
+            } 
 			oldDescription.Genealogy.ClearAllGenealogyInformation();
 			newDescription.mLifetimeHappiness = oldDescription.mLifetimeHappiness;
 			newDescription.mSpendableHappiness = oldDescription.mSpendableHappiness;
@@ -2804,12 +2809,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				Urnstone.SimToPlayableGhost(selectedSim);
 			}
-			// TODO Custom CAS state? Or maybe merge with our existing one?
 			if (!(newDescription.IsPet && newDescription.Child))
 			{
 				effect.Stop();
 				effect.Dispose();
-				GameStates.TransitionToCASMode();
+				GameStates.sSingleton.mInWorldState.GotoCASMode((InWorldState.SubState)HashString32("CASTransmogrifyState"));
 				CASLogic singleton = CASLogic.GetSingleton();
 				singleton.LoadSim(selectedSim.SimDescription, selectedSim.CurrentOutfitCategory, 0);
 				singleton.UseTempSimDesc = true;
@@ -2982,13 +2986,13 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
                 : new TraitNames[0];
     }
 
-	public class CASWonderModeState : CASFullModeState
+	public class CASInstantBeautyState : CASFullModeState
     {
 		// CONSIDER route through MasterControllerIntegration if necessary
-		public CASWonderModeState() : base()
+		public CASInstantBeautyState() : base()
         {
-			mStateId = (int)HashString32("CASWonderModeState");
-			mStateName = "CAS Wonder Mode";
+			mStateId = (int)HashString32("CASInstantBeautyState");
+			mStateName = "CAS Wonder Mode -- Instant Beauty";
 		}
 
         public override void Startup()
@@ -3009,12 +3013,14 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
         {
 			if (toShow)
 			{
-				CASWonderMode.HideCharacterSheetElement((uint)CASCharacterSheet.ControlIDs.CharacterButton);
-				CASWonderMode.HideCharacterSheetElement((uint)CASCharacterSheet.ControlIDs.CharacterText);
-				CASWonderMode.HideCharacterSheetElement((uint)CASCharacterSheet.ControlIDs.ClothingButton);
-				CASWonderMode.HideCharacterSheetElement((uint)CASCharacterSheet.ControlIDs.ClothingText);
-				CASWonderMode.HideCharacterSheetElement((uint)CASCharacterSheet.ControlIDs.RandomizeButton);
-				CASWonderMode.HideCharacterSheetElement((uint)CASCharacterSheet.ControlIDs.RandomizeFaceButton);
+				if (CASCharacterSheet.gSingleton is not null)
+				{
+					CASWonderMode.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.CharacterButton);
+					CASWonderMode.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.CharacterText);
+					CASWonderMode.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.ClothingButton);
+					CASWonderMode.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.ClothingText);
+					CASWonderMode.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.RandomizeButton);
+				}
 
 				if (CASBasics.gSingleton?.GetChildByID((uint)CASBasics.ControlIDs.HumanBasicsWindow, true) is WindowBase window)
                 {
@@ -3041,9 +3047,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
                 {
 					if (puck.GetChildByID((uint)CASPuck.ControlIDs.CloseButton, true) is Button button)
                     {
-						button.Click -= puck.OnCloseClick;
-						button.Click -= CASWonderMode.OnCloseClick;
-						button.Click += CASWonderMode.OnCloseClick;
+						button.Visible = false;
                     }
 					if (puck.GetChildByID((uint)CASPuck.ControlIDs.OptionsButton, true) is Button button2)
                     {
@@ -3055,4 +3059,133 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 		}
     }
+
+	public class CASTransmogrifyState : CASFullModeState
+	{
+		// CONSIDER route through MasterControllerIntegration if necessary
+		public CASTransmogrifyState() : base()
+		{
+			mStateId = (int)HashString32("CASTransmogrifyState");
+			mStateName = "CAS Wonder Mode -- Transmogrify";
+		}
+
+		public override void Startup()
+		{
+			base.Startup();
+			CASLogic cas = CASLogic.GetSingleton();
+			cas.ShowUI += OnShowUI;
+		}
+
+		public override void Shutdown()
+		{
+			CASLogic cas = CASLogic.GetSingleton();
+			cas.ShowUI -= OnShowUI;
+			base.Shutdown();
+		}
+
+		public static void OnShowUI(bool toShow)
+		{
+			if (toShow)
+			{
+				if (CASCharacterSheet.gSingleton is not null)
+				{
+					CASWonderMode.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.RandomizeButton);
+				}
+
+				if (CASBasics.gSingleton is not null)
+				{
+					CASWonderMode.HideElementById(CASBasics.gSingleton, (uint)CASBasics.ControlIDs.RandomizeNameButton);
+					CASWonderMode.HideElementById(CASBasics.gSingleton, (uint)CASBasics.ControlIDs.GhostBasicsButton);
+					if (CASBasics.gSingleton.GetChildByID((uint)CASBasics.ControlIDs.HumanBasicsWindow, true) is WindowBase window)
+					{
+						for (uint i = 0; i < 5; i++)
+						{
+							if (window.GetChildByIndex(i) is WindowBase window2)
+							{
+								window2.Visible = false;
+							}
+						}
+						WindowBase window3 = window.GetChildByIndex(5);
+						if (window3 is not null)
+						{
+							window3.Area = new(new(window3.Area.TopLeft.x, 80), new(window3.Area.BottomRight.x, 80));
+						}
+						window3 = window.GetChildByIndex(6);
+						if (window3 is not null)
+						{
+							window3.Area = new(new(window3.Area.TopLeft.x, 170), new(window3.Area.BottomRight.x, 170));
+						}
+					}
+				}
+
+				if (CASCharacter.gSingleton is not null)
+				{
+					if (CASCharacter.gSingleton.GetChildByID((uint)CASCharacter.ControlIDs.TraitsWindow, true) is WindowBase window)
+					{
+						CASWonderMode.HideElementById(window, (uint)CASCharacter.TraitsControlId.Randomize);
+						CASWonderMode.HideElementById(window, (uint)CASCharacter.TraitsControlId.ShowAddTraitsButton);
+						CASWonderMode.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon1);
+						CASWonderMode.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon2);
+						CASWonderMode.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon3);
+						CASWonderMode.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon4);
+						CASWonderMode.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon5);
+					}
+					if (CASCharacter.gSingleton.GetChildByID((uint)CASCharacter.ControlIDs.VoicesWindow, true) is WindowBase window2)
+					{
+						CASWonderMode.DisableElementById(window2, (uint)CASCharacter.VoiceControlId.VoiceSlider);
+					}
+					if (CASCharacter.gSingleton.GetChildByID((uint)CASCharacter.WishControlId.LifetimeWishWindow, true) is WindowBase window3)
+                    {
+						CASWonderMode.HideElementById(window3, (uint)CASCharacter.WishControlId.PickerButton);
+						CASWonderMode.DisableElementById(window3, (uint)CASCharacter.WishControlId.Button0);
+						CASWonderMode.DisableElementById(window3, (uint)CASCharacter.WishControlId.Button1);
+						CASWonderMode.DisableElementById(window3, (uint)CASCharacter.WishControlId.Button2);
+						CASWonderMode.DisableElementById(window3, (uint)CASCharacter.WishControlId.Button3);
+						CASWonderMode.DisableElementById(window3, (uint)CASCharacter.WishControlId.Button4);
+						CASWonderMode.DisableElementById(window3, (uint)CASCharacter.WishControlId.Button5);
+					}
+				}
+
+				if (CAPPetSheet.gSingleton is not null)
+				{
+					CASWonderMode.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.RandomizeButton);
+					CASWonderMode.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsButton);
+					CASWonderMode.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsFButton);
+					CASWonderMode.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsText);
+				}
+
+				if (CAPCharacter.gSingleton is not null)
+                {
+					if (CAPCharacter.gSingleton.GetChildByID((uint)CAPCharacter.ControlIDs.TraitsWindow, true) is WindowBase window)
+                    {
+						CASWonderMode.HideElementById(window, (uint)CAPCharacter.TraitsControlId.Randomize);
+						CASWonderMode.HideElementById(window, (uint)CAPCharacter.TraitsControlId.ShowAddTraitsButton);
+						CASWonderMode.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon1);
+						CASWonderMode.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon2);
+						CASWonderMode.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon3);
+						CASWonderMode.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon4);
+						CASWonderMode.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon5);
+					}
+					if (CAPCharacter.gSingleton.GetChildByID((uint)CAPCharacter.ControlIDs.VoicesWindow, true) is WindowBase window2)
+                    {
+						CASWonderMode.DisableElementById(window2, (uint)CAPCharacter.VoiceControlId.VoiceSlider);
+					}
+                } 
+
+				if (CASPuck.Instance is CASPuck puck)
+				{
+					if (puck.GetChildByID((uint)CASPuck.ControlIDs.CloseButton, true) is Button button)
+					{
+						button.Visible = false;
+					}
+					if (puck.GetChildByID((uint)CASPuck.ControlIDs.OptionsButton, true) is Button button2)
+					{
+						button2.Click -= puck.OnOptionsClick;
+						button2.Click -= CASWonderMode.OnOptionsClick;
+						button2.Click += CASWonderMode.OnOptionsClick;
+					}
+				}
+			}
+		}
+	}
 }
