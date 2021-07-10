@@ -1,4 +1,5 @@
 ﻿using Gamefreak130.Common;
+using Gamefreak130.Common.Buffs;
 using Gamefreak130.WonderPowersSpace.Helpers;
 using Gamefreak130.WonderPowersSpace.UI;
 using Sims3.Gameplay;
@@ -13,14 +14,13 @@ using Sims3.SimIFace;
 using Sims3.UI;
 using System;
 using System.Linq;
-using System.Reflection;
+using Reflection = Gamefreak130.Common.Reflection;
 
 namespace Gamefreak130
 {
     //TODO Cleanup LAYO
     //TODO Check code for unused blocks, zero references, notimplementedexceptions
     //TODO Command to set karma, reset cooldown
-    //TODO Cleanup unused methods in LinqBridge
     //CONSIDER Common exception catching for alarms
     //CONSIDER SortedList for powers (by cost)
     //CONSIDER Powers implement IWeightable for karmic backlash selection
@@ -42,30 +42,15 @@ namespace Gamefreak130
         private static void OnStartupApp(object sender, EventArgs e)
         {
             WonderPowerManager.Init();
-            bool flag = true;
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            IsKidsMagicInstalled = Reflection.IsAssemblyLoaded("Skydome_KidsMagic");
+            foreach (Type type in AppDomain.CurrentDomain.GetAssemblies()
+                                                         .SelectMany(assembly => assembly.GetExportedTypes()
+                                                         .Where(type => !type.IsAbstract && !type.IsGenericTypeDefinition && typeof(PowerBooter).IsAssignableFrom(type))))
             {
-                string name = assembly.GetName().Name;
-                if (name == "Skydome_KidsMagic")
-                {
-                    IsKidsMagicInstalled = true;
-                }
-
-                if (name == "Gamefreak130.LTRMenuMusicReplacement")
-                {
-                    flag = false;
-                }
-                else
-                {
-                    foreach (Type type in assembly.GetExportedTypes()
-                                                  .Where(type => !type.IsAbstract && !type.IsGenericTypeDefinition && typeof(PowerBooter).IsAssignableFrom(type)))
-                    {
-                        PowerBooter booter = type.GetConstructor(new Type[0]).Invoke(null) as PowerBooter;
-                        booter.LoadPowers();
-                    }
-                }
+                PowerBooter booter = Activator.CreateInstance(type) as PowerBooter;
+                booter.LoadPowers();
             }
-            if (flag)
+            if (Reflection.IsAssemblyLoaded("Gamefreak130.LTRMenuMusicReplacement"))
             {
                 Simulator.AddObject(new RepeatingFunctionTask(OptionsInjector.InjectOptions));
             }

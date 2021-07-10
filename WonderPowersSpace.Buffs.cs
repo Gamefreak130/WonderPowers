@@ -69,7 +69,7 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
             {
             }
 
-            internal uint mGhostType;
+            public uint mGhostType;
 
             public override BuffInstance Clone() => new BuffInstanceGhostify(mBuff, mBuffGuid, mEffectValue, mTimeoutCount);
 
@@ -349,7 +349,7 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
 
         public class BuffInstanceSuperLucky : BuffInstance
         {
-            public VisualEffect mEffect;
+            private VisualEffect mEffect;
 
             public BuffInstanceSuperLucky()
             {
@@ -371,6 +371,17 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
                 }
                 base.Dispose(bm);
             }
+
+            public void SetVisualEffect(VisualEffect newEffect)
+            {
+                if (mEffect is not null)
+                {
+                    mEffect.Stop();
+                    mEffect.Dispose();
+                    mEffect = null;
+                }
+                mEffect = newEffect;
+            }
         }
 
         public BuffSuperLucky(BuffData data) : base(data)
@@ -382,12 +393,67 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
         public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
         {
             BuffInstanceSuperLucky superLucky = bi as BuffInstanceSuperLucky;
-            superLucky.mEffect = VisualEffect.Create("ep1EyeCandy");
-            superLucky.mEffect.ParentTo(bm.Actor, Sim.FXJoints.Spine1);
-            superLucky.mEffect.Start();
+            VisualEffect effect = VisualEffect.Create("ep1EyeCandy");
+            superLucky.SetVisualEffect(effect);
+            effect.ParentTo(bm.Actor, Sim.FXJoints.Spine1);
+            effect.Start();
             base.OnAddition(bm, bi, travelReaddition);
         }
 
         public override void OnRemoval(BuffManager bm, BuffInstance bi) => bi.Dispose(bm);
+    }
+
+    public class BuffTransmogrify : Buff
+    {
+        public enum TransmogType : byte
+        {
+            ToHuman,
+            ToDog,
+            ToCat,
+            ToHorse
+        }
+
+        public class BuffInstanceTransmogrify : BuffInstance
+        {
+            private TransmogType mTransmogType;
+
+            public BuffInstanceTransmogrify()
+            {
+            }
+
+            public BuffInstanceTransmogrify(Buff buff, BuffNames buffGuid, int effectValue, float timeoutCount) : base(buff, buffGuid, effectValue, timeoutCount)
+            {
+            }
+
+            public override BuffInstance Clone() => new BuffInstanceTransmogrify(mBuff, mBuffGuid, mEffectValue, mTimeoutCount);
+
+            public void SetTransmogType(TransmogType type, Sim sim)
+            {
+                if (mTransmogType != type)
+                {
+                    mTransmogType = type;
+                    mBuffName = $"Gameplay/Excel/Buffs/BuffList:Gamefreak130_Transmogged{mTransmogType}";
+                    mDescription = $"Gameplay/Excel/Buffs/BuffList:Gamefreak130_Transmogged{mTransmogType}Description";
+                    string thumbName = mTransmogType switch
+                    {
+                        TransmogType.ToHuman  => "moodlet_Gamefreak130_TransmoggedToHuman",
+                        TransmogType.ToDog    => "moodlet_dogplaytime",
+                        TransmogType.ToCat    => "moodlet_catplaytime",
+                        TransmogType.ToHorse  => "moodlet_horsieplaytime",
+                        _                     => ""
+                    };
+                    // This will automatically trigger the BuffsChanged event, so the UI should refresh itself after this and we won't have to do it manually
+                    SetThumbnail(thumbName, ProductVersion.EP5, sim);
+                } 
+            }
+        }
+
+        public const ulong kBuffTransmogrifyGuid = 0x90471A06B5F5F359;
+
+        public BuffTransmogrify(BuffData data) : base(data)
+        {
+        }
+
+        public override BuffInstance CreateBuffInstance() => new BuffInstanceTransmogrify(this, BuffGuid, EffectValue, TimeoutSimMinutes);
     }
 }

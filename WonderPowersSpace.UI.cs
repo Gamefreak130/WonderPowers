@@ -87,7 +87,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 
         private WonderModeMenu() : base("WonderMode", 1, true, PauseMode.PauseSimulator, null)
 		{
-			if (mModalDialogWindow != null)
+			if (mModalDialogWindow is not null)
 			{
 				/*for (int i = 0; i < 13; i++)
 				{
@@ -117,7 +117,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 				SetPowerInfo(mGoodPowerGrid.SelectedTag as WonderPower);
 
 				mKarmaMeter = mModalDialogWindow.GetChildByID(5u, true) as FillBarController;
-				if (mKarmaMeter != null)
+				if (mKarmaMeter is not null)
 				{
 					mKarmaMeter.Initialize(-100f, 100f, 0.5f);
 					/*if (this.mHudModel.CheatsEnabled)
@@ -168,7 +168,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 			foreach (WonderPower power in WonderPowerManager.GetWonderPowerList())
             {
 				Window window = UIManager.LoadLayout(resKey).GetWindowByExportID(1) as Window;
-				if (window != null)
+				if (window is not null)
                 {
 					StdDrawable thumbBg = window.Drawable as StdDrawable;
 					((window.GetChildByID(3604647233u, true) as Window).Drawable as ImageDrawable).Image = UIManager.LoadUIImage(ResourceKey.CreatePNGKey(power.WonderPowerName, 0u));
@@ -500,21 +500,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 			eventArgs.Handled = true;
 		}*/
 
-		public static void HideElementById(WindowBase containingWindow, uint id)
-		{
-			if (containingWindow.GetChildByID(id, true) is WindowBase window)
-			{
-				window.Visible = false;
-			}
-		}
-
-		public static void DisableElementById(WindowBase containingWindow, uint id)
-        {
-			if (containingWindow.GetChildByID(id, true) is WindowBase window)
-            {
-				window.Enabled = false;
-            } 
-        }
+		
 	}
 
 	internal static class OptionsInjector
@@ -736,7 +722,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 
 	public class MapTagPickerUncancellable : MapTagPickerDialog
     {
-		private MapTagPickerUncancellable(List<IMapTagPickerInfo> mapTagPickerInfos, string titleText, string confirmText, string alternateConfirmText, bool forceShowCost, float exclusivityMultiplier, bool toggleForwardingEventsToGame, ModalDialog.PauseMode pauseMode, bool modal) 
+		private MapTagPickerUncancellable(List<IMapTagPickerInfo> mapTagPickerInfos, string titleText, string confirmText, string alternateConfirmText, bool forceShowCost, float exclusivityMultiplier, bool toggleForwardingEventsToGame, PauseMode pauseMode, bool modal) 
 			: base(mapTagPickerInfos, titleText, confirmText, alternateConfirmText, forceShowCost, exclusivityMultiplier, toggleForwardingEventsToGame, pauseMode, modal) 
 			=> mCancelButton.Visible = false;
 

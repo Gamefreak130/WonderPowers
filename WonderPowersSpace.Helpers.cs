@@ -1,4 +1,6 @@
 ﻿using Gamefreak130.Common;
+using Gamefreak130.Common.UI;
+using Gamefreak130.WonderPowersSpace.Buffs;
 using Gamefreak130.WonderPowersSpace.Interactions;
 using Gamefreak130.WonderPowersSpace.Situations;
 using Gamefreak130.WonderPowersSpace.UI;
@@ -20,6 +22,7 @@ using Sims3.Gameplay.Objects.FoodObjects;
 using Sims3.Gameplay.Objects.Miscellaneous;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Socializing;
+using Sims3.Gameplay.TimeTravel;
 using Sims3.Gameplay.UI;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
@@ -28,6 +31,7 @@ using Sims3.SimIFace.Enums;
 using Sims3.UI;
 using Sims3.UI.CAS;
 using Sims3.UI.CAS.CAP;
+using Sims3.UI.Dialogs;
 using Sims3.UI.Hud;
 using System;
 using System.Collections.Generic;
@@ -262,6 +266,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		private int mTotalPromisesFulfilled;
 
+		// TODO Sort through all of this
 		[Tunable, TunableComment("How many karma points the player starts with")]
 		private static readonly int kInitialKarmaLevel = 100;
 
@@ -2178,7 +2183,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
         {//TODO add interaction w/ animations (custom jazz is in package already lol)
 			//TODO make permanent
 			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors()
-												  where sim.SimDescription.ChildOrAbove && !sim.IsGhostOrHasGhostBuff && !sim.BuffManager.HasElement((BuffNames)Buffs.BuffGhostify.kBuffGhostifyGuid)
+												  where sim.SimDescription.ChildOrAbove && !sim.IsGhostOrHasGhostBuff && !sim.BuffManager.HasElement((BuffNames)BuffGhostify.kBuffGhostifyGuid)
 												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("GhostifyDialogTitle"))?.CreatedSim;
 			if (selectedSim is null)
@@ -2191,7 +2196,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				PlumbBob.SelectActor(selectedSim);
 			}
 			selectedSim.InteractionQueue.CancelAllInteractions();
-			selectedSim.BuffManager.AddElement(Buffs.BuffGhostify.kBuffGhostifyGuid, (Origin)HashString64("FromWonderPower"));
+			selectedSim.BuffManager.AddElement(BuffGhostify.kBuffGhostifyGuid, (Origin)HashString64("FromWonderPower"));
 			selectedSim.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(selectedSim.IsFemale, "GhostifyTNS", selectedSim), StyledNotification.NotificationStyle.kGameMessagePositive);
 			WonderPowerManager.TogglePowerRunning();
 			return true;
@@ -2297,7 +2302,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		public static bool LuckyFindActivation(bool _)
 		{
 			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors()
-												  where sim.SimDescription.ChildOrAbove && !sim.SimDescription.IsHorse && !sim.BuffManager.HasElement(Buffs.BuffLuckyFind.kBuffLuckyFindGuid)
+												  where sim.SimDescription.ChildOrAbove && !sim.SimDescription.IsHorse && !sim.BuffManager.HasElement(BuffLuckyFind.kBuffLuckyFindGuid)
 												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("LuckyFindDialogTitle"))?.CreatedSim;
 
@@ -2316,7 +2321,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				PlumbBob.SelectActor(selectedSim);
 			}
-			selectedSim.BuffManager.AddElement(Buffs.BuffLuckyFind.kBuffLuckyFindGuid, (Origin)HashString64("FromWonderPower"));
+			selectedSim.BuffManager.AddElement(BuffLuckyFind.kBuffLuckyFindGuid, (Origin)HashString64("FromWonderPower"));
 			WonderPowerManager.TogglePowerRunning();
 			return true;
 		}
@@ -2503,7 +2508,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			if (isBacklash)
 			{
 				List<Sim> validSims = Household.ActiveHousehold.Sims.FindAll((sim) => (WonderPowers.IsKidsMagicInstalled ? sim.SimDescription.ChildOrAbove : sim.SimDescription.TeenOrAbove) && !sim.IsRobot && sim.BuffManager.GetElement(BuffNames.CommodityDecayModifier)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuff"
-																							&& !sim.BuffManager.HasElement(Buffs.BuffKarmicSickness.kBuffKarmicSicknessGuid));
+																							&& !sim.BuffManager.HasElement(BuffKarmicSickness.kBuffKarmicSicknessGuid));
 				if (validSims.Count > 0)
 				{
 					selectedSim = RandomUtil.GetRandomObjectFromList(validSims);
@@ -2512,7 +2517,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			else
 			{
 				IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetSims((sim) => (WonderPowers.IsKidsMagicInstalled ? sim.SimDescription.ChildOrAbove : sim.SimDescription.TeenOrAbove) && !sim.IsRobot 
-																														&& sim.BuffManager.GetElement(BuffNames.CommodityDecayModifier)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuff" && !sim.BuffManager.HasElement(Buffs.BuffKarmicSickness.kBuffKarmicSicknessGuid))
+																														&& sim.BuffManager.GetElement(BuffNames.CommodityDecayModifier)?.mBuffName != "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuff" && !sim.BuffManager.HasElement(BuffKarmicSickness.kBuffKarmicSicknessGuid))
 													  select sim.SimDescription;
 				selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("SicknessDialogTitle"))?.CreatedSim;
 			}
@@ -2527,7 +2532,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				PlumbBob.SelectActor(selectedSim);
 			}
 			Audio.StartSound("sting_sickness");
-			Buffs.BuffKarmicSickness.AddKarmicSickness(selectedSim);
+			BuffKarmicSickness.AddKarmicSickness(selectedSim);
 			WonderPowerManager.TogglePowerRunning();
 			return true;
 		}
@@ -2535,7 +2540,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		public static bool StrokeOfGeniusActivation(bool _)
         {
 			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors() 
-												  where sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement(Buffs.BuffStrokeOfGenius.kBuffStrokeOfGeniusGuid) 
+												  where sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement(BuffStrokeOfGenius.kBuffStrokeOfGeniusGuid) 
 												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("StrokeOfGeniusDialogTitle"))?.CreatedSim;
 
@@ -2553,7 +2558,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				PlumbBob.SelectActor(selectedSim);
 			}
-			selectedSim.BuffManager.AddElement(Buffs.BuffStrokeOfGenius.kBuffStrokeOfGeniusGuid, (Origin)HashString64("FromWonderPower"));
+			selectedSim.BuffManager.AddElement(BuffStrokeOfGenius.kBuffStrokeOfGeniusGuid, (Origin)HashString64("FromWonderPower"));
 			WonderPowerManager.TogglePowerRunning();
 			return true;
 		}
@@ -2561,7 +2566,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		public static bool SuperLuckyActivation(bool _)
 		{
 			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors() 
-												  where sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement(Buffs.BuffSuperLucky.kBuffSuperLuckyGuid) 
+												  where sim.SimDescription.ChildOrAbove && !sim.BuffManager.HasElement(BuffSuperLucky.kBuffSuperLuckyGuid) 
 												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("SuperLuckyDialogTitle"))?.CreatedSim;
 
@@ -2579,15 +2584,16 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				PlumbBob.SelectActor(selectedSim);
 			}
-			selectedSim.BuffManager.AddElement(Buffs.BuffSuperLucky.kBuffSuperLuckyGuid, (Origin)HashString64("FromWonderPower"));
+			selectedSim.BuffManager.AddElement(BuffSuperLucky.kBuffSuperLuckyGuid, (Origin)HashString64("FromWonderPower"));
 			WonderPowerManager.TogglePowerRunning();
 			return true;
 		}
 
 		public static bool TransmogrifyActivation(bool _)
 		{
+			// TODO extract to interaction
 			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors()
-												  where sim.SimDescription.ToddlerOrAbove && !sim.OccultManager.DisallowClothesChange() && !sim.BuffManager.DisallowClothesChange()
+												  where sim.SimDescription.ToddlerOrAbove && !sim.OccultManager.DisallowClothesChange() && !sim.BuffManager.DisallowClothesChange() && !sim.BuffManager.HasElement((BuffNames)BuffTransmogrify.kBuffTransmogrifyGuid)
 												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("TransmogrifyDialogTitle"))?.CreatedSim;
 			if (selectedSim is null)
@@ -2682,7 +2688,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 
 			float num2 = SimClock.ElapsedTime(TimeUnit.Minutes);
-			while (SimClock.ElapsedTime(TimeUnit.Minutes) - num2 < 2.75f)
+			while (SimClock.ElapsedTime(TimeUnit.Minutes) - num2 < 2.5f)
 			{
 				Simulator.Sleep(1U);
 			}
@@ -2734,7 +2740,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             {
 				newDescription.VoiceVariation = (VoiceVariationType)RandomUtil.GetInt(2);
             } 
-			oldDescription.Genealogy.ClearAllGenealogyInformation();
 			newDescription.mLifetimeHappiness = oldDescription.mLifetimeHappiness;
 			newDescription.mSpendableHappiness = oldDescription.mSpendableHappiness;
 
@@ -2776,6 +2781,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			newManager.mHasShownWarningDialog = oldManager.mHasShownWarningDialog;
 			newManager.mLifeEvents = oldManager.mLifeEvents;
 			newManager.mTimeOfDeath = oldManager.mTimeOfDeath;
+
 			if (turnIntoUnicorn)
             {
 				newDescription.OccultManager.AddOccultType(OccultTypes.Unicorn, true, false, false);
@@ -2794,21 +2800,76 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				newDescription.IsGhost = true;
 				newDescription.mDeathStyle = oldDescription.mDeathStyle;
 			}
+			selectedSim.Household.Add(newDescription);
+			oldDescription.Genealogy.ClearAllGenealogyInformation();
+
 			if (selectedSim.IsActiveSim)
 			{
 				UserToolUtils.OnClose();
 				LotManager.SelectNextSim();
 			}
-			Vector3 position = selectedSim.Position;
-			Household household = selectedSim.Household;
-			selectedSim.Destroy();
+			Sim oldSim = selectedSim;
+			selectedSim = newDescription.Instantiate(selectedSim.Position);
+			oldSim.Destroy();
 			oldDescription.Dispose();
-			household.Add(newDescription);
-			selectedSim = newDescription.Instantiate(position);
+			if (selectedSim.IsInActiveHousehold)
+			{
+				foreach (INotTransferableOnDeath notTransferableOnDeath in oldSim.Inventory.FindAll<INotTransferableOnDeath>(false))
+				{
+					notTransferableOnDeath.Destroy();
+				}
+				List<IGameObject> dolls = new();
+				if (GameUtils.IsInstalled(ProductVersion.EP4))
+				{
+					ulong simDescriptionId = oldSim.SimDescription.SimDescriptionId;
+					foreach (IImaginaryDoll imaginaryDoll in oldSim.Inventory.FindAll<IImaginaryDoll>(false))
+					{
+						if (imaginaryDoll.GetOwnerSimDescriptionId() == simDescriptionId)
+						{
+							if (oldSim.Inventory.TryToRemove(imaginaryDoll))
+							{
+								dolls.Add(imaginaryDoll);
+							}
+							else
+							{
+								imaginaryDoll.Destroy();
+							}
+						}
+					}
+				}
+				if (!oldSim.Inventory.IsEmpty)
+				{
+					oldSim.Inventory.MoveObjectsTo(selectedSim.Inventory);
+				}
+				foreach (IGameObject gameObject in dolls)
+				{
+					if (!oldSim.Inventory.TryToAdd(gameObject))
+					{
+						gameObject.Destroy();
+					}
+				}
+			}
+			foreach (LifeEventManager.LifeEventActiveNode node in newManager.mActiveNodes.SelectMany(kvp => kvp.Value))
+			{
+				node.mOwner = selectedSim;
+			}
+			oldSim.Dispose();
 			if (selectedSim.SimDescription.IsGhost)
 			{
 				Urnstone.SimToPlayableGhost(selectedSim);
 			}
+
+			if (CauseEffectService.GetInstance() is CauseEffectService service && service.GetTimeAlmanacTimeStatueData() is List<ITimeStatueUiData> timeAlmanacTimeStatueData)
+			{
+				foreach (ITimeStatueUiData timeStatueUiData in timeAlmanacTimeStatueData)
+				{
+                    if (timeStatueUiData is TimeStatueRecordData timeStatueRecordData && timeStatueRecordData.mRecordHolderId == oldSim.SimDescription.SimDescriptionId)
+                    {
+                        timeStatueRecordData.mRecordHolderId = 0UL;
+                    }
+                }
+			}
+
 			if (!(newDescription.IsPet && newDescription.Child))
 			{
 				effect.Stop();
@@ -2822,7 +2883,19 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 					Simulator.Sleep(1U);
 				}
 			}
-			// TODO Add buff
+
+			if (selectedSim.BuffManager.AddElement((BuffNames)BuffTransmogrify.kBuffTransmogrifyGuid, (Origin)HashString64("FromWonderPower")))
+            {
+				BuffTransmogrify.BuffInstanceTransmogrify transmogrifyBuffInstance = selectedSim.BuffManager.GetElement(BuffTransmogrify.kBuffTransmogrifyGuid) as BuffTransmogrify.BuffInstanceTransmogrify;
+				BuffTransmogrify.TransmogType transmogType = selectedSim switch
+				{
+					{ IsADogSpecies: true }  => BuffTransmogrify.TransmogType.ToDog,
+					{ IsCat: true }          => BuffTransmogrify.TransmogType.ToCat,
+					{ IsHorse: true }        => BuffTransmogrify.TransmogType.ToHorse,
+					_                        => BuffTransmogrify.TransmogType.ToHuman
+				};
+				transmogrifyBuffInstance.SetTransmogType(transmogType, selectedSim);
+            } 
 			Camera.FocusOnSim(selectedSim);
 			if (selectedSim.IsSelectable)
 			{
@@ -3015,40 +3088,34 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				if (CASCharacterSheet.gSingleton is not null)
 				{
-					CASWonderMode.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.CharacterButton);
-					CASWonderMode.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.CharacterText);
-					CASWonderMode.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.ClothingButton);
-					CASWonderMode.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.ClothingText);
-					CASWonderMode.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.RandomizeButton);
+					UIHelpers.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.CharacterButton);
+					UIHelpers.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.CharacterText);
+					UIHelpers.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.ClothingButton);
+					UIHelpers.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.ClothingText);
+					UIHelpers.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.RandomizeButton);
 				}
 
 				if (CASBasics.gSingleton?.GetChildByID((uint)CASBasics.ControlIDs.HumanBasicsWindow, true) is WindowBase window)
                 {
 					for (uint i = 0; i < 5; i++)
 					{
-						if (window.GetChildByIndex(i) is WindowBase window2)
-                        {
-							window2.Visible = false;
-                        }
+						UIHelpers.HideElementByIndex(window, i);
 					}
-					WindowBase window3 = window.GetChildByIndex(5);
-					if (window3 is not null)
+					WindowBase window2 = window.GetChildByIndex(5);
+					if (window2 is not null)
 					{
-						window3.Area = new(new(window3.Area.TopLeft.x, 80), new(window3.Area.BottomRight.x, 80));
+						window2.Area = new(new(window2.Area.TopLeft.x, 80), new(window2.Area.BottomRight.x, 80));
 					}
-					window3 = window.GetChildByIndex(6);
-					if (window3 is not null)
+					window2 = window.GetChildByIndex(6);
+					if (window2 is not null)
 					{
-						window3.Area = new(new(window3.Area.TopLeft.x, 170), new(window3.Area.BottomRight.x, 170));
+						window2.Area = new(new(window2.Area.TopLeft.x, 170), new(window2.Area.BottomRight.x, 170));
 					}
 				}
 
 				if (CASPuck.Instance is CASPuck puck)
                 {
-					if (puck.GetChildByID((uint)CASPuck.ControlIDs.CloseButton, true) is Button button)
-                    {
-						button.Visible = false;
-                    }
+					UIHelpers.HideElementById(puck, (uint)CASPuck.ControlIDs.CloseButton);
 					if (puck.GetChildByID((uint)CASPuck.ControlIDs.OptionsButton, true) is Button button2)
                     {
 						button2.Click -= puck.OnOptionsClick;
@@ -3089,31 +3156,28 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				if (CASCharacterSheet.gSingleton is not null)
 				{
-					CASWonderMode.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.RandomizeButton);
+					UIHelpers.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.RandomizeButton);
 				}
 
 				if (CASBasics.gSingleton is not null)
 				{
-					CASWonderMode.HideElementById(CASBasics.gSingleton, (uint)CASBasics.ControlIDs.RandomizeNameButton);
-					CASWonderMode.HideElementById(CASBasics.gSingleton, (uint)CASBasics.ControlIDs.GhostBasicsButton);
+					UIHelpers.HideElementById(CASBasics.gSingleton, (uint)CASBasics.ControlIDs.RandomizeNameButton);
+					UIHelpers.HideElementById(CASBasics.gSingleton, (uint)CASBasics.ControlIDs.GhostBasicsButton);
 					if (CASBasics.gSingleton.GetChildByID((uint)CASBasics.ControlIDs.HumanBasicsWindow, true) is WindowBase window)
 					{
 						for (uint i = 0; i < 5; i++)
 						{
-							if (window.GetChildByIndex(i) is WindowBase window2)
-							{
-								window2.Visible = false;
-							}
+							UIHelpers.HideElementByIndex(window, i);
 						}
-						WindowBase window3 = window.GetChildByIndex(5);
-						if (window3 is not null)
+						WindowBase window2 = window.GetChildByIndex(5);
+						if (window2 is not null)
 						{
-							window3.Area = new(new(window3.Area.TopLeft.x, 80), new(window3.Area.BottomRight.x, 80));
+							window2.Area = new(new(window2.Area.TopLeft.x, 80), new(window2.Area.BottomRight.x, 80));
 						}
-						window3 = window.GetChildByIndex(6);
-						if (window3 is not null)
+						window2 = window.GetChildByIndex(6);
+						if (window2 is not null)
 						{
-							window3.Area = new(new(window3.Area.TopLeft.x, 170), new(window3.Area.BottomRight.x, 170));
+							window2.Area = new(new(window2.Area.TopLeft.x, 170), new(window2.Area.BottomRight.x, 170));
 						}
 					}
 				}
@@ -3122,62 +3186,54 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				{
 					if (CASCharacter.gSingleton.GetChildByID((uint)CASCharacter.ControlIDs.TraitsWindow, true) is WindowBase window)
 					{
-						CASWonderMode.HideElementById(window, (uint)CASCharacter.TraitsControlId.Randomize);
-						CASWonderMode.HideElementById(window, (uint)CASCharacter.TraitsControlId.ShowAddTraitsButton);
-						CASWonderMode.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon1);
-						CASWonderMode.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon2);
-						CASWonderMode.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon3);
-						CASWonderMode.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon4);
-						CASWonderMode.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon5);
+						UIHelpers.HideElementById(window, (uint)CASCharacter.TraitsControlId.Randomize);
+						UIHelpers.HideElementById(window, (uint)CASCharacter.TraitsControlId.ShowAddTraitsButton);
+						UIHelpers.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon1);
+						UIHelpers.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon2);
+						UIHelpers.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon3);
+						UIHelpers.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon4);
+						UIHelpers.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon5);
 					}
 					if (CASCharacter.gSingleton.GetChildByID((uint)CASCharacter.ControlIDs.VoicesWindow, true) is WindowBase window2)
 					{
-						CASWonderMode.DisableElementById(window2, (uint)CASCharacter.VoiceControlId.VoiceSlider);
-					}
-					if (CASCharacter.gSingleton.GetChildByID((uint)CASCharacter.WishControlId.LifetimeWishWindow, true) is WindowBase window3)
-                    {
-						CASWonderMode.HideElementById(window3, (uint)CASCharacter.WishControlId.PickerButton);
-						CASWonderMode.DisableElementById(window3, (uint)CASCharacter.WishControlId.Button0);
-						CASWonderMode.DisableElementById(window3, (uint)CASCharacter.WishControlId.Button1);
-						CASWonderMode.DisableElementById(window3, (uint)CASCharacter.WishControlId.Button2);
-						CASWonderMode.DisableElementById(window3, (uint)CASCharacter.WishControlId.Button3);
-						CASWonderMode.DisableElementById(window3, (uint)CASCharacter.WishControlId.Button4);
-						CASWonderMode.DisableElementById(window3, (uint)CASCharacter.WishControlId.Button5);
+						UIHelpers.DisableElementById(window2, (uint)CASCharacter.VoiceControlId.VoiceSlider);
 					}
 				}
 
 				if (CAPPetSheet.gSingleton is not null)
 				{
-					CASWonderMode.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.RandomizeButton);
-					CASWonderMode.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsButton);
-					CASWonderMode.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsFButton);
-					CASWonderMode.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsText);
+					UIHelpers.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.RandomizeButton);
+					UIHelpers.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsButton);
+					UIHelpers.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsFButton);
+					UIHelpers.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsText);
 				}
+
+				if (CAPBreeds.gSingleton is not null)
+                {
+					UIHelpers.HideElementById(CAPBreeds.gSingleton, (uint)CAPBreeds.ControlIDs.DogButtonPanel);
+                }
 
 				if (CAPCharacter.gSingleton is not null)
                 {
 					if (CAPCharacter.gSingleton.GetChildByID((uint)CAPCharacter.ControlIDs.TraitsWindow, true) is WindowBase window)
                     {
-						CASWonderMode.HideElementById(window, (uint)CAPCharacter.TraitsControlId.Randomize);
-						CASWonderMode.HideElementById(window, (uint)CAPCharacter.TraitsControlId.ShowAddTraitsButton);
-						CASWonderMode.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon1);
-						CASWonderMode.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon2);
-						CASWonderMode.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon3);
-						CASWonderMode.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon4);
-						CASWonderMode.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon5);
+						UIHelpers.HideElementById(window, (uint)CAPCharacter.TraitsControlId.Randomize);
+						UIHelpers.HideElementById(window, (uint)CAPCharacter.TraitsControlId.ShowAddTraitsButton);
+						UIHelpers.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon1);
+						UIHelpers.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon2);
+						UIHelpers.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon3);
+						UIHelpers.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon4);
+						UIHelpers.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon5);
 					}
 					if (CAPCharacter.gSingleton.GetChildByID((uint)CAPCharacter.ControlIDs.VoicesWindow, true) is WindowBase window2)
                     {
-						CASWonderMode.DisableElementById(window2, (uint)CAPCharacter.VoiceControlId.VoiceSlider);
+						UIHelpers.DisableElementById(window2, (uint)CAPCharacter.VoiceControlId.VoiceSlider);
 					}
                 } 
 
 				if (CASPuck.Instance is CASPuck puck)
 				{
-					if (puck.GetChildByID((uint)CASPuck.ControlIDs.CloseButton, true) is Button button)
-					{
-						button.Visible = false;
-					}
+					UIHelpers.HideElementById(puck, (uint)CASPuck.ControlIDs.CloseButton);
 					if (puck.GetChildByID((uint)CASPuck.ControlIDs.OptionsButton, true) is Button button2)
 					{
 						button2.Click -= puck.OnOptionsClick;

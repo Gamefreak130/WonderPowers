@@ -125,6 +125,16 @@
     <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffSuperLucky, Gamefreak130.WonderPowers</CustomClassName>
   </BuffList>
   <BuffList>
+    <Hex>Gamefreak130_TransmogrifyBuff=0x90471A06B5F5F359</Hex>
+    <SKU>EP5</SKU>
+    <BuffName>Gamefreak130_TransmoggedToHuman</BuffName>
+    <BuffDescription>Gamefreak130_TransmoggedToHumanDescription</BuffDescription>
+    <ThumbFilename>moodlet_Gamefreak130_TransmoggedToHuman</ThumbFilename>
+    <EffectValue>10</EffectValue>
+    <TimeoutLength>1440</TimeoutLength>
+    <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffTransmogrify, Gamefreak130.WonderPowers</CustomClassName>
+  </BuffList>
+  <BuffList>
     <Hex>Gamefreak130_WealthBuff=0x46E4DCC67F89082F</Hex>
     <BuffName>Gamefreak130_WealthBuff</BuffName>
     <BuffDescription>Gamefreak130_WealthBuffDescription</BuffDescription>
