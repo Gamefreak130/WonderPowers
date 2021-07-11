@@ -1,5 +1,7 @@
-﻿using Gamefreak130.Common;
-using Gamefreak130.Common.Buffs;
+﻿using Gamefreak130.Common.Booters;
+using Gamefreak130.Common.Helpers;
+using Gamefreak130.Common.Interactions;
+using Gamefreak130.Common.Tasks;
 using Gamefreak130.WonderPowersSpace.Helpers;
 using Gamefreak130.WonderPowersSpace.UI;
 using Sims3.Gameplay;
@@ -14,7 +16,7 @@ using Sims3.SimIFace;
 using Sims3.UI;
 using System;
 using System.Linq;
-using Reflection = Gamefreak130.Common.Reflection;
+using System.Reflection;
 
 namespace Gamefreak130
 {
@@ -42,15 +44,21 @@ namespace Gamefreak130
         private static void OnStartupApp(object sender, EventArgs e)
         {
             WonderPowerManager.Init();
-            IsKidsMagicInstalled = Reflection.IsAssemblyLoaded("Skydome_KidsMagic");
-            foreach (Type type in AppDomain.CurrentDomain.GetAssemblies()
-                                                         .SelectMany(assembly => assembly.GetExportedTypes()
-                                                         .Where(type => !type.IsAbstract && !type.IsGenericTypeDefinition && typeof(PowerBooter).IsAssignableFrom(type))))
+            if (GameUtils.IsInstalled(ProductVersion.EP5))
             {
-                PowerBooter booter = Activator.CreateInstance(type) as PowerBooter;
-                booter.LoadPowers();
+                TransmogrifyTraitMapping.Init();
             }
-            if (Reflection.IsAssemblyLoaded("Gamefreak130.LTRMenuMusicReplacement"))
+            IsKidsMagicInstalled = ReflectionEx.IsAssemblyLoaded("Skydome_KidsMagic");
+            foreach (ConstructorInfo ctor in AppDomain.CurrentDomain.GetAssemblies()
+                                                                    .SelectMany(assembly => assembly.GetExportedTypes())
+                                                                    .Where(type => !type.IsAbstract && !type.IsGenericTypeDefinition && typeof(PowerBooter).IsAssignableFrom(type))
+                                                                    .Select(type => type.GetConstructor(new Type[0]))
+                                                                    .OfType<ConstructorInfo>())
+            {
+                PowerBooter booter = ctor.Invoke(null) as PowerBooter;
+                booter.LoadData();
+            }
+            if (!ReflectionEx.IsAssemblyLoaded("Gamefreak130.LTRMenuMusicReplacement"))
             {
                 Simulator.AddObject(new RepeatingFunctionTask(OptionsInjector.InjectOptions));
             }
@@ -58,15 +66,11 @@ namespace Gamefreak130
 
         private static void OnPreLoad()
         {
-            if (GameUtils.IsInstalled(ProductVersion.EP5))
-            {
-                TransmogrifyTraitMapping.Init();
-            }
             if (!GameStates.IsTravelling)
             {
                 WonderPowerManager.Init();
             }
-            new BuffBooter("Gamefreak130_KarmaBuffs").LoadBuffData();
+            new BuffBooter("Gamefreak130_KarmaBuffs").LoadData();
             if (GenericManager<BuffNames, BuffInstance, BuffInstance>.sDictionary.TryGetValue((ulong)BuffNames.UnicornsBlessing, out BuffInstance buff))
             {
                 buff.mBuff.mInfo.mProductVersion = ProductVersion.BaseGame;

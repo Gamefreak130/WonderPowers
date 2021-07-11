@@ -1,4 +1,6 @@
-﻿using Gamefreak130.Common;
+﻿using Gamefreak130.Common.Booters;
+using Gamefreak130.Common.Loggers;
+using Gamefreak130.Common.Structures;
 using Gamefreak130.Common.UI;
 using Gamefreak130.WonderPowersSpace.Buffs;
 using Gamefreak130.WonderPowersSpace.Interactions;
@@ -47,15 +49,15 @@ using Responder = Sims3.UI.Responder;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
-    public abstract class PowerBooter
+    public abstract class PowerBooter : Booter
     {
-		private readonly string mXmlName;
-
-		protected PowerBooter(string xmlName) => mXmlName = xmlName;
-
-		public void LoadPowers()
+		public PowerBooter(string xmlName) : base(xmlName)
         {
-			XmlDbData xmlDbData = XmlDbData.ReadData(mXmlName);
+        }
+
+		public override void LoadData()
+        {
+			XmlDbData xmlDbData = XmlDbData.ReadData(mXmlResource);
 			XmlDbTable xmlDbTable = null;
 			xmlDbData?.Tables.TryGetValue("Power", out xmlDbTable);
 			if (xmlDbTable is not null)
@@ -3088,18 +3090,18 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				if (CASCharacterSheet.gSingleton is not null)
 				{
-					UIHelpers.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.CharacterButton);
-					UIHelpers.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.CharacterText);
-					UIHelpers.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.ClothingButton);
-					UIHelpers.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.ClothingText);
-					UIHelpers.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.RandomizeButton);
+					UIHelper.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.CharacterButton);
+					UIHelper.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.CharacterText);
+					UIHelper.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.ClothingButton);
+					UIHelper.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.ClothingText);
+					UIHelper.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.RandomizeButton);
 				}
 
 				if (CASBasics.gSingleton?.GetChildByID((uint)CASBasics.ControlIDs.HumanBasicsWindow, true) is WindowBase window)
                 {
 					for (uint i = 0; i < 5; i++)
 					{
-						UIHelpers.HideElementByIndex(window, i);
+						UIHelper.HideElementByIndex(window, i);
 					}
 					WindowBase window2 = window.GetChildByIndex(5);
 					if (window2 is not null)
@@ -3115,7 +3117,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 				if (CASPuck.Instance is CASPuck puck)
                 {
-					UIHelpers.HideElementById(puck, (uint)CASPuck.ControlIDs.CloseButton);
+					UIHelper.HideElementById(puck, (uint)CASPuck.ControlIDs.CloseButton);
 					if (puck.GetChildByID((uint)CASPuck.ControlIDs.OptionsButton, true) is Button button2)
                     {
 						button2.Click -= puck.OnOptionsClick;
@@ -3156,18 +3158,18 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				if (CASCharacterSheet.gSingleton is not null)
 				{
-					UIHelpers.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.RandomizeButton);
+					UIHelper.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.RandomizeButton);
 				}
 
 				if (CASBasics.gSingleton is not null)
 				{
-					UIHelpers.HideElementById(CASBasics.gSingleton, (uint)CASBasics.ControlIDs.RandomizeNameButton);
-					UIHelpers.HideElementById(CASBasics.gSingleton, (uint)CASBasics.ControlIDs.GhostBasicsButton);
+					UIHelper.HideElementById(CASBasics.gSingleton, (uint)CASBasics.ControlIDs.RandomizeNameButton);
+					UIHelper.HideElementById(CASBasics.gSingleton, (uint)CASBasics.ControlIDs.GhostBasicsButton);
 					if (CASBasics.gSingleton.GetChildByID((uint)CASBasics.ControlIDs.HumanBasicsWindow, true) is WindowBase window)
 					{
 						for (uint i = 0; i < 5; i++)
 						{
-							UIHelpers.HideElementByIndex(window, i);
+							UIHelper.HideElementByIndex(window, i);
 						}
 						WindowBase window2 = window.GetChildByIndex(5);
 						if (window2 is not null)
@@ -3186,54 +3188,54 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				{
 					if (CASCharacter.gSingleton.GetChildByID((uint)CASCharacter.ControlIDs.TraitsWindow, true) is WindowBase window)
 					{
-						UIHelpers.HideElementById(window, (uint)CASCharacter.TraitsControlId.Randomize);
-						UIHelpers.HideElementById(window, (uint)CASCharacter.TraitsControlId.ShowAddTraitsButton);
-						UIHelpers.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon1);
-						UIHelpers.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon2);
-						UIHelpers.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon3);
-						UIHelpers.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon4);
-						UIHelpers.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon5);
+						UIHelper.HideElementById(window, (uint)CASCharacter.TraitsControlId.Randomize);
+						UIHelper.HideElementById(window, (uint)CASCharacter.TraitsControlId.ShowAddTraitsButton);
+						UIHelper.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon1);
+						UIHelper.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon2);
+						UIHelper.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon3);
+						UIHelper.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon4);
+						UIHelper.DisableElementById(window, (uint)CASCharacter.TraitsControlId.ExternalTraitIcon5);
 					}
 					if (CASCharacter.gSingleton.GetChildByID((uint)CASCharacter.ControlIDs.VoicesWindow, true) is WindowBase window2)
 					{
-						UIHelpers.DisableElementById(window2, (uint)CASCharacter.VoiceControlId.VoiceSlider);
+						UIHelper.DisableElementById(window2, (uint)CASCharacter.VoiceControlId.VoiceSlider);
 					}
 				}
 
 				if (CAPPetSheet.gSingleton is not null)
 				{
-					UIHelpers.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.RandomizeButton);
-					UIHelpers.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsButton);
-					UIHelpers.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsFButton);
-					UIHelpers.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsText);
+					UIHelper.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.RandomizeButton);
+					UIHelper.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsButton);
+					UIHelper.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsFButton);
+					UIHelper.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsText);
 				}
 
 				if (CAPBreeds.gSingleton is not null)
                 {
-					UIHelpers.HideElementById(CAPBreeds.gSingleton, (uint)CAPBreeds.ControlIDs.DogButtonPanel);
+					UIHelper.HideElementById(CAPBreeds.gSingleton, (uint)CAPBreeds.ControlIDs.DogButtonPanel);
                 }
 
 				if (CAPCharacter.gSingleton is not null)
                 {
 					if (CAPCharacter.gSingleton.GetChildByID((uint)CAPCharacter.ControlIDs.TraitsWindow, true) is WindowBase window)
                     {
-						UIHelpers.HideElementById(window, (uint)CAPCharacter.TraitsControlId.Randomize);
-						UIHelpers.HideElementById(window, (uint)CAPCharacter.TraitsControlId.ShowAddTraitsButton);
-						UIHelpers.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon1);
-						UIHelpers.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon2);
-						UIHelpers.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon3);
-						UIHelpers.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon4);
-						UIHelpers.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon5);
+						UIHelper.HideElementById(window, (uint)CAPCharacter.TraitsControlId.Randomize);
+						UIHelper.HideElementById(window, (uint)CAPCharacter.TraitsControlId.ShowAddTraitsButton);
+						UIHelper.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon1);
+						UIHelper.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon2);
+						UIHelper.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon3);
+						UIHelper.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon4);
+						UIHelper.DisableElementById(window, (uint)CAPCharacter.TraitsControlId.ExternalTraitIcon5);
 					}
 					if (CAPCharacter.gSingleton.GetChildByID((uint)CAPCharacter.ControlIDs.VoicesWindow, true) is WindowBase window2)
                     {
-						UIHelpers.DisableElementById(window2, (uint)CAPCharacter.VoiceControlId.VoiceSlider);
+						UIHelper.DisableElementById(window2, (uint)CAPCharacter.VoiceControlId.VoiceSlider);
 					}
                 } 
 
 				if (CASPuck.Instance is CASPuck puck)
 				{
-					UIHelpers.HideElementById(puck, (uint)CASPuck.ControlIDs.CloseButton);
+					UIHelper.HideElementById(puck, (uint)CASPuck.ControlIDs.CloseButton);
 					if (puck.GetChildByID((uint)CASPuck.ControlIDs.OptionsButton, true) is Button button2)
 					{
 						button2.Click -= puck.OnOptionsClick;

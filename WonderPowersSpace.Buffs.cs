@@ -1,4 +1,6 @@
 ﻿using Gamefreak130.Common.Buffs;
+using Gamefreak130.Common.Helpers;
+using Gamefreak130.Common.Interactions;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
@@ -44,7 +46,7 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
                     if (CanFight(actor, target))
                     {
                         string social = RandomUtil.GetRandomStringFromList(actor.IsPet ? TunableSettings.kCryHavocPetInteractions : TunableSettings.kCryHavocSimInteractions);
-                        Common.Helpers.ForceSocial(actor, target, social, InteractionPriorityLevel.CriticalNPCBehavior, false);
+                        InteractionHelper.ForceSocialInteraction(actor, target, social, InteractionPriorityLevel.CriticalNPCBehavior, false);
                     }
                 }
                 actor.AddAlarm(1f, TimeUnit.Seconds, delegate { CruiseForBruise(actor); }, "Gamefreak130 wuz here -- Cry Havoc alarm", AlarmType.DeleteOnReset);
@@ -135,7 +137,7 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
             {
                 if (!sim.IsHuman)
                 {
-                    return (uint)Common.Helpers.CoinFlipSelect(SimDescription.DeathType.PetOldAgeGood, SimDescription.DeathType.PetOldAgeBad);
+                    return (uint)RandomUtilEx.CoinFlipSelect(SimDescription.DeathType.PetOldAgeGood, SimDescription.DeathType.PetOldAgeBad);
                 }
                     
                 List<ObjectPicker.HeaderInfo> list = new()

@@ -1,4 +1,5 @@
-﻿using Gamefreak130.WonderPowersSpace.Helpers;
+﻿using Gamefreak130.Common.Helpers;
+using Gamefreak130.WonderPowersSpace.Helpers;
 using Gamefreak130.WonderPowersSpace.Interactions;
 using Sims3.Gameplay;
 using Sims3.Gameplay.Abstracts;
@@ -386,12 +387,12 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 SimDescription ghost;
                 if (GameUtils.IsFutureWorld() && RandomUtil.CoinFlip())
                 {
-                    ghost = OccultRobot.MakeRobot(CASAgeGenderFlags.Adult, Common.Helpers.CoinFlipSelect(CASAgeGenderFlags.Male, CASAgeGenderFlags.Female), Common.Helpers.CoinFlipSelect(RobotForms.Hovering, RobotForms.Humanoid));
+                    ghost = OccultRobot.MakeRobot(CASAgeGenderFlags.Adult, RandomUtilEx.CoinFlipSelect(CASAgeGenderFlags.Male, CASAgeGenderFlags.Female), RandomUtilEx.CoinFlipSelect(RobotForms.Hovering, RobotForms.Humanoid));
                     ghost.SetDeathStyle(SimDescription.DeathType.Robot, false);
                 }
                 else
                 {
-                    ghost = Genetics.MakeSim(Common.Helpers.CoinFlipSelect(CASAgeGenderFlags.Adult, CASAgeGenderFlags.Elder), Common.Helpers.CoinFlipSelect(CASAgeGenderFlags.Male, CASAgeGenderFlags.Female), randomObjectFromList, 4294967295u);
+                    ghost = Genetics.MakeSim(RandomUtilEx.CoinFlipSelect(CASAgeGenderFlags.Adult, CASAgeGenderFlags.Elder), RandomUtilEx.CoinFlipSelect(CASAgeGenderFlags.Male, CASAgeGenderFlags.Female), randomObjectFromList, 4294967295u);
                     ghost.FirstName = SimUtils.GetRandomGivenName(ghost.IsMale, randomObjectFromList);
                     ghost.LastName = SimUtils.GetRandomFamilyName(randomObjectFromList);
                     ghost.SetDeathStyle(RandomUtil.GetRandomObjectFromList(sValidDeathTypes), false);
