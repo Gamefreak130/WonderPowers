@@ -2096,10 +2096,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			Audio.StartSound("sting_earthquake");
 			Camera.FocusOnLot(lot.LotId, 2f); //2f is standard lerptime
 			CameraController.Shake(FireFightingJob.kEarthquakeCameraShakeIntensity, FireFightingJob.kEarthquakeCameraShakeDuration);
-			lot.AddAlarm(FireFightingJob.kEarthquakeTimeUntilTNS, TimeUnit.Minutes, delegate {
-				StyledNotification.Show(new(WonderPowerManager.LocalizeString("EarthquakeTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
-				WonderPowerManager.TogglePowerRunning();
-			}, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted);
+			StyledNotification.Show(new(WonderPowerManager.LocalizeString("EarthquakeTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
+			lot.AddAlarm(FireFightingJob.kEarthquakeTimeUntilTNS, TimeUnit.Minutes, WonderPowerManager.TogglePowerRunning, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted);
 
 			foreach (Sim sim in lot.GetAllActors())
             {
