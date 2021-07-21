@@ -56,7 +56,7 @@ namespace Gamefreak130
                                                                     .OfType<ConstructorInfo>())
             {
                 PowerBooter booter = ctor.Invoke(null) as PowerBooter;
-                booter.LoadData();
+                booter.Boot();
             }
             if (!ReflectionEx.IsAssemblyLoaded("Gamefreak130.LTRMenuMusicReplacement"))
             {
@@ -70,7 +70,7 @@ namespace Gamefreak130
             {
                 WonderPowerManager.Init();
             }
-            new BuffBooter("Gamefreak130_KarmaBuffs").LoadData();
+            new BuffBooter("Gamefreak130_KarmaBuffs").Boot();
             if (GenericManager<BuffNames, BuffInstance, BuffInstance>.sDictionary.TryGetValue((ulong)BuffNames.UnicornsBlessing, out BuffInstance buff))
             {
                 buff.mBuff.mInfo.mProductVersion = ProductVersion.BaseGame;

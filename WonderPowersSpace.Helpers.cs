@@ -55,44 +55,27 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
         {
         }
 
-		public override void LoadData()
+		protected string PowerData => GetResourceAt(0);
+
+		protected override void LoadData()
         {
-			XmlDbData xmlDbData = XmlDbData.ReadData(mXmlResource);
-			XmlDbTable xmlDbTable = null;
-			xmlDbData?.Tables.TryGetValue("Power", out xmlDbTable);
-			if (xmlDbTable is not null)
+			XmlDbData xmlDbData = XmlDbData.ReadData(PowerData);
+            xmlDbData.Tables.TryGetValue("Power", out XmlDbTable xmlDbTable);
+            foreach (XmlDbRow row in xmlDbTable.Rows)
 			{
-				foreach (XmlDbRow row in xmlDbTable.Rows)
+				string name = row["PowerName"];
+				if (row.TryGetEnum("ProductVersion", out ProductVersion version, ProductVersion.Undefined) && GameUtils.IsInstalled(version) && !string.IsNullOrEmpty(name))
 				{
-					string name = row["PowerName"];
-					if (row.TryGetEnum("ProductVersion", out ProductVersion version, ProductVersion.Undefined) && GameUtils.IsInstalled(version) && !string.IsNullOrEmpty(name))
+					string runMethod = row["EffectMethod"];
+					if (!string.IsNullOrEmpty(runMethod))
 					{
-						string runMethod = row["EffectMethod"];
-						if (!string.IsNullOrEmpty(runMethod))
-						{
-							bool isBad = row.GetBool("IsBad");
-							int cost = row.GetInt("Cost");
-							MethodInfo methodInfo = FindMethod(runMethod);
-							WonderPowerManager.Add(new(name, isBad, cost, methodInfo));
-						}
+						bool isBad = row.GetBool("IsBad");
+						int cost = row.GetInt("Cost");
+						MethodInfo methodInfo = FindMethod(runMethod, typeof(ActivationMethods));
+						WonderPowerManager.Add(new(name, isBad, cost, methodInfo));
 					}
 				}
 			}
-		}
-
-		private static MethodInfo FindMethod(string methodName)
-		{
-			if (methodName.Contains(","))
-			{
-				string[] array = methodName.Split(new[] { ',' });
-				string typeName = array[0].Trim() + "," + array[1].Trim();
-				Type type = Type.GetType(typeName, true);
-				string text = array[2];
-				text = text.Trim();
-				return type.GetMethod(text);
-			}
-			Type typeFromHandle = typeof(ActivationMethods);
-			return typeFromHandle.GetMethod(methodName);
 		}
 	}
 
@@ -114,7 +97,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
         protected override void Notify() => StyledNotification.Show(new(WonderPowerManager.LocalizeString("PowerError"), StyledNotification.NotificationStyle.kSystemMessage));
 	}
 
-	[Persistable]
+	//[Persistable]
 	public class WonderPower
 	{
 		public string WonderPowerName
@@ -141,9 +124,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			set;
 		}*/
 
-		public WonderPower()
+		/*public WonderPower()
         {
-        }
+        }*/
 
 		public WonderPower(string name, bool isBad, int cost, MethodInfo runMethod)
 		{
@@ -153,7 +136,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			mRunMethod = runMethod;
 		}
 
-		[Persistable(false)]
+		//[Persistable(false)]
 		private delegate bool RunDelegate(bool isBacklash);//, GameObject target);
 
 		// The Run() method is used in a OneShotFunctionWithParam added to the Simulator when the power selection dialog ends,
