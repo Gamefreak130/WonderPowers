@@ -219,15 +219,14 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                                 effect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
                             }, "Gamefreak130 wuz here -- visual effect alarm", AlarmType.NeverPersisted, null);
                             burnableObjects.Remove(@object);
-                            continue;
                         }
                         else if (burnableSims.Count != 0)
                         {
                             Sim sim = RandomUtil.GetRandomObjectFromList(burnableSims);
                             sim.BuffManager.AddElement(BuffNames.OnFire, (Origin)HashString64("FromWonderPower"));
                             burnableSims.Remove(sim);
-                            continue;
                         }
+                        continue;
                     }
                     Vector3 pos = Lot.GetRandomPosition(true, true);
                     FireManager.AddFire(pos, true);
@@ -449,18 +448,21 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             }
 
             private IGameObject CreateGhostJig()
-            {//TODO let ghosts spawn outside if no indoor rooms
-                int randomRoomWeightedBySize = GetRandomRoomWeightedBySize();
-                if (randomRoomWeightedBySize == 36863)
-                {
-                    return null;
-                }
+            {
                 IGameObject gameObject = CreateObjectOutOfWorld("SocialJigOnePerson");
-                World.FindGoodLocationParams @params = new(GetRoomEntrance(randomRoomWeightedBySize))
-                {
-                    BooleanConstraints = FindGoodLocationBooleans.PreferEmptyTiles | FindGoodLocationBooleans.Routable,
-                    RequiredRoomID = randomRoomWeightedBySize
-                };
+                World.FindGoodLocationParams @params;
+                int randomRoomWeightedBySize = GetRandomRoomWeightedBySize();
+                @params = randomRoomWeightedBySize == 36863
+                    ? (new(Lot.Position)
+                       {
+                           BooleanConstraints = FindGoodLocationBooleans.PreferEmptyTiles | FindGoodLocationBooleans.Routable
+                       })
+                    : (new(GetRoomEntrance(randomRoomWeightedBySize))
+                       {
+                           BooleanConstraints = FindGoodLocationBooleans.PreferEmptyTiles | FindGoodLocationBooleans.Routable,
+                           RequiredRoomID = randomRoomWeightedBySize
+                       });
+
                 if (!PlaceAtGoodLocation(gameObject, @params, true))
                 {
                     return null;
