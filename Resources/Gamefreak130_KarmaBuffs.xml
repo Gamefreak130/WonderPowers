@@ -54,11 +54,11 @@
   </BuffList>
   <BuffList>
     <Hex>Gamefreak130_GhostifyBuff=0xABECC1DBFB07E2B9</Hex>
-    <BuffName>TheUndead</BuffName>
-    <BuffDescription>TheUndeadDescription</BuffDescription>
+    <BuffName>Gamefreak130_GhostifyBuff</BuffName>
+    <BuffDescription>Gamefreak130_GhostifyBuffDescription</BuffDescription>
+    <EffectValue>10</EffectValue>
     <ThumbFilename>ghostify</ThumbFilename>
-    <TimeoutLength>1440</TimeoutLength>
-    <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffGhostify, Gamefreak130.WonderPowers</CustomClassName>
+    <TimeoutLength>720</TimeoutLength>
   </BuffList>
   <BuffList>
     <Hex>Gamefreak130_GoodMoodBuff=0x858E9F63DE5C0576</Hex>

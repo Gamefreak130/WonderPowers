@@ -3,6 +3,7 @@ using Sims3.Gameplay.ActiveCareer.ActiveCareers;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Objects;
@@ -10,6 +11,7 @@ using Sims3.Gameplay.Services;
 using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.UI;
 using Sims3.SimIFace;
+using Sims3.SimIFace.CAS;
 using Sims3.UI;
 using Sims3.UI.Hud;
 using static Sims3.SimIFace.ResourceUtils;
@@ -165,9 +167,8 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             {
                 { IsFoal: true }                        => "ch_whinny_x",
                 { IsHorse: true }                       => "ah_whinny_x",
-                { IsFullSizeDog: true, IsPuppy: true }  => "cd_react_stand_whimper_x",
+                { IsPuppy: true }                       => "cd_react_stand_whimper_x",
                 { IsFullSizeDog: true }                 => "ad_react_stand_whimper_x",
-                { IsLittleDog: true, IsPuppy: true }    => "cl_react_stand_whimper_x",
                 { IsLittleDog: true }                   => "al_react_stand_whimper_x",
                 { IsKitten: true }                      => "cc_petNeeds_standing_hunger_whinyMeow_x",
                 { IsCat: true }                         => "ac_petNeeds_standing_hunger_whinyMeow_x",
@@ -252,6 +253,115 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             bool result = DoTimedLoop(FireFightingJob.kEarthquakeTimeUntilTNS);
             AnimateSim("Exit");
             return result;
+        }
+    }
+
+    public class Ghostify : Interaction<Sim, Sim>
+    {
+        public class Definition : SoloSimInteractionDefinition<Ghostify>
+        {
+            public Definition()
+            {
+            }
+
+            public Definition(SimDescription.DeathType ghostType) => mGhostType = ghostType;
+
+            public SimDescription.DeathType mGhostType;
+
+            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
+
+            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => WonderPowerManager.LocalizeString("GhostifyDialogTitle");
+        }
+
+        public static readonly SimDescription.DeathType[] sHumanDeathTypes =
+        {
+            SimDescription.DeathType.OldAge,
+            SimDescription.DeathType.Drown,
+            SimDescription.DeathType.Starve,
+            SimDescription.DeathType.Electrocution,
+            SimDescription.DeathType.Burn,
+            SimDescription.DeathType.MummyCurse,
+            SimDescription.DeathType.Meteor,
+            SimDescription.DeathType.WateryGrave,
+            SimDescription.DeathType.HumanStatue,
+            SimDescription.DeathType.Transmuted,
+            SimDescription.DeathType.HauntingCurse,
+            SimDescription.DeathType.JellyBeanDeath,
+            SimDescription.DeathType.Freeze,
+            SimDescription.DeathType.BluntForceTrauma,
+            SimDescription.DeathType.Ranting,
+            SimDescription.DeathType.Shark,
+            SimDescription.DeathType.ScubaDrown,
+            SimDescription.DeathType.MermaidDehydrated,
+            SimDescription.DeathType.Causality,
+            SimDescription.DeathType.Jetpack,
+            SimDescription.DeathType.FutureUrnstoneHologram
+        };
+
+        public override bool Run()
+        {
+            Camera.FocusOnSim(Actor);
+            if (Actor.IsSelectable)
+            {
+                PlumbBob.SelectActor(Actor);
+            }
+
+            Actor.SimDescription.mDeathStyle = (InteractionDefinition as Definition).mGhostType;
+            if (Actor.SimDescription.SupernaturalData is CASGhostData casghostData)
+            {
+                casghostData.DeathStyle = Actor.SimDescription.mDeathStyle;
+            }
+            string name = (Actor.SimDescription.Age is not CASAgeGenderFlags.Child) ? "ep4PotionWearOff" : "ep4PotionWearOffChild";
+            Audio.StartObjectSound(Actor.ObjectId, "sting_ghost_appear", false);
+            VisualEffect.FireOneShotEffect(name, Actor, Sim.FXJoints.Spine0, VisualEffect.TransitionType.SoftTransition);
+            Urnstone.SimToPlayableGhost(Actor);
+
+            string animName = Actor.SimDescription switch
+            {
+                { IsFoal: true }                        => "ch_trait_nervous_x",
+                { IsHorse: true }                       => "ah_trait_nervous_x",
+                { IsPuppy: true }                       => "cd_trait_adventurous_x",
+                { IsFullSizeDog: true }                 => "ad_trait_adventurous_x",
+                { IsLittleDog: true }                   => "al_trait_adventurous_x",
+                { IsKitten: true }                      => "cc_trait_hyper_x",
+                { IsCat: true }                         => "ac_trait_hyper_x",
+                { Child: true }                         => "c_cas_flavor_checkOutSelf_bottom_child_average_x",
+                { Elder: true }                         => "a_cas_flavor_checkOutSelf_bottom_elder_average_x",
+                { TeenOrAbove: true, IsMale: true }     => "a_cas_flavor_checkOutSelf_bottom_male_average_x",
+                { TeenOrAbove: true, IsFemale: true }   => "a_cas_flavor_checkOutSelf_bottom_female_average_x",
+                _                                       => null
+            };
+
+            string animName2 = Actor.SimDescription switch
+            {
+                { IsPet: false, Child: true }        => "c_ghostify_x",
+                { IsPet: false, TeenOrAbove: true }  => "a_ghostify_x",
+                _                                    => null
+            };
+
+            if (!string.IsNullOrEmpty(animName))
+            {
+                Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+            }
+            DoTimedLoop(0.1f);
+            if (!string.IsNullOrEmpty(animName2))
+            {
+                Actor.PlaySoloAnimation(animName2, true, ProductVersion.BaseGame);
+            }
+            return true;            
+        }
+
+        public override void Cleanup()
+        {
+            try
+            {
+                Actor.BuffManager.AddElement(HashString64("Gamefreak130_GhostifyBuff"), (Origin)HashString64("FromWonderPower"));
+                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(Actor.IsFemale, "GhostifyTNS", Actor), StyledNotification.NotificationStyle.kGameMessagePositive);
+            }
+            finally
+            {
+                WonderPowerManager.TogglePowerRunning();
+            }
         }
     }
 

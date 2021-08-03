@@ -1,4 +1,5 @@
 ﻿using Gamefreak130.Common.Booters;
+using Gamefreak130.Common.Helpers;
 using Gamefreak130.Common.Loggers;
 using Gamefreak130.Common.Structures;
 using Gamefreak130.Common.UI;
@@ -2163,25 +2164,54 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		}
 
 		public static bool GhostifyActivation(bool _)
-        {//TODO add interaction w/ animations (custom jazz is in package already lol)
-			//TODO make permanent
+        {
 			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors()
-												  where sim.SimDescription.ChildOrAbove && !sim.IsGhostOrHasGhostBuff && !sim.BuffManager.HasElement((BuffNames)BuffGhostify.kBuffGhostifyGuid)
+												  where sim.SimDescription.ChildOrAbove && !sim.IsGhostOrHasGhostBuff
 												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("GhostifyDialogTitle"))?.CreatedSim;
 			if (selectedSim is null)
 			{
 				return false;
 			}
-			Camera.FocusOnSim(selectedSim);
-			if (selectedSim.IsSelectable)
+
+			SimDescription.DeathType ghostType = SimDescription.DeathType.None;
+			if (selectedSim.IsPet)
 			{
-				PlumbBob.SelectActor(selectedSim);
+				ghostType = RandomUtilEx.CoinFlipSelect(SimDescription.DeathType.PetOldAgeBad, SimDescription.DeathType.PetOldAgeGood);
 			}
-			selectedSim.InteractionQueue.CancelAllInteractions();
-			selectedSim.BuffManager.AddElement(BuffGhostify.kBuffGhostifyGuid, (Origin)HashString64("FromWonderPower"));
-			selectedSim.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(selectedSim.IsFemale, "GhostifyTNS", selectedSim), StyledNotification.NotificationStyle.kGameMessagePositive);
-			WonderPowerManager.TogglePowerRunning();
+			else if (selectedSim.IsEP11Bot)
+            {
+				ghostType = SimDescription.DeathType.Robot;
+            }
+			else
+			{
+				List<ObjectPicker.HeaderInfo> list = new()
+				{
+					new("Ui/Caption/ObjectPicker:Ghost", "Ui/Caption/ObjectPicker:Ghost", 300)
+				};
+
+				List<ObjectPicker.RowInfo> list2 = Ghostify.sHumanDeathTypes.Select((deathType, i) => {
+					return new ObjectPicker.RowInfo(deathType, new()
+					{
+						new ObjectPicker.ThumbAndTextColumn(new ThumbnailKey(ResourceKey.CreatePNGKey(CASBasics.mGhostDeathNames[i], 0u), ThumbnailSize.ExtraLarge), Urnstone.DeathTypeToLocalizedString(deathType))
+					});
+				}).ToList();
+
+				List<ObjectPicker.TabInfo> list3 = new()
+				{
+					new("shop_all_r2", WonderPowerManager.LocalizeString("SelectGhost"), list2)
+				};
+
+				while (ghostType is SimDescription.DeathType.None)
+				{
+					List<ObjectPicker.RowInfo> selection = ObjectPickerDialog.Show(true, ModalDialog.PauseMode.PauseSimulator, WonderPowerManager.LocalizeString("GhostifyDialogTitle"), Localization.LocalizeString("Ui/Caption/ObjectPicker:OK"),
+																					Localization.LocalizeString("Ui/Caption/ObjectPicker:Cancel"), list3, list, 1);
+					ghostType = selection is not null ? (SimDescription.DeathType)selection[0].Item : SimDescription.DeathType.None;
+				}
+			}
+
+			Ghostify ghostifyInteraction = new Ghostify.Definition(ghostType).CreateInstance(selectedSim, selectedSim, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as Ghostify;
+			selectedSim.InteractionQueue.AddNext(ghostifyInteraction);
 			return true;
 		}
 
@@ -2649,9 +2679,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				{ IsFoal: true }                        => "ch_whinny_x",
 				{ IsHorse: true }                       => "ah_whinny_x",
-				{ IsFullSizeDog: true, IsPuppy: true }  => "cd_react_stand_whimper_x",
+				{ IsPuppy: true }                       => "cd_react_stand_whimper_x",
 				{ IsFullSizeDog: true }                 => "ad_react_stand_whimper_x",
-				{ IsLittleDog: true, IsPuppy: true }    => "cl_react_stand_whimper_x",
 				{ IsLittleDog: true }                   => "al_react_stand_whimper_x",
 				{ IsKitten: true }                      => "cc_petNeeds_standing_hunger_whinyMeow_x",
 				{ IsCat: true }                         => "ac_petNeeds_standing_hunger_whinyMeow_x",

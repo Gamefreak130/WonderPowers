@@ -200,6 +200,10 @@
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuffDescription</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuffDescription</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GhostifyBuff</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GhostifyBuff</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GhostifyBuffDescription</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GhostifyBuffDescription</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GoodMoodBuff</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GoodMoodBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GoodMoodBuffDescription</KEY>

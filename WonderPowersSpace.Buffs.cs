@@ -1,22 +1,15 @@
 ﻿using Gamefreak130.Common.Buffs;
-using Gamefreak130.Common.Helpers;
 using Gamefreak130.Common.Interactions;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
-using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
-using Sims3.Gameplay.Objects;
 using Sims3.Gameplay.UI;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.SimIFace.CAS;
 using Sims3.UI;
-using Sims3.UI.CAS;
-using System.Collections.Generic;
-using System.Linq;
 using static Sims3.Gameplay.ActorSystems.BuffCommodityDecayModifier;
 using static Sims3.SimIFace.ResourceUtils;
 using Responder = Sims3.UI.Responder;
@@ -57,115 +50,6 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
             => y is not null && (y.CurrentInteraction is null || y.CurrentInteraction.GetPriority().Level < InteractionPriorityLevel.CriticalNPCBehavior) && x != y 
             && x.BuffManager.HasElement(kBuffCryHavocGuid) && y.BuffManager.HasElement(kBuffCryHavocGuid)
             && x.IsPet == y.IsPet && ((x.SimDescription.Teen && y.SimDescription.Teen) || (x.SimDescription.YoungAdultOrAbove && y.SimDescription.YoungAdultOrAbove));
-    }
-
-    public class BuffGhostify : BuffTheUndead
-    {
-        public class BuffInstanceGhostify : BuffInstance
-        {
-            public BuffInstanceGhostify()
-            {
-            }
-
-            public BuffInstanceGhostify(Buff buff, BuffNames buffGuid, int effectValue, float timeoutCount) : base(buff, buffGuid, effectValue, timeoutCount)
-            {
-            }
-
-            public uint mGhostType;
-
-            public override BuffInstance Clone() => new BuffInstanceGhostify(mBuff, mBuffGuid, mEffectValue, mTimeoutCount);
-
-            public override bool OnLoadFixup(Sim actor)
-            {
-                bool flag = base.OnLoadFixup(actor);
-                World.ObjectSetGhostState(actor.ObjectId, mGhostType, (uint)actor.SimDescription.AgeGenderSpecies);
-                return flag;
-            }
-        }
-
-        public const ulong kBuffGhostifyGuid = 0xABECC1DBFB07E2B9;
-
-        private static readonly SimDescription.DeathType[] sHumanDeathTypes =
-        {
-            SimDescription.DeathType.OldAge,
-            SimDescription.DeathType.Drown,
-            SimDescription.DeathType.Starve,
-            SimDescription.DeathType.Electrocution,
-            SimDescription.DeathType.Burn,
-            SimDescription.DeathType.MummyCurse,
-            SimDescription.DeathType.Meteor,
-            SimDescription.DeathType.WateryGrave,
-            SimDescription.DeathType.HumanStatue,
-            SimDescription.DeathType.Transmuted,
-            SimDescription.DeathType.HauntingCurse,
-            SimDescription.DeathType.JellyBeanDeath,
-            SimDescription.DeathType.Freeze,
-            SimDescription.DeathType.BluntForceTrauma,
-            SimDescription.DeathType.Ranting,
-            SimDescription.DeathType.Shark,
-            SimDescription.DeathType.ScubaDrown,
-            SimDescription.DeathType.MermaidDehydrated,
-            SimDescription.DeathType.Causality,
-            SimDescription.DeathType.Jetpack,
-            SimDescription.DeathType.FutureUrnstoneHologram
-        };
-
-        public BuffGhostify(BuffData data) : base(data)
-        {
-        }
-
-        public override BuffInstance CreateBuffInstance() => new BuffInstanceGhostify(this, BuffGuid, EffectValue, TimeoutSimMinutes);
-
-        public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
-        {
-            if (bi is BuffInstanceGhostify biGhostify)
-            {
-                Sim actor = bm.Actor;
-                biGhostify.mGhostType = SelectGhostType(actor);
-                string name = (actor.SimDescription.Age is not CASAgeGenderFlags.Child) ? "ep4PotionWearOff" : "ep4PotionWearOffChild";
-                Audio.StartObjectSound(actor.ObjectId, "sting_ghost_appear", false);
-                VisualEffect.FireOneShotEffect(name, actor, Sim.FXJoints.Spine0, VisualEffect.TransitionType.SoftTransition);
-                World.ObjectSetGhostState(actor.ObjectId, biGhostify.mGhostType, (uint)actor.SimDescription.AgeGenderSpecies);
-                actor.RequestWalkStyle(Sim.WalkStyle.GhostWalk);
-            }
-        }
-
-        private static uint SelectGhostType(Sim sim)
-        {
-            SimDescription.DeathType ghostType = SimDescription.DeathType.None;
-            if (sim is not null)
-            {
-                if (!sim.IsHuman)
-                {
-                    return (uint)RandomUtilEx.CoinFlipSelect(SimDescription.DeathType.PetOldAgeGood, SimDescription.DeathType.PetOldAgeBad);
-                }
-                    
-                List<ObjectPicker.HeaderInfo> list = new()
-                {
-                    new("Ui/Caption/ObjectPicker:Ghost", "Ui/Caption/ObjectPicker:Ghost", 300)
-                };
-
-                List<ObjectPicker.RowInfo> list2 = sHumanDeathTypes.Select((deathType, i) => {
-                    return new ObjectPicker.RowInfo(deathType, new()
-                    {
-                        new ObjectPicker.ThumbAndTextColumn(new ThumbnailKey(ResourceKey.CreatePNGKey(CASBasics.mGhostDeathNames[i], 0u), ThumbnailSize.ExtraLarge), Urnstone.DeathTypeToLocalizedString(deathType))
-                    });
-                }).ToList();
-
-                List<ObjectPicker.TabInfo> list3 = new()
-                {
-                    new("shop_all_r2", Helpers.WonderPowerManager.LocalizeString("SelectGhost"), list2)
-                };
-
-                while (ghostType is SimDescription.DeathType.None)
-                {
-                    List<ObjectPicker.RowInfo> selection = ObjectPickerDialog.Show(true, ModalDialog.PauseMode.PauseSimulator, Helpers.WonderPowerManager.LocalizeString("GhostifyDialogTitle"), Localization.LocalizeString("Ui/Caption/ObjectPicker:OK"), 
-                                                                                    Localization.LocalizeString("Ui/Caption/ObjectPicker:Cancel"), list3, list, 1);
-                    ghostType = selection is not null ? (SimDescription.DeathType)selection[0].Item : SimDescription.DeathType.None;
-                }
-            }
-            return (uint)ghostType;
-        }
     }
 
     public class BuffLuckyFind : BuffTemporaryTraitEx
