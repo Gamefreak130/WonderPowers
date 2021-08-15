@@ -2210,7 +2210,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				}
 			}
 
-			Ghostify ghostifyInteraction = new Ghostify.Definition(ghostType).CreateInstance(selectedSim, selectedSim, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as Ghostify;
+			Ghostify ghostifyInteraction = new Ghostify.Definition(ghostType).CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as Ghostify;
 			selectedSim.InteractionQueue.AddNext(ghostifyInteraction);
 			return true;
 		}
@@ -2240,16 +2240,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			Camera.FocusOnSelectedSim();
 			foreach (Sim sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors())
 			{
-				//CONSIDER visual effect?
-				//CONSIDER Toggle power on sound finish?
-				foreach (BuffInstance bi in new List<BuffInstance>(sim.BuffManager.Buffs
-																				  .Where(bi => bi is { Guid: not (BuffNames.Singed or BuffNames.HavingAMidlifeCrisis or BuffNames.HavingAMidlifeCrisisWithPromise or BuffNames.MalePregnancy), EffectValue: < 0 })))
-                {
-					sim.BuffManager.ForceRemoveBuff(bi.Guid);
-                }
-				sim.BuffManager.AddElement(HashString64("Gamefreak130_GoodMoodBuff"), (Origin)HashString64("FromWonderPower"));
+				ActivateGoodMood interaction = new ActivateGoodMood.Definition().CreateInstance(sim, sim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ActivateGoodMood;
+				sim.InteractionQueue.AddNext(interaction);
 			}
-			//CONSIDER styled notifications (not just for this, but for all of these potentially?)
+			PlumbBob.SelectedActor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(PlumbBob.SelectedActor.IsFemale, "GoodMoodTNS", PlumbBob.SelectedActor), StyledNotification.NotificationStyle.kGameMessagePositive);
 			WonderPowerManager.TogglePowerRunning();
 			return true;
 		}
@@ -2934,7 +2928,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				PlumbBob.SelectActor(selectedSim);
 			}
-			ReceiveMagicalCheck receiveInteraction = new ReceiveMagicalCheck.Definition().CreateInstance(selectedSim, selectedSim, new InteractionPriority(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ReceiveMagicalCheck;
+			ReceiveMagicalCheck receiveInteraction = new ReceiveMagicalCheck.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ReceiveMagicalCheck;
 			selectedSim.InteractionQueue.AddNext(receiveInteraction);
 			return true;
 		}	
