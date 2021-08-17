@@ -2250,6 +2250,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool InstantBeautyActivation(bool _)
         {
+			// TODO Allow Pets
 			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetSims(sim => sim.SimDescription.ToddlerOrAbove && !sim.OccultManager.DisallowClothesChange() && !sim.BuffManager.DisallowClothesChange())
 												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("InstantBeautyDialogTitle"))?.CreatedSim;
@@ -2257,21 +2258,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             {
 				return false;
             }
-            // CONSIDER anim/vis effect and sting?
-            GameStates.sSingleton.mInWorldState.GotoCASMode((InWorldState.SubState)HashString32("CASInstantBeautyState"));
-			CASLogic singleton = CASLogic.GetSingleton();
-			singleton.LoadSim(selectedSim.SimDescription, selectedSim.CurrentOutfitCategory, 0);
-			singleton.UseTempSimDesc = true;
-			while (GameStates.NextInWorldStateId is not InWorldState.SubState.LiveMode)
-			{
-				Simulator.Sleep(1U);
-			}
-			Camera.FocusOnSim(selectedSim);
-			if (selectedSim.IsSelectable)
-			{
-				PlumbBob.SelectActor(selectedSim);
-			}
-			WonderPowerManager.TogglePowerRunning();
+			Beautify beautify = new Beautify.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as Beautify;
+			selectedSim.InteractionQueue.AddNext(beautify);
 			return true;
 		}
 
@@ -2338,8 +2326,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			Lot selectedLot;
 			if (isBacklash)
 			{
-				//List<Lot> list = (LotManager.AllLotsWithoutCommonExceptions as List<Lot>).FindAll((lot) => lot.CommercialLotSubType is not CommercialLotSubType.kEP1_HiddenTomb);
-				//selectedLot = RandomUtil.GetRandomObjectFromList(list);
 				Sim actor = PlumbBob.SelectedActor;
 				selectedLot = actor.LotCurrent.IsWorldLot
 					? GetClosestObject(LotManager.AllLotsWithoutCommonExceptions.Cast<Lot>(), actor)

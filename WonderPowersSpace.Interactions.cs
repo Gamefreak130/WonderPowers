@@ -1,4 +1,5 @@
 ﻿using Gamefreak130.WonderPowersSpace.Helpers;
+using Sims3.Gameplay;
 using Sims3.Gameplay.ActiveCareer.ActiveCareers;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
@@ -442,6 +443,73 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 mEffect.Dispose();
                 mEffect = null;
             }
+        }
+    }
+
+    public class Beautify : Interaction<Sim, Sim>
+    {
+        public class Definition : SoloSimInteractionDefinition<Beautify>
+        {
+            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
+
+            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => WonderPowerManager.LocalizeString("InstantBeautyDialogTitle");
+        }
+
+        private VisualEffect mEffect;
+
+        public override bool Run()
+        {
+            GameStates.sSingleton.mInWorldState.GotoCASMode((InWorldState.SubState)HashString32("CASInstantBeautyState"));
+            CASLogic singleton = CASLogic.GetSingleton();
+            singleton.LoadSim(Actor.SimDescription, Actor.CurrentOutfitCategory, 0);
+            singleton.UseTempSimDesc = true;
+            while (GameStates.NextInWorldStateId is not InWorldState.SubState.LiveMode)
+            {
+                Simulator.Sleep(1U);
+            }
+            mEffect = VisualEffect.Create("ep4imaginaryfriendtransformthrow");
+            mEffect.ParentTo(Actor, Sim.FXJoints.Neck);
+            mEffect.Start();
+            Camera.FocusOnSim(Actor);
+            if (Actor.IsSelectable)
+            {
+                PlumbBob.SelectActor(Actor);
+            }
+            Audio.StartSound("sting_instantbeauty");
+
+            string animName = Actor.SimDescription switch
+            {
+                { IsFoal: true }                       => "ch_trait_nervous_x",
+                { IsHorse: true }                      => "ah_trait_nervous_x",
+                { IsPuppy: true }                      => "cd_trait_adventurous_x",
+                { IsFullSizeDog: true }                => "ad_trait_adventurous_x",
+                { IsLittleDog: true }                  => "al_trait_adventurous_x",
+                { IsKitten: true }                     => "cc_trait_hyper_x",
+                { IsCat: true }                        => "ac_trait_hyper_x",
+                { Child: true }                        => "c_cas_flavor_checkOutSelf_top_child_average_x",
+                { Elder: true }                        => "a_cas_flavor_checkOutSelf_top_elder_average_x",
+                { TeenOrAbove: true, IsMale: true }    => "a_cas_flavor_checkOutSelf_top_male_average_x",
+                { TeenOrAbove: true, IsFemale: true }  => "a_cas_flavor_checkOutSelf_top_female_average_x",
+                _                                      => null
+            };
+
+            if (!string.IsNullOrEmpty(animName))
+            {
+                Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+            }
+            return true;
+        }
+
+        public override void Cleanup()
+        {
+            if (mEffect is not null)
+            {
+                mEffect.Stop();
+                mEffect.Dispose();
+                mEffect = null;
+            }
+            Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("InstantBeautyTNS"), StyledNotification.NotificationStyle.kGameMessagePositive);
+            WonderPowerManager.TogglePowerRunning();
         }
     }
 

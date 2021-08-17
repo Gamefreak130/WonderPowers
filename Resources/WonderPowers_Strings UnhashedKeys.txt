@@ -186,6 +186,8 @@
 <STR>Gameplay/WonderMode:GhostsTNS</STR>
 <KEY>Gameplay/WonderMode:GoodMoodTNS</KEY>
 <STR>Gameplay/WonderMode:GoodMoodTNS</STR>
+<KEY>Gameplay/WonderMode:InstantBeautyTNS</KEY>
+<STR>Gameplay/WonderMode:InstantBeautyTNS</STR>
 <KEY>Gameplay/WonderMode:TransmogrifyTNS</KEY>
 <STR>Gameplay/WonderMode:TransmogrifyTNS</STR>
 <KEY>Gameplay/WonderMode:WealthTNS</KEY>
