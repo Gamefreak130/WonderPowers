@@ -2250,8 +2250,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool InstantBeautyActivation(bool _)
         {
-			// TODO Allow Pets
-			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetSims(sim => sim.SimDescription.ToddlerOrAbove && !sim.OccultManager.DisallowClothesChange() && !sim.BuffManager.DisallowClothesChange())
+			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors()
+												  where (sim.IsPet && sim.SimDescription.AdultOrAbove) || (sim.SimDescription.ToddlerOrAbove && !sim.OccultManager.DisallowClothesChange() && !sim.BuffManager.DisallowClothesChange())
 												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("InstantBeautyDialogTitle"))?.CreatedSim;
 			if (selectedSim is null)
@@ -3103,6 +3103,32 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 					{
 						window2.Area = new(new(window2.Area.TopLeft.x, 170), new(window2.Area.BottomRight.x, 170));
 					}
+				}
+
+				if (CAPPetSheet.gSingleton is not null)
+                {
+					UIHelper.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.RandomizeButton);
+					UIHelper.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsButton);
+					UIHelper.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsFButton);
+					UIHelper.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.BasicsText);
+					UIHelper.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.AccessoriesButton);
+					UIHelper.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.AccessoriesText);
+					UIHelper.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.CharacterButton);
+					UIHelper.HideElementById(CAPPetSheet.gSingleton, (uint)CAPPetSheet.ControlIDs.CharacterText);
+				}
+
+				WindowBase panel = CAPPetSheet.gSingleton?.mSpeciesButtonPanels?
+														  .Where(kvp => kvp.Key == Responder.Instance?.CASModel?.Species)
+														  .Select(kvp => kvp.Value)
+														  .FirstOrDefault();
+				if (panel is not null)
+				{
+					UIHelper.HideElementById(panel, (uint)CAPPetSheet.ControlIDs.AccessoriesButton);
+				}
+
+				if (CAPBreeds.gSingleton is not null)
+				{
+					UIHelper.HideElementById(CAPBreeds.gSingleton, (uint)CAPBreeds.ControlIDs.DogButtonPanel);
 				}
 
 				if (CASPuck.Instance is CASPuck puck)

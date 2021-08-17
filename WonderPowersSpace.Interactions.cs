@@ -468,7 +468,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 Simulator.Sleep(1U);
             }
             mEffect = VisualEffect.Create("ep4imaginaryfriendtransformthrow");
-            mEffect.ParentTo(Actor, Sim.FXJoints.Neck);
+            mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Neck);
             mEffect.Start();
             Camera.FocusOnSim(Actor);
             if (Actor.IsSelectable)

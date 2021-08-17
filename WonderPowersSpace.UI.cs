@@ -382,32 +382,9 @@ namespace Gamefreak130.WonderPowersSpace.UI
 				return;
 			}
 			GameStates.mQuittingTaskStarted = true;
-			if (GameStates.sSingleton.mInWorldState.mStateMachine.CurState.StateId == (int)HashString32("CASWonderModeState") || GameStates.IsCasState || GameStates.IsBuildBuyLikeState || Passport.Instance.IsCurrentlyHosting())
+			if (TwoButtonDialog.Show(Localization.LocalizeString("Ui/Caption/QuitDialog:PromptMainMenuNoSave"), Localization.LocalizeString("Ui/Caption/Global:Exit"), Localization.LocalizeString("Ui/Caption/QuitDialog:Cancel")))
 			{
-				if (TwoButtonDialog.Show(Localization.LocalizeString("Ui/Caption/QuitDialog:PromptMainMenuNoSave"), Localization.LocalizeString("Ui/Caption/Global:Exit"), Localization.LocalizeString("Ui/Caption/QuitDialog:Cancel")))
-				{
-					GameStates.TransitionToLeaveInWorld();
-				}
-			}
-			else
-			{
-				string promptText2 = Localization.LocalizeString("Ui/Caption/QuitToMainMenuDialog:Prompt");
-				string firstButton = Localization.LocalizeString("Ui/Caption/QuitToMainMenuDialog:SaveAndQuit");
-				string secondButton = Localization.LocalizeString("Ui/Caption/QuitToMainMenuDialog:QuitWinhoutSaving");
-				string thirdButton = Localization.LocalizeString("Ui/Caption/QuitToMainMenuDialog:Cancel");
-				ThreeButtonDialog.ButtonPressed buttonPressed = ThreeButtonDialog.Show(promptText2, firstButton, secondButton, thirdButton);
-				if (buttonPressed == ThreeButtonDialog.ButtonPressed.FirstButton)
-				{
-					OptionsModel optionsModel = Sims3.Gameplay.UI.Responder.Instance.OptionsModel as OptionsModel;
-					if (optionsModel.SaveGame(true))
-					{
-						GameStates.TransitionToLeaveInWorld();
-					}
-				}
-				else if (buttonPressed == ThreeButtonDialog.ButtonPressed.SecondButton)
-				{
-					GameStates.TransitionToLeaveInWorld();
-				}
+				GameStates.TransitionToLeaveInWorld();
 			}
 			GameStates.mQuitting = false;
 			GameStates.mQuittingTaskStarted = false;
@@ -415,13 +392,12 @@ namespace Gamefreak130.WonderPowersSpace.UI
 
 		private static void QuitToWindowsTask()
 		{
-			bool inCasWonderMode = GameStates.sSingleton.mInWorldState.mStateMachine.CurState.StateId == (int)HashString32("CASWonderModeState");
 			if (GameStates.mQuittingTaskStarted || GameStates.mQuitDisableCount > 0 || GameStates.IsGameShuttingDown || MiniLoad.Loading)
 			{
 				GameStates.mQuitting = GameStates.mQuittingTaskStarted;
 				return;
 			}
-			if ((inCasWonderMode || GameStates.IsCasState) && CASController.Singleton is not null && (CASController.Singleton.CurrentState.mTopState == CASTopState.None || CASController.Singleton.UiBusy || LoadScreen.Loading()))
+			if (CASController.Singleton is not null && (CASController.Singleton.CurrentState.mTopState == CASTopState.None || CASController.Singleton.UiBusy || LoadScreen.Loading()))
 			{
 				GameStates.mQuitting = false;
 				return;
@@ -435,30 +411,9 @@ namespace Gamefreak130.WonderPowersSpace.UI
 					GameStates.mQuitting = false;
 					return;
 				}
-				if (inCasWonderMode || GameStates.IsCasState || GameStates.IsBuildBuyLikeState)
+				if (TwoButtonDialog.Show(Localization.LocalizeString("Ui/Caption/QuitDialog:PromptNoSave"), Localization.LocalizeString("Ui/Caption/Global:Exit"), Localization.LocalizeString("Ui/Caption/QuitDialog:Cancel")))
 				{
-					if (TwoButtonDialog.Show(Localization.LocalizeString("Ui/Caption/QuitDialog:PromptNoSave"), Localization.LocalizeString("Ui/Caption/Global:Exit"), Localization.LocalizeString("Ui/Caption/QuitDialog:Cancel")))
-					{
-						GameStates.GotoState(GameState.InWorldToQuit);
-					}
-				}
-				else if (!IntroTutorial.IsRunning || IntroTutorial.AreYouExitingTutorial())
-				{
-					if (Sims3.UI.Responder.Instance.PassportModel.WorldIsCurrentlyHostingASimViaPassport())
-					{
-						if (!TwoButtonDialog.Show(Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:VerifyQuitWhileHosting"),
-												  Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:Yes"), Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:No")))
-						{
-							GameStates.mQuitting = false;
-							GameStates.mQuittingTaskStarted = false;
-							return;
-						}
-						Sims3.UI.Responder.Instance.PassportModel.SendSimHomeImmediately();
-					}
-					if (InWorldState.PromptedQuit())
-					{
-						GameStates.GotoState(GameState.InWorldToQuit);
-					}
+					GameStates.GotoState(GameState.InWorldToQuit);
 				}
 			}
 			else if (GameStates.sSingleton.mStateMachine.CurStateId == 2)
@@ -471,36 +426,6 @@ namespace Gamefreak130.WonderPowersSpace.UI
 			GameStates.mQuitting = false;
 			GameStates.mQuittingTaskStarted = false;
 		}
-
-		/*public static void OnCloseClick(WindowBase sender, UIButtonClickEventArgs eventArgs)
-		{
-			if (CASPuck.Instance is not CASPuck puck || puck.UiBusy || puck.mLeaveCAS)
-			{
-				return;
-			}
-			puck.UiBusy = true;
-			Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(delegate () {
-				ICASModel casmodel = Sims3.UI.Responder.Instance.CASModel;
-				ILocalizationModel localizationModel = Sims3.UI.Responder.Instance.LocalizationModel;
-				if (TwoButtonDialog.Show(localizationModel.LocalizeString("Ui/Caption/CAS/ExitDialog:AlternatePrompt"), localizationModel.LocalizeString("Ui/Caption/Global:Yes"), localizationModel.LocalizeString("Ui/Caption/Global:No")))
-				{
-					CASController singleton = CASController.Singleton;
-					singleton.AllowCameraMovement(false);
-					while (casmodel.IsProcessing())
-					{
-						Simulator.Sleep(0U);
-					}
-					sender.Enabled = false;
-					casmodel.RequestClearChangeReport();
-					singleton.SetCurrentState(CASState.None);
-					return;
-				}
-				puck.UiBusy = false;
-			}));
-			eventArgs.Handled = true;
-		}*/
-
-		
 	}
 
 	internal static class OptionsInjector
