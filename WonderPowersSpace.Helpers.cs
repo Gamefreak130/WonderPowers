@@ -660,7 +660,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			//Simulator.AddObject(sInstance);
 		}
 
-        /*internal static void ReInit()
+		/*internal static void ReInit()
 		{
 			foreach (WonderPowerActivation mActiveWonderPower in sInstance.mActiveWonderPowers)
 			{
@@ -674,7 +674,13 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		//internal static void LoadValues() => Ferry<WonderPowerManager>.UnloadCargo();
 
-        public static void Add(WonderPower s) => sAllWonderPowers.Add(s);
+		public static void Add(WonderPower s)
+		{
+			if (!sAllWonderPowers.Any(power => power.WonderPowerName == s.WonderPowerName))
+			{
+				sAllWonderPowers.Add(s);
+			}
+		}
 
 		public static bool HasEnoughKarma(int karma) => sInstance.Karma - karma >= -100;
 
@@ -2297,7 +2303,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		public static bool LuckyFindActivation(bool _)
 		{
 			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors()
-												  where sim.SimDescription.ChildOrAbove && !sim.SimDescription.IsHorse && !sim.BuffManager.HasElement(BuffLuckyFind.kBuffLuckyFindGuid)
+												  where (sim.IsPet || GameUtils.IsInstalled(ProductVersion.EP7)) && sim.SimDescription.TeenOrAbove && !sim.SimDescription.IsHorse && !sim.BuffManager.HasElement(BuffLuckyFind.kBuffLuckyFindGuid)
 												  select sim.SimDescription;
 			Sim selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("LuckyFindDialogTitle"))?.CreatedSim;
 
@@ -2306,18 +2312,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				return false;
 			}
 
-			//CONSIDER animation, visual effect?
-			//CONSIDER Toggle power on sound finish?
-			//TODO cancel all interactions
-			//TODO get eor sting
-			//Audio.StartSound("sting_goodmood");
-			Camera.FocusOnSim(selectedSim);
-			if (selectedSim.IsSelectable)
-			{
-				PlumbBob.SelectActor(selectedSim);
-			}
-			selectedSim.BuffManager.AddElement(BuffLuckyFind.kBuffLuckyFindGuid, (Origin)HashString64("FromWonderPower"));
-			WonderPowerManager.TogglePowerRunning();
+			ActivateLuckyFind activateLuckyFind = new ActivateLuckyFind.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ActivateLuckyFind;
+			selectedSim.InteractionQueue.AddNext(activateLuckyFind);
 			return true;
 		}
 

@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <base>
-	<Interaction name="Gamefreak130.WonderPowersSpace.Interactions.ActivateGoodMood+Definition" />
+	<Interaction name="Gamefreak130.WonderPowersSpace.Interactions.ActivateLuckyFind+Definition" />
 	<Object name="Sims3.Gameplay.Actors.Sim" />
 	<CodeVersion name="BaseGame" considerCodeVersion="False" />
 	<Current_Tuning>
 		<Disallow DisallowAutonomous="True" DisallowUserDirected="False" DisallowPlayerSim="False" />
 		<BaseAvailability>
-			<AgeSpeciesAvail AgeSpeciesValue="B,P,C,T,Y,A,E,CH,AH,EH,CC,AC,EC,CD,AD,ED,CL,AL,EL" />
+			<AgeSpeciesAvail AgeSpeciesValue="T,Y,A,E,AC,EC,AD,ED,AL,EL" />
 			<MotiveThreshold MotiveThresholdType="None" MotiveThresholdValue="0" MotiveBelowCheck="False" />
 			<MoodThreshold MoodThresholdType="None" MoodThresholdValue="0" />
 			<SkillThreshold SkillThresholdType="None" SkillThresholdValue="0" />
@@ -18,7 +18,7 @@
 			<Misc DisallowedIfPregnant="False" DisallowedFromInventory="False" />
 		</BaseAvailability>
 		<Check type="All" value="0" />
-		<Tradeoff name="ActivateGoodMood">
+		<Tradeoff name="ActivateLuckyFind">
 			<Localization autoGenerate="False" />
 			<Time value="1" addRoute="True" />
 			<Exit funExit="False" stressExit="False" interruptible="False" />

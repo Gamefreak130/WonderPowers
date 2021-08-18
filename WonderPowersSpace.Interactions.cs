@@ -379,6 +379,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             {
                 Actor.BuffManager.AddElement(HashString64("Gamefreak130_GhostifyBuff"), (Origin)HashString64("FromWonderPower"));
                 Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(Actor.IsFemale, "GhostifyTNS", Actor), StyledNotification.NotificationStyle.kGameMessagePositive);
+                base.Cleanup();
             }
             finally
             {
@@ -443,6 +444,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 mEffect.Dispose();
                 mEffect = null;
             }
+            base.Cleanup();
         }
     }
 
@@ -502,14 +504,89 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override void Cleanup()
         {
-            if (mEffect is not null)
+            try
             {
-                mEffect.Stop();
-                mEffect.Dispose();
-                mEffect = null;
+                if (mEffect is not null)
+                {
+                    mEffect.Stop();
+                    mEffect.Dispose();
+                    mEffect = null;
+                }
+                Actor.BuffManager.AddElement(HashString64("Gamefreak130_InstantBeautyBuff"), (Origin)HashString64("FromWonderPower"));
+                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("InstantBeautyTNS"), StyledNotification.NotificationStyle.kGameMessagePositive);
+                base.Cleanup();
             }
-            Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("InstantBeautyTNS"), StyledNotification.NotificationStyle.kGameMessagePositive);
-            WonderPowerManager.TogglePowerRunning();
+            finally
+            {
+                WonderPowerManager.TogglePowerRunning();
+            }
+        }
+    }
+
+    public class ActivateLuckyFind : Interaction<Sim, Sim>
+    {
+        public class Definition : SoloSimInteractionDefinition<ActivateLuckyFind>
+        {
+            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
+
+            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => WonderPowerManager.LocalizeString("LuckyFindDialogTitle");
+        }
+
+        private VisualEffect mEffect;
+
+        public override bool Run()
+        {
+            mEffect = VisualEffect.Create("ep7ghostgoldmed_ghost");
+            mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Neck);
+            mEffect.Start();
+            Audio.StartSound("sting_luckyfind");
+            Camera.FocusOnSim(Actor);
+            if (Actor.IsSelectable)
+            {
+                PlumbBob.SelectActor(Actor);
+            }
+
+            string animName = Actor.SimDescription switch
+            {
+                { IsFullSizeDog: true }  => "ad_trait_hunter_x",
+                { IsLittleDog: true }    => "al_trait_hunter_x",
+                { IsCat: true }          => "ac_trait_hunter_x",
+                _                        => "a_trait_gatherer_x"
+            };
+
+            if (animName == "a_trait_gatherer_x")
+            {
+                Sim.CustomIdle customIdle = Sim.CustomIdle.Singleton.CreateInstance(Actor, Actor, GetPriority(), true, true) as Sim.CustomIdle;
+                customIdle.Hidden = true;
+                customIdle.JazzGraphName = "TraitGatherer";
+                customIdle.LoopTimes = 1;
+                customIdle.RunInteraction();
+            }
+            else
+            {
+                Actor.PlaySoloAnimation(animName, true, ProductVersion.EP5);
+            }
+            return true;
+        }
+
+        public override void Cleanup()
+        {
+            try
+            {
+                if (mEffect is not null)
+                {
+                    mEffect.Stop();
+                    mEffect.Dispose();
+                    mEffect = null;
+                }
+                Actor.BuffManager.AddElement(Buffs.BuffLuckyFind.kBuffLuckyFindGuid, (Origin)HashString64("FromWonderPower"));
+                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("LuckyFindTNS"), StyledNotification.NotificationStyle.kGameMessagePositive);
+                base.Cleanup();
+            }
+            finally
+            {
+                WonderPowerManager.TogglePowerRunning();
+            }
         }
     }
 

@@ -188,6 +188,8 @@
 <STR>Gameplay/WonderMode:GoodMoodTNS</STR>
 <KEY>Gameplay/WonderMode:InstantBeautyTNS</KEY>
 <STR>Gameplay/WonderMode:InstantBeautyTNS</STR>
+<KEY>Gameplay/WonderMode:LuckyFindTNS</KEY>
+<STR>Gameplay/WonderMode:LuckyFindTNS</STR>
 <KEY>Gameplay/WonderMode:TransmogrifyTNS</KEY>
 <STR>Gameplay/WonderMode:TransmogrifyTNS</STR>
 <KEY>Gameplay/WonderMode:WealthTNS</KEY>
@@ -214,6 +216,10 @@
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GoodMoodBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GoodMoodBuffDescription</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GoodMoodBuffDescription</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_InstantBeautyBuff</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_InstantBeautyBuff</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_InstantBeautyBuffDescription</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_InstantBeautyBuffDescription</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuff</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuffDescription</KEY>

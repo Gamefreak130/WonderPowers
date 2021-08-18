@@ -70,6 +70,14 @@
     <TimeoutLength>180</TimeoutLength>
   </BuffList>
   <BuffList>
+    <Hex>Gamefreak130_InstantBeautyBuff=0x00A61BA27C377815</Hex>
+    <BuffName>Gamefreak130_InstantBeautyBuff</BuffName>
+    <BuffDescription>Gamefreak130_InstantBeautyBuffDescription</BuffDescription>
+    <ThumbFilename>instantbeauty</ThumbFilename>
+    <EffectValue>20</EffectValue>
+    <TimeoutLength>360</TimeoutLength>
+  </BuffList>
+  <BuffList>
     <Hex>Gamefreak130_LuckyFindBuff=0x2D42AC8E858A22A7</Hex>
     <BuffName>Gamefreak130_LuckyFindBuff</BuffName>
     <BuffDescription>Gamefreak130_LuckyFindBuffDescription</BuffDescription>

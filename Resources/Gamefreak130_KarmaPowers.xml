@@ -75,6 +75,14 @@
     <EffectMethod>LuckyBreakActivation</EffectMethod>
   </Power>
   <Power>
+    <ProductVersion>EP5</ProductVersion>
+    <PowerName>LuckyFind</PowerName>
+    <IsBad>False</IsBad>
+    <Cost>30</Cost>
+    <EffectMethod>LuckyFindActivation</EffectMethod>
+  </Power>
+  <Power>
+    <ProductVersion>EP7</ProductVersion>
     <PowerName>LuckyFind</PowerName>
     <IsBad>False</IsBad>
     <Cost>30</Cost>
