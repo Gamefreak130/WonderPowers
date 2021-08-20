@@ -551,10 +551,10 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 { IsFullSizeDog: true }  => "ad_trait_hunter_x",
                 { IsLittleDog: true }    => "al_trait_hunter_x",
                 { IsCat: true }          => "ac_trait_hunter_x",
-                _                        => "a_trait_gatherer_x"
+                _                        => null
             };
 
-            if (animName == "a_trait_gatherer_x")
+            if (animName is null)
             {
                 Sim.CustomIdle customIdle = Sim.CustomIdle.Singleton.CreateInstance(Actor, Actor, GetPriority(), true, true) as Sim.CustomIdle;
                 customIdle.Hidden = true;
@@ -581,6 +581,83 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 }
                 Actor.BuffManager.AddElement(Buffs.BuffLuckyFind.kBuffLuckyFindGuid, (Origin)HashString64("FromWonderPower"));
                 Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("LuckyFindTNS"), StyledNotification.NotificationStyle.kGameMessagePositive);
+                base.Cleanup();
+            }
+            finally
+            {
+                WonderPowerManager.TogglePowerRunning();
+            }
+        }
+    }
+
+    public class ActivateLuckyBreak : Interaction<Sim, Sim>
+    {
+        public class Definition : SoloSimInteractionDefinition<ActivateLuckyBreak>
+        {
+            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
+
+            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => WonderPowerManager.LocalizeString("LuckyBreakDialogTitle");
+        }
+
+        private VisualEffect mEffect;
+
+        public override bool Run()
+        {
+            mEffect = VisualEffect.Create("ep7moodlampimpactgreen_main");
+            mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Pelvis);
+            mEffect.Start();
+            Audio.StartSound("sting_luckybreak");
+            Camera.FocusOnSim(Actor);
+            if (Actor.IsSelectable)
+            {
+                PlumbBob.SelectActor(Actor);
+            }
+
+            string animName = Actor.SimDescription switch
+            {
+                { IsFoal: true }         => "ch_trait_brave_x",
+                { IsHorse: true }        => "ah_trait_brave_x",
+                { IsPuppy: true }        => "cd_trait_proud_x",
+                { IsFullSizeDog: true }  => "ad_trait_proud_x",
+                { IsLittleDog: true }    => "al_trait_proud_x",
+                { IsKitten: true }       => "cc_trait_proud_x",
+                { IsCat: true }          => "ac_trait_proud_x",
+                _                        => null
+            };
+
+            if (animName is null)
+            {
+                Sim.CustomIdle customIdle = Sim.CustomIdle.Singleton.CreateInstance(Actor, Actor, GetPriority(), true, true) as Sim.CustomIdle;
+                customIdle.Hidden = true;
+                customIdle.JazzGraphName = "Trait_Lucky";
+                customIdle.LoopTimes = 1;
+                customIdle.ExtraWaitTime = 180;
+                customIdle.RunInteraction();
+            }
+            else
+            {
+                Actor.PlaySoloAnimation(animName, true, ProductVersion.EP5);
+            }
+            return true;
+        }
+
+        public override void Cleanup()
+        {
+            try
+            {
+                if (mEffect is not null)
+                {
+                    mEffect.Stop();
+                    mEffect.Dispose();
+                    mEffect = null;
+                }
+                Actor.BuffManager.AddBuff(BuffNames.UnicornsBlessing, 40, 1440, false, MoodAxis.Happy, (Origin)HashString64("FromWonderPower"), true);
+                BuffInstance buff = Actor.BuffManager.GetElement(BuffNames.UnicornsBlessing);
+                buff.mBuffName = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuff";
+                buff.mDescription = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuffDescription";
+                // This will automatically trigger the BuffsChanged event, so the UI should refresh itself after this and we won't have to do it manually
+                buff.SetThumbnail("moodlet_feelinglucky", ProductVersion.BaseGame, Actor);
+                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("LuckyBreakTNS"), StyledNotification.NotificationStyle.kGameMessagePositive);
                 base.Cleanup();
             }
             finally

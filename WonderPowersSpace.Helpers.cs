@@ -2280,23 +2280,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             {
 				return false;
 			}
-
-			//CONSIDER animation, visual effect?
-			//CONSIDER Toggle power on sound finish?
-			//TODO cancel all interactions
-			Audio.StartSound("sting_goodmood");
-			Camera.FocusOnSim(selectedSim);
-			if (selectedSim.IsSelectable)
-			{
-				PlumbBob.SelectActor(selectedSim);
-			}
-			selectedSim.BuffManager.AddBuff(BuffNames.UnicornsBlessing, 40, 1440, false, MoodAxis.Happy, (Origin)HashString64("FromWonderPower"), true);
-			BuffInstance buff = selectedSim.BuffManager.GetElement(BuffNames.UnicornsBlessing);
-			buff.mBuffName = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuff";
-			buff.mDescription = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuffDescription";
-			// This will automatically trigger the BuffsChanged event, so the UI should refresh itself after this and we won't have to do it manually
-			buff.SetThumbnail("moodlet_feelinglucky", ProductVersion.BaseGame, selectedSim);
-			WonderPowerManager.TogglePowerRunning();
+			ActivateLuckyBreak activateLuckyBreak = new ActivateLuckyBreak.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ActivateLuckyBreak;
+			selectedSim.InteractionQueue.AddNext(activateLuckyBreak);
 			return true;
 		}
 

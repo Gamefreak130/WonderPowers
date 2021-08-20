@@ -188,6 +188,8 @@
 <STR>Gameplay/WonderMode:GoodMoodTNS</STR>
 <KEY>Gameplay/WonderMode:InstantBeautyTNS</KEY>
 <STR>Gameplay/WonderMode:InstantBeautyTNS</STR>
+<KEY>Gameplay/WonderMode:LuckyBreakTNS</KEY>
+<STR>Gameplay/WonderMode:LuckyBreakTNS</STR>
 <KEY>Gameplay/WonderMode:LuckyFindTNS</KEY>
 <STR>Gameplay/WonderMode:LuckyFindTNS</STR>
 <KEY>Gameplay/WonderMode:TransmogrifyTNS</KEY>
