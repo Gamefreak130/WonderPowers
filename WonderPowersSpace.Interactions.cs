@@ -92,7 +92,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 {
                     Actor.Motives.SetValue(CommodityKind.MagicFatigue, -TunableSettings.kCurseMotiveAmount);
                 }
-                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(Actor.IsFemale, "CurseTNS", Actor), StyledNotification.NotificationStyle.kGameMessageNegative);
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "CurseTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessageNegative));
                 Actor.BuffManager.AddElement(HashString64("Gamefreak130_CursedBuff"), (Origin)HashString64("FromWonderPower"));
                 base.Cleanup();
             }
@@ -129,7 +129,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
         {
             try
             {
-                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(Actor.IsFemale, "DivineInterventionTNS", Actor), StyledNotification.NotificationStyle.kGameMessagePositive);
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "DivineInterventionTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
                 base.Cleanup();
             }
             finally
@@ -189,7 +189,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                     mEffect = null;
                 }
                 Actor.BuffManager.AddBuff(BuffNames.UnicornsIre, -40, 1440, false, MoodAxis.None, (Origin)HashString64("FromWonderPower"), true);
-                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(Actor.IsFemale, "DoomTNS", Actor), StyledNotification.NotificationStyle.kGameMessageNegative);
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "DoomTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessageNegative));
                 BuffInstance buff = Actor.BuffManager.GetElement(BuffNames.UnicornsIre);
                 buff.mBuffName = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff";
                 buff.mDescription = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuffDescription";
@@ -378,7 +378,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             try
             {
                 Actor.BuffManager.AddElement(HashString64("Gamefreak130_GhostifyBuff"), (Origin)HashString64("FromWonderPower"));
-                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(Actor.IsFemale, "GhostifyTNS", Actor), StyledNotification.NotificationStyle.kGameMessagePositive);
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "GhostifyTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
                 base.Cleanup();
             }
             finally
@@ -515,7 +515,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                     mEffect = null;
                 }
                 Actor.BuffManager.AddElement(HashString64("Gamefreak130_InstantBeautyBuff"), (Origin)HashString64("FromWonderPower"));
-                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("InstantBeautyTNS"), StyledNotification.NotificationStyle.kGameMessagePositive);
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "InstantBeautyTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
                 base.Cleanup();
             }
             finally
@@ -592,7 +592,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 buff.mDescription = "Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuffDescription";
                 // This will automatically trigger the BuffsChanged event, so the UI should refresh itself after this and we won't have to do it manually
                 buff.SetThumbnail("moodlet_feelinglucky", ProductVersion.BaseGame, Actor);
-                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("LuckyBreakTNS"), StyledNotification.NotificationStyle.kGameMessagePositive);
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "LuckyBreakTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
                 base.Cleanup();
             }
             finally
@@ -659,7 +659,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                     mEffect = null;
                 }
                 Actor.BuffManager.AddElement(Buffs.BuffLuckyFind.kBuffLuckyFindGuid, (Origin)HashString64("FromWonderPower"));
-                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("LuckyFindTNS"), StyledNotification.NotificationStyle.kGameMessagePositive);
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "LuckyFindTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
                 base.Cleanup();
             }
             finally
@@ -740,7 +740,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                     mEffect = null;
                 }
                 Actor.BuffManager.AddElement((BuffNames)HashString64("Gamefreak130_BoostedBuff"), (Origin)HashString64("FromWonderPower"));
-                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("RayOfSunshineTNS"), StyledNotification.NotificationStyle.kGameMessagePositive);
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "RayOfSunshineTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
                 base.Cleanup();
             }
             finally
@@ -776,7 +776,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             {
                 int amount = RandomUtil.GetInt(TunableSettings.kWealthMinAmount, TunableSettings.kWealthMaxAmount);
                 Actor.Household.ModifyFamilyFunds(amount);
-                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(Actor.IsFemale, "WealthTNS", Actor, amount), StyledNotification.NotificationStyle.kGameMessagePositive);
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "WealthTNS", Actor, amount), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
                 base.Cleanup();
             }
             finally

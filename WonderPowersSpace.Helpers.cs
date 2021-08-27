@@ -2856,7 +2856,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				PlumbBob.SelectActor(selectedSim);
 			}
-			selectedSim.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(selectedSim.IsFemale, "TransmogrifyTNS", selectedSim), StyledNotification.NotificationStyle.kGameMessagePositive);
+			StyledNotification.Show(new(WonderPowerManager.LocalizeString(selectedSim.IsFemale, "TransmogrifyTNS", selectedSim), selectedSim.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
 			WonderPowerManager.TogglePowerRunning();
 			return true;
 		}
