@@ -2334,27 +2334,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             {
 				return false;
             }
-			//CONSIDER animation, visual effect?
-			Camera.FocusOnSim(selectedSim);
-			if (selectedSim.IsSelectable)
-			{
-				PlumbBob.SelectActor(selectedSim);
-			}
-			Audio.StartSound("sting_rayofsunshine");
-			foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(selectedSim))
-            {
-				selectedSim.Motives.ChangeValue(motive, TunableSettings.kRayOfSunshineBoostAmount);
-			}
-			if ((selectedSim.CurrentOccultType & OccultTypes.Fairy) is not OccultTypes.None)
-			{
-				selectedSim.Motives.ChangeValue(CommodityKind.AuraPower, TunableSettings.kRayOfSunshineBoostAmount);
-			}
-			if ((selectedSim.CurrentOccultType & OccultTypes.Witch) is not OccultTypes.None)
-			{
-				selectedSim.Motives.ChangeValue(CommodityKind.MagicFatigue, -TunableSettings.kRayOfSunshineBoostAmount);
-			}
-			selectedSim.BuffManager.AddElement((BuffNames)HashString64("Gamefreak130_BoostedBuff"), (Origin)HashString64("FromWonderPower"));
-			WonderPowerManager.TogglePowerRunning();
+
+			ActivateRayOfSunshine activateRayOfSunshine = new ActivateRayOfSunshine.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ActivateRayOfSunshine;
+			selectedSim.InteractionQueue.AddNext(activateRayOfSunshine);
 			return true;
         }
 

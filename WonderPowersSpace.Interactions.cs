@@ -390,15 +390,14 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
     public class ActivateGoodMood : Interaction<Sim, Sim>
     {
-        public class Definition : SoloSimInteractionDefinition<ActivateGoodMood>
+        public class Definition : SoloSimInteractionDefinition<ActivateGoodMood>, IOverridesAgeTests
         {
-            public Definition()
-            {
-            }
-
             public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
 
             public override string GetInteractionName(ref InteractionInstanceParameters parameters) => WonderPowerManager.LocalizeString("ActivateGoodMood");
+
+            // Allow babies to perform interaction
+            public SpecialCaseAgeTests GetSpecialCaseAgeTests() => SpecialCaseAgeTests.Standard ^ SpecialCaseAgeTests.DisallowIfActorIsBaby;
         }
 
         private VisualEffect mEffect;
@@ -416,6 +415,8 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
             string animName = Actor.SimDescription switch
             {
+                { Baby: true }           => "b_idle_breathe_x",
+                { Toddler: true }        => "p_idle_sitting_chewHand_y",
                 { IsFoal: true }         => "ch_trait_playful_x",
                 { IsHorse: true }        => "ah_trait_playful_x",
                 { IsPuppy: true }        => "cd_trait_playful_x",
@@ -423,8 +424,8 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 { IsLittleDog: true }    => "al_trait_playful_x",
                 { IsKitten: true }       => "cc_trait_playful_x",
                 { IsCat: true }          => "ac_trait_playful_x",
-                { Child: true }          => "a_trait_excitable_x",
-                { TeenOrAbove: true }    => "c_trait_excitable_x",
+                { Child: true }          => "c_trait_excitable_x",
+                { TeenOrAbove: true }    => "a_trait_excitable_x",
                 _                        => null
             };
 
@@ -481,6 +482,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
             string animName = Actor.SimDescription switch
             {
+                { Toddler: true }                      => "p_idle_sitting_pickNose_y",
                 { IsFoal: true }                       => "ch_trait_nervous_x",
                 { IsHorse: true }                      => "ah_trait_nervous_x",
                 { IsPuppy: true }                      => "cd_trait_adventurous_x",
@@ -514,73 +516,6 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 }
                 Actor.BuffManager.AddElement(HashString64("Gamefreak130_InstantBeautyBuff"), (Origin)HashString64("FromWonderPower"));
                 Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("InstantBeautyTNS"), StyledNotification.NotificationStyle.kGameMessagePositive);
-                base.Cleanup();
-            }
-            finally
-            {
-                WonderPowerManager.TogglePowerRunning();
-            }
-        }
-    }
-
-    public class ActivateLuckyFind : Interaction<Sim, Sim>
-    {
-        public class Definition : SoloSimInteractionDefinition<ActivateLuckyFind>
-        {
-            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
-
-            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => WonderPowerManager.LocalizeString("LuckyFindDialogTitle");
-        }
-
-        private VisualEffect mEffect;
-
-        public override bool Run()
-        {
-            mEffect = VisualEffect.Create("ep7ghostgoldmed_ghost");
-            mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Neck);
-            mEffect.Start();
-            Audio.StartSound("sting_luckyfind");
-            Camera.FocusOnSim(Actor);
-            if (Actor.IsSelectable)
-            {
-                PlumbBob.SelectActor(Actor);
-            }
-
-            string animName = Actor.SimDescription switch
-            {
-                { IsFullSizeDog: true }  => "ad_trait_hunter_x",
-                { IsLittleDog: true }    => "al_trait_hunter_x",
-                { IsCat: true }          => "ac_trait_hunter_x",
-                _                        => null
-            };
-
-            if (animName is null)
-            {
-                Sim.CustomIdle customIdle = Sim.CustomIdle.Singleton.CreateInstance(Actor, Actor, GetPriority(), true, true) as Sim.CustomIdle;
-                customIdle.Hidden = true;
-                customIdle.JazzGraphName = "TraitGatherer";
-                customIdle.LoopTimes = 1;
-                customIdle.RunInteraction();
-            }
-            else
-            {
-                Actor.PlaySoloAnimation(animName, true, ProductVersion.EP5);
-            }
-            return true;
-        }
-
-        public override void Cleanup()
-        {
-            try
-            {
-                if (mEffect is not null)
-                {
-                    mEffect.Stop();
-                    mEffect.Dispose();
-                    mEffect = null;
-                }
-                Actor.BuffManager.AddElement(Buffs.BuffLuckyFind.kBuffLuckyFindGuid, (Origin)HashString64("FromWonderPower"));
-                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("LuckyFindTNS"), StyledNotification.NotificationStyle.kGameMessagePositive);
                 base.Cleanup();
             }
             finally
@@ -658,6 +593,154 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 // This will automatically trigger the BuffsChanged event, so the UI should refresh itself after this and we won't have to do it manually
                 buff.SetThumbnail("moodlet_feelinglucky", ProductVersion.BaseGame, Actor);
                 Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("LuckyBreakTNS"), StyledNotification.NotificationStyle.kGameMessagePositive);
+                base.Cleanup();
+            }
+            finally
+            {
+                WonderPowerManager.TogglePowerRunning();
+            }
+        }
+    }
+
+    public class ActivateLuckyFind : Interaction<Sim, Sim>
+    {
+        public class Definition : SoloSimInteractionDefinition<ActivateLuckyFind>
+        {
+            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
+
+            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => WonderPowerManager.LocalizeString("LuckyFindDialogTitle");
+        }
+
+        private VisualEffect mEffect;
+
+        public override bool Run()
+        {
+            mEffect = VisualEffect.Create("ep7ghostgoldmed_ghost");
+            mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Neck);
+            mEffect.Start();
+            Audio.StartSound("sting_luckyfind");
+            Camera.FocusOnSim(Actor);
+            if (Actor.IsSelectable)
+            {
+                PlumbBob.SelectActor(Actor);
+            }
+
+            string animName = Actor.SimDescription switch
+            {
+                { IsFullSizeDog: true }  => "ad_trait_hunter_x",
+                { IsLittleDog: true }    => "al_trait_hunter_x",
+                { IsCat: true }          => "ac_trait_hunter_x",
+                _                        => null
+            };
+
+            if (animName is null)
+            {
+                Sim.CustomIdle customIdle = Sim.CustomIdle.Singleton.CreateInstance(Actor, Actor, GetPriority(), true, true) as Sim.CustomIdle;
+                customIdle.Hidden = true;
+                customIdle.JazzGraphName = "TraitGatherer";
+                customIdle.LoopTimes = 1;
+                customIdle.RunInteraction();
+            }
+            else
+            {
+                Actor.PlaySoloAnimation(animName, true, ProductVersion.EP5);
+            }
+            return true;
+        }
+
+        public override void Cleanup()
+        {
+            try
+            {
+                if (mEffect is not null)
+                {
+                    mEffect.Stop();
+                    mEffect.Dispose();
+                    mEffect = null;
+                }
+                Actor.BuffManager.AddElement(Buffs.BuffLuckyFind.kBuffLuckyFindGuid, (Origin)HashString64("FromWonderPower"));
+                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("LuckyFindTNS"), StyledNotification.NotificationStyle.kGameMessagePositive);
+                base.Cleanup();
+            }
+            finally
+            {
+                WonderPowerManager.TogglePowerRunning();
+            }
+        }
+    }
+
+    public class ActivateRayOfSunshine : Interaction<Sim, Sim>
+    {
+        public class Definition : SoloSimInteractionDefinition<ActivateRayOfSunshine>, IOverridesAgeTests
+        {
+            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
+
+            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => WonderPowerManager.LocalizeString("RayOfSunshineDialogTitle");
+
+            // Allow babies to perform interaction
+            public SpecialCaseAgeTests GetSpecialCaseAgeTests() => SpecialCaseAgeTests.Standard ^ SpecialCaseAgeTests.DisallowIfActorIsBaby;
+        }
+
+        private VisualEffect mEffect;
+
+        public override bool Run()
+        {
+            mEffect = VisualEffect.Create("ep11robotsunrays_main");
+            mEffect.ParentTo(Actor, Sim.FXJoints.Head);
+            mEffect.Start();
+            Camera.FocusOnSim(Actor);
+            if (Actor.IsSelectable)
+            {
+                PlumbBob.SelectActor(Actor);
+            }
+            Audio.StartSound("sting_rayofsunshine");
+            string animName = Actor.SimDescription switch
+            {
+                { Baby: true }           => "b_idle_breathe_x",
+                { Toddler: true }        => "p_idle_sitting_grabFeet_y",
+                { IsFoal: true }         => "ch_trait_playful_x",
+                { IsHorse: true }        => "ah_trait_playful_x",
+                { IsPuppy: true }        => "cd_trait_playful_x",
+                { IsFullSizeDog: true }  => "ad_trait_playful_x",
+                { IsLittleDog: true }    => "al_trait_playful_x",
+                { IsKitten: true }       => "cc_trait_playful_x",
+                { IsCat: true }          => "ac_trait_playful_x",
+                { Child: true }          => "c_rayofsunshine_x",
+                { TeenOrAbove: true }    => "a_rayofsunshine_x",
+                _                        => null
+            };
+
+            if (animName is not null)
+            {
+                Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+            }
+            return true;
+        }
+
+        public override void Cleanup()
+        {
+            try
+            {
+                foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(Actor))
+                {
+                    Actor.Motives.ChangeValue(motive, TunableSettings.kRayOfSunshineBoostAmount);
+                }
+                if ((Actor.CurrentOccultType & OccultTypes.Fairy) is not OccultTypes.None)
+                {
+                    Actor.Motives.ChangeValue(CommodityKind.AuraPower, TunableSettings.kRayOfSunshineBoostAmount);
+                }
+                if ((Actor.CurrentOccultType & OccultTypes.Witch) is not OccultTypes.None)
+                {
+                    Actor.Motives.ChangeValue(CommodityKind.MagicFatigue, -TunableSettings.kRayOfSunshineBoostAmount);
+                }
+                if (mEffect is not null)
+                {
+                    mEffect.Stop();
+                    mEffect.Dispose();
+                    mEffect = null;
+                }
+                Actor.BuffManager.AddElement((BuffNames)HashString64("Gamefreak130_BoostedBuff"), (Origin)HashString64("FromWonderPower"));
+                Actor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("RayOfSunshineTNS"), StyledNotification.NotificationStyle.kGameMessagePositive);
                 base.Cleanup();
             }
             finally

@@ -192,6 +192,8 @@
 <STR>Gameplay/WonderMode:LuckyBreakTNS</STR>
 <KEY>Gameplay/WonderMode:LuckyFindTNS</KEY>
 <STR>Gameplay/WonderMode:LuckyFindTNS</STR>
+<KEY>Gameplay/WonderMode:RayOfSunshineTNS</KEY>
+<STR>Gameplay/WonderMode:RayOfSunshineTNS</STR>
 <KEY>Gameplay/WonderMode:TransmogrifyTNS</KEY>
 <STR>Gameplay/WonderMode:TransmogrifyTNS</STR>
 <KEY>Gameplay/WonderMode:WealthTNS</KEY>
