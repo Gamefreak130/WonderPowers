@@ -20,7 +20,9 @@ using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.ObjectComponents;
 using Sims3.Gameplay.Objects;
+using Sims3.Gameplay.Objects.Appliances;
 using Sims3.Gameplay.Objects.Beds;
+using Sims3.Gameplay.Objects.Environment;
 using Sims3.Gameplay.Objects.FoodObjects;
 using Sims3.Gameplay.Objects.Miscellaneous;
 using Sims3.Gameplay.Skills;
@@ -2103,44 +2105,57 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			Audio.StartSound("sting_earthquake");
 			Camera.FocusOnLot(lot.LotId, 2f); //2f is standard lerptime
 			CameraController.Shake(FireFightingJob.kEarthquakeCameraShakeIntensity, FireFightingJob.kEarthquakeCameraShakeDuration);
+
+			AlarmHandle handle = AlarmHandle.kInvalidHandle;
+			try
+			{
+				lot.AddAlarm(FireFightingJob.kEarthquakeTimeUntilTNS, TimeUnit.Minutes, WonderPowerManager.TogglePowerRunning, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted);
+
+				foreach (Sim sim in lot.GetAllActors())
+				{
+					if (sim.IsPet)
+					{
+						PetStartleBehavior.StartlePet(sim, StartleType.Invalid, (Origin)HashString64("FromWonderPower"), lot, true, PetStartleReactionType.NoReaction, new(InteractionPriorityLevel.CriticalNPCBehavior));
+					}
+					else
+					{
+						InteractionInstance instance = new EarthquakePanicReact.Definition().CreateInstance(sim, sim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false);
+						instance.Hidden = true;
+						sim.InteractionQueue.AddNext(instance);
+					}
+				}
+
+				List<GameObject> breakableObjects = lot.GetObjects<GameObject>(@object => @object.Repairable is { Broken: false });
+				int maxBroken = Math.Min(RandomUtil.GetInt(TunableSettings.kEarthquakeMinBroken, TunableSettings.kEarthquakeMaxBroken), breakableObjects.Count);
+				for (int i = 0; i < maxBroken; i++)
+				{
+					if (breakableObjects.Count == 0) { break; }
+
+					GameObject @object = RandomUtil.GetRandomObjectFromList(breakableObjects);
+					@object.Repairable.BreakObject();
+					breakableObjects.Remove(@object);
+				}
+				int maxTrash = RandomUtil.GetInt(TunableSettings.kEarthquakeMinTrash, TunableSettings.kEarthquakeMaxTrash);
+				for (int i = 0; i < maxTrash; i++)
+				{
+					Vector3 randomPosition = lot.GetRandomPosition(true, true);
+					TrashPile trashPile = CreateObjectOutOfWorld("TrashPileIndoor") as TrashPile;
+					World.FindGoodLocationParams fglParams = new(randomPosition);
+					if (PlaceAtGoodLocation(trashPile, fglParams, true))
+					{
+						trashPile.AddToWorld();
+					}
+				}
+			}
+			catch
+            {
+				if (handle != AlarmHandle.kInvalidHandle)
+                {
+					lot.RemoveAlarm(handle);
+                }
+				throw;
+            }
 			StyledNotification.Show(new(WonderPowerManager.LocalizeString("EarthquakeTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
-			lot.AddAlarm(FireFightingJob.kEarthquakeTimeUntilTNS, TimeUnit.Minutes, WonderPowerManager.TogglePowerRunning, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted);
-
-			foreach (Sim sim in lot.GetAllActors())
-            {
-				if (sim.IsPet)
-                {
-					PetStartleBehavior.StartlePet(sim, StartleType.Invalid, (Origin)HashString64("FromWonderPower"), lot, true, PetStartleReactionType.NoReaction, new(InteractionPriorityLevel.CriticalNPCBehavior));
-                }
-				else
-                {
-					InteractionInstance instance = new EarthquakePanicReact.Definition().CreateInstance(sim, sim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false);
-					instance.Hidden = true;
-					sim.InteractionQueue.AddNext(instance);
-                }
-            }
-
-			List<GameObject> breakableObjects = lot.GetObjects<GameObject>(@object => @object.Repairable is { Broken: false });
-			int maxBroken = Math.Min(RandomUtil.GetInt(TunableSettings.kEarthquakeMinBroken, TunableSettings.kEarthquakeMaxBroken), breakableObjects.Count);
-			for (int i = 0; i < maxBroken; i++)
-            {
-				if (breakableObjects.Count == 0) { break; }
-
-				GameObject @object = RandomUtil.GetRandomObjectFromList(breakableObjects);
-				@object.Repairable.BreakObject();
-				breakableObjects.Remove(@object);
-            }
-			int maxTrash = RandomUtil.GetInt(TunableSettings.kEarthquakeMinTrash, TunableSettings.kEarthquakeMaxTrash);
-			for (int i = 0; i < maxTrash; i++)
-            {
-				Vector3 randomPosition = lot.GetRandomPosition(true, true);
-				TrashPile trashPile = CreateObjectOutOfWorld("TrashPileIndoor") as TrashPile;
-				World.FindGoodLocationParams fglParams = new(randomPosition);
-				if (PlaceAtGoodLocation(trashPile, fglParams, true))
-                {
-					trashPile.AddToWorld();
-                }
-            }
 			return true;
         }
 
@@ -2347,78 +2362,150 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             {
 				return false;
             }
-			//TODO add eor sting
-			//CONSIDER do laundry?
-			//CONSIDER delay vis effects to account for camera lerp?
 			//CONSIDER react broadcast?
-			Camera.FocusOnLot(target.LotId, 2f);
-			if (target.GetSharedFridgeInventory() is SharedFridgeInventory inventory)
+			AlarmHandle handle = AlarmHandle.kInvalidHandle;
+			try
 			{
-				foreach (ISpoilable spoilable in new List<ISpoilable>(inventory.SpoiledFood))
+				Camera.FocusOnLot(target.LotId, 1f);
+				handle = AlarmManager.Global.AddAlarm(2f, TimeUnit.Minutes, WonderPowerManager.TogglePowerRunning, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted, null);
+				Audio.StartSound("sting_repair");
+				if (target.GetSharedFridgeInventory() is SharedFridgeInventory inventory)
 				{
-					spoilable.Unspoil();
-					inventory.SpoiledFood.Remove(spoilable);
-				}
-			}
-			foreach (GameObject gameObject in target.GetObjects<GameObject>())
-			{
-				if (!gameObject.InUse && gameObject.InWorld)
-				{
-					if (!target.IsJunkyardLot || !gameObject.IsOutside)
+					foreach (ISpoilable spoilable in new List<ISpoilable>(inventory.SpoiledFood))
 					{
-						if (gameObject.Charred)
-						{
-							gameObject.Charred = false;
-							if (gameObject is Windows)
-							{
-								RepairableComponent.CreateReplaceObject(gameObject);
-							}
-						}
-						if (gameObject.Scratched)
-						{
-							gameObject.Scratched = false;
-						}
-						if (gameObject.Repairable is { Broken: true } repairable)
-						{
-							repairable.ForceRepaired(null);
-						}
-						if (gameObject is ISpoilable { IsSpoiled: true } spoilable)
-						{
-							spoilable.Unspoil();
-						}
-						if (gameObject is IFridge fridge)
-						{
-							fridge.StopFridgeFrontStinkVFX();
-						}
-						if (gameObject is Fire fire)
-                        {
-							VisualEffect visualEffect = VisualEffect.Create("ep5UnicornRain");
-							visualEffect.SetPosAndOrient(fire.Position, fire.ForwardVector, fire.UpVector);
-							visualEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
-							fire.ExtinguishFire();
-						}
-						if (gameObject is Sim sim && sim.BuffManager.HasElement(BuffNames.OnFire))
-                        {
-							VisualEffect visualEffect = VisualEffect.Create("ep5UnicornRain");
-							visualEffect.SetPosAndOrient(sim.Position, sim.ForwardVector, sim.UpVector);
-							visualEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
-							sim.BuffManager.RemoveElement(BuffNames.OnFire);
-						}
-						if (gameObject is IBed bed && bed.UseCount == 0 && !bed.IsMade())
-                        {
-							//TODO visual effect
-							foreach (BedData bedData in bed.PartComponent.PartDataList.Values)
-							{
-								bedData.BedMade = true;
-							}
-							bed.ResetBindPose();
-						}
+						spoilable.Unspoil();
+						inventory.SpoiledFood.Remove(spoilable);
 					}
 				}
-			}
-			target.MagicallyCleanUp(false, false);
-			target.Enchant();
-			WonderPowerManager.TogglePowerRunning();
+				foreach (GameObject gameObject in target.GetObjects<GameObject>())
+				{
+					bool playPoofEffect = false;
+					if (!gameObject.InUse && gameObject.InWorld)
+					{
+						if (!target.IsJunkyardLot || !gameObject.IsOutside)
+						{
+							if (gameObject.Charred)
+							{
+								playPoofEffect = true;
+								gameObject.Charred = false;
+								if (gameObject is Windows)
+								{
+									RepairableComponent.CreateReplaceObject(gameObject);
+								}
+							}
+							if (gameObject.Scratched)
+							{
+								playPoofEffect = true;
+								gameObject.Scratched = false;
+							}
+							if (gameObject is ISnackBowl or ICatPrey or AshPile or Book or IDestroyOnMagicalCleanup or IThrowAwayable or { IsCleanable: true, Cleanable: { DirtyLevel: < 0 } })
+							{
+								playPoofEffect = true;
+							}
+							if (gameObject.Repairable is { Broken: true } repairable)
+							{
+								playPoofEffect = true;
+								repairable.ForceRepaired(null);
+							}
+							if (gameObject is ISpoilable { IsSpoiled: true } spoilable)
+							{
+								playPoofEffect = true;
+								spoilable.Unspoil();
+							}
+							if (gameObject is IFridge fridge)
+							{
+								playPoofEffect = true;
+								fridge.StopFridgeFrontStinkVFX();
+							}
+							if (gameObject is Hamper { mCount: > 0 } hamper)
+							{
+								playPoofEffect = true;
+								hamper.mCount = 0;
+								hamper.UpdateVisualState();
+							}
+							if (gameObject is WashingMachine { mWashState: not WashingMachine.WashState.Empty } washer)
+							{
+								playPoofEffect = true;
+								washer.SetObjectToReset();
+								washer.RemoveClothes();
+								washer.SetGeometryState("empty");
+								if (washer.mSoundId != 0)
+								{
+									Audio.StopObjectSound(washer.ObjectId, washer.mSoundId);
+									washer.mSoundId = 0U;
+								}
+							}
+							if (gameObject is Dryer dryer)
+							{
+								if (dryer.CurDryerState is not Dryer.DryerState.Empty)
+								{
+									playPoofEffect = true;
+								}
+								dryer.ForceDryerDone();
+								// This needs to be added to the simulator with a delay so that it runs after DryerFinishedOneShotTask and properly cleans up the dryer state
+								Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(delegate {
+									dryer.TakeClothes(true, PlumbBob.SelectedActor.SimDescription.SimDescriptionId);
+									if (dryer is DryerExpensive)
+                                    {
+										dryer.SetGeometryState("empty");
+                                    }
+								}, StopWatch.TickStyles.Seconds, 1f));
+							}
+							if (gameObject is Clothesline clothesline)
+							{
+								if (clothesline.CurClothesState is not Dryer.DryerState.Empty)
+                                {
+									playPoofEffect = true;
+								}
+								if (clothesline.CurClothesState is Dryer.DryerState.Running)
+								{
+									clothesline.ForceClothesDry();
+								}
+								clothesline.ClothesTaken();
+							}
+							if (gameObject is Fire fire)
+							{
+								VisualEffect visualEffect = VisualEffect.Create("ep5UnicornRain");
+								visualEffect.SetPosAndOrient(fire.Position, fire.ForwardVector, fire.UpVector);
+								visualEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
+								fire.ExtinguishFire();
+							}
+							if (gameObject is Sim sim && sim.BuffManager.HasElement(BuffNames.OnFire))
+							{
+								VisualEffect visualEffect = VisualEffect.Create("ep5UnicornRain");
+								visualEffect.SetPosAndOrient(sim.Position, sim.ForwardVector, sim.UpVector);
+								visualEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
+								sim.BuffManager.RemoveElement(BuffNames.OnFire);
+							}
+							if (gameObject is IBed bed && bed.UseCount == 0 && !bed.IsMade())
+							{
+								playPoofEffect = true;
+								foreach (BedData bedData in bed.PartComponent.PartDataList.Values)
+								{
+									bedData.BedMade = true;
+								}
+								bed.ResetBindPose();
+							}
+						}
+					}
+
+					if (playPoofEffect)
+					{
+						GardenGnome.PlayPoofEffect(gameObject.Position, gameObject.ForwardVector, gameObject.UpVector);
+					}
+				}
+				target.MagicallyCleanUp(false, false);
+				target.Enchant();
+            }
+			catch
+            {
+				if (handle != AlarmHandle.kInvalidHandle)
+                {
+					AlarmManager.Global.RemoveAlarm(handle);
+                }
+				throw;
+            }
+			StyledNotification.Show(new(WonderPowerManager.LocalizeString("RepairTNS"), StyledNotification.NotificationStyle.kGameMessagePositive));
 			return true;
 		}
 
