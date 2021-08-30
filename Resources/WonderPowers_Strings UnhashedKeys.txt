@@ -198,6 +198,8 @@
 <STR>Gameplay/WonderMode:RepairTNS</STR>
 <KEY>Gameplay/WonderMode:SatisfactionTNS</KEY>
 <STR>Gameplay/WonderMode:SatisfactionTNS</STR>
+<KEY>Gameplay/WonderMode:SicknessTNS</KEY>
+<STR>Gameplay/WonderMode:SicknessTNS</STR>
 <KEY>Gameplay/WonderMode:TransmogrifyTNS</KEY>
 <STR>Gameplay/WonderMode:TransmogrifyTNS</STR>
 <KEY>Gameplay/WonderMode:WealthTNS</KEY>

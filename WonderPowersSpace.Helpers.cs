@@ -2155,7 +2155,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
                 }
 				throw;
             }
-			StyledNotification.Show(new(WonderPowerManager.LocalizeString("EarthquakeTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
+			PlumbBob.SelectedActor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(PlumbBob.SelectedActor.IsFemale, "EarthquakeTNS", PlumbBob.SelectedActor), StyledNotification.NotificationStyle.kGameMessageNegative);
 			return true;
         }
 
@@ -2505,7 +2505,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
                 }
 				throw;
             }
-			StyledNotification.Show(new(WonderPowerManager.LocalizeString("RepairTNS"), StyledNotification.NotificationStyle.kGameMessagePositive));
+			PlumbBob.SelectedActor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(PlumbBob.SelectedActor.IsFemale, "RepairTNS", PlumbBob.SelectedActor), StyledNotification.NotificationStyle.kGameMessagePositive);
 			return true;
 		}
 
@@ -2544,18 +2544,23 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 													  select sim.SimDescription;
 				selectedSim = HelperMethods.SelectTarget(targets, WonderPowerManager.LocalizeString("SicknessDialogTitle"))?.CreatedSim;
 			}
-			// CONSIDER more vis effects?
 			if (selectedSim is null)
 			{
 				return false;
 			}
+
 			Camera.FocusOnSim(selectedSim);
 			if (selectedSim.IsSelectable)
 			{
 				PlumbBob.SelectActor(selectedSim);
 			}
+
+			VisualEffect visualEffect = VisualEffect.Create("ep7wandspellpestilence_main");
+			visualEffect.ParentTo(selectedSim, Sim.FXJoints.Pelvis);
+			visualEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
 			Audio.StartSound("sting_sickness");
 			BuffKarmicSickness.AddKarmicSickness(selectedSim);
+			StyledNotification.Show(new(WonderPowerManager.LocalizeString(selectedSim.IsFemale, "SicknessTNS", selectedSim), selectedSim.ObjectId, StyledNotification.NotificationStyle.kGameMessageNegative));
 			WonderPowerManager.TogglePowerRunning();
 			return true;
 		}
