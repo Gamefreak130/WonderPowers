@@ -200,6 +200,8 @@
 <STR>Gameplay/WonderMode:SatisfactionTNS</STR>
 <KEY>Gameplay/WonderMode:SicknessTNS</KEY>
 <STR>Gameplay/WonderMode:SicknessTNS</STR>
+<KEY>Gameplay/WonderMode:StrokeOfGeniusTNS</KEY>
+<STR>Gameplay/WonderMode:StrokeOfGeniusTNS</STR>
 <KEY>Gameplay/WonderMode:TransmogrifyTNS</KEY>
 <STR>Gameplay/WonderMode:TransmogrifyTNS</STR>
 <KEY>Gameplay/WonderMode:WealthTNS</KEY>

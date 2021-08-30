@@ -2577,17 +2577,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				return false;
 			}
 
-			//CONSIDER animation, visual effect?
-			//TODO cancel all interactions
-			//TODO either get eor sting or extract out and make non-3d
-			Audio.StartSound("sting_sculpt_brilliant");
-			Camera.FocusOnSim(selectedSim);
-			if (selectedSim.IsSelectable)
-			{
-				PlumbBob.SelectActor(selectedSim);
-			}
-			selectedSim.BuffManager.AddElement(BuffStrokeOfGenius.kBuffStrokeOfGeniusGuid, (Origin)HashString64("FromWonderPower"));
-			WonderPowerManager.TogglePowerRunning();
+			ActivateStrokeOfGenius activateStrokeOfGenius = new ActivateStrokeOfGenius.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ActivateStrokeOfGenius;
+			selectedSim.InteractionQueue.AddNext(activateStrokeOfGenius);
 			return true;
 		}
 

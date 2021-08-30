@@ -1,4 +1,5 @@
-﻿using Gamefreak130.WonderPowersSpace.Helpers;
+﻿using Gamefreak130.WonderPowersSpace.Buffs;
+using Gamefreak130.WonderPowersSpace.Helpers;
 using Sims3.Gameplay;
 using Sims3.Gameplay.ActiveCareer.ActiveCareers;
 using Sims3.Gameplay.Actors;
@@ -824,6 +825,69 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 Actor.BuffManager.AddElement((BuffNames)HashString64("Gamefreak130_SatisfiedBuff"), (Origin)HashString64("FromWonderPower"));
                 StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "SatisfactionTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
                 base.Cleanup();
+            }
+            finally
+            {
+                WonderPowerManager.TogglePowerRunning();
+            }
+        }
+    }
+
+    public class ActivateStrokeOfGenius : Interaction<Sim, Sim>
+    {
+        public class Definition : SoloSimInteractionDefinition<ActivateStrokeOfGenius>
+        {
+            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
+
+            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => WonderPowerManager.LocalizeString("StrokeOfGeniusDialogTitle");
+        }
+
+        private VisualEffect mEffect;
+
+        public override bool Run()
+        {
+            Camera.FocusOnSim(Actor);
+            if (Actor.IsSelectable)
+            {
+                PlumbBob.SelectActor(Actor);
+            }
+            mEffect = VisualEffect.Create("ep2inventiondiscovery");
+            mEffect.ParentTo(Actor, Sim.FXJoints.Head);
+            mEffect.Start();
+            Audio.StartSound("sting_strokeofgenius");
+            string animName = Actor.SimDescription switch
+            {
+                { IsFoal: true }         => "ch_trait_genius_x",
+                { IsHorse: true }        => "ah_trait_genius_x",
+                { IsPuppy: true }        => "cd_trait_genius_x",
+                { IsFullSizeDog: true }  => "ad_trait_genius_x",
+                { IsLittleDog: true }    => "al_trait_genius_x",
+                { IsKitten: true }       => "cc_trait_genius_x",
+                { IsCat: true }          => "ac_trait_genius_x",
+                { Child: true }          => "c_strokeofgenius_x",
+                { TeenOrAbove: true }    => "a_trait_genius_x",
+                _                        => null
+            };
+
+            if (animName is not null)
+            {
+                Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+            }
+            return true;
+        }
+
+        public override void Cleanup()
+        {
+            try
+            {
+                if (mEffect is not null)
+                {
+                    mEffect.Stop();
+                    mEffect.Dispose();
+                    mEffect = null;
+                }
+                Actor.BuffManager.AddElement(BuffStrokeOfGenius.kBuffStrokeOfGeniusGuid, (Origin)HashString64("FromWonderPower"));
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "StrokeOfGeniusTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
             }
             finally
             {
