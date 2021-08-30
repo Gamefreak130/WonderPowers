@@ -2901,7 +2901,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 					Simulator.Sleep(1U);
 				}
 			}
-
+			// TODO final animation after transmog
 			if (selectedSim.BuffManager.AddElement((BuffNames)BuffTransmogrify.kBuffTransmogrifyGuid, (Origin)HashString64("FromWonderPower")))
             {
 				BuffTransmogrify.BuffInstanceTransmogrify transmogrifyBuffInstance = selectedSim.BuffManager.GetElement(BuffTransmogrify.kBuffTransmogrifyGuid) as BuffTransmogrify.BuffInstanceTransmogrify;

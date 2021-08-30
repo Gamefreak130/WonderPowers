@@ -44,7 +44,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             bool flag = base.Run();
             if (flag)
             {
-                Actor.BuffManager.AddElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid, (Origin)HashString64("FromWonderPower"));
+                Actor.BuffManager.AddElement(BuffCryHavoc.kBuffCryHavocGuid, (Origin)HashString64("FromWonderPower"));
             }
             return flag;
         }
@@ -659,7 +659,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                     mEffect.Dispose();
                     mEffect = null;
                 }
-                Actor.BuffManager.AddElement(Buffs.BuffLuckyFind.kBuffLuckyFindGuid, (Origin)HashString64("FromWonderPower"));
+                Actor.BuffManager.AddElement(BuffLuckyFind.kBuffLuckyFindGuid, (Origin)HashString64("FromWonderPower"));
                 StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "LuckyFindTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
                 base.Cleanup();
             }

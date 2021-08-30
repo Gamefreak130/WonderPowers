@@ -231,7 +231,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                     Vector3 pos = Lot.GetRandomPosition(true, true);
                     FireManager.AddFire(pos, true);
                 }
-                PlumbBob.SelectedActor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(PlumbBob.SelectedActor.IsFemale, "FireTNS", PlumbBob.SelectedActor), StyledNotification.NotificationStyle.kGameMessageNegative);
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString("FireTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
                 Parent.CheckForExit();
             }
         }
@@ -359,7 +359,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 {
                     Simulator.AddObject(new OneShotFunction(CreateAngryGhost));
                 }
-                PlumbBob.SelectedActor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(PlumbBob.SelectedActor.IsFemale, "GhostsTNS", PlumbBob.SelectedActor), StyledNotification.NotificationStyle.kGameMessageNegative);
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString("GhostsTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
             }
 
             private void OnPanicStart(Sim actor, ReactionBroadcaster broadcaster)
