@@ -750,6 +750,88 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
         }
     }
 
+    public class SuperSatisfy : Interaction<Sim, Sim>
+    {
+        public class Definition : SoloSimInteractionDefinition<SuperSatisfy>, IOverridesAgeTests
+        {
+            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
+
+            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => WonderPowerManager.LocalizeString("SatisfactionDialogTitle");
+
+            // Allow babies to perform interaction
+            public SpecialCaseAgeTests GetSpecialCaseAgeTests() => SpecialCaseAgeTests.Standard ^ SpecialCaseAgeTests.DisallowIfActorIsBaby;
+        }
+
+        private VisualEffect mEffect;
+
+        public override bool Run()
+        {
+            mEffect = VisualEffect.Create("ep7moodlampimpactyellow_main");
+            mEffect.ParentTo(Actor, Actor.IsPet || Actor.SimDescription.Baby ? Sim.FXJoints.Head : Sim.FXJoints.Pelvis);
+            mEffect.Start();
+            Camera.FocusOnSim(Actor);
+            if (Actor.IsSelectable)
+            {
+                PlumbBob.SelectActor(Actor);
+            }
+            // This sting typo physically pains me
+            Audio.StartSound("sting_dream_fullfill");
+            string animName = Actor.SimDescription switch
+            {
+                { Baby: true }           => "b_idle_breathe_x",
+                { Toddler: true }        => "p_react_laugh1_y",
+                { IsFoal: true }         => "ch_trait_playful_x",
+                { IsHorse: true }        => "ah_trait_playful_x",
+                { IsPuppy: true }        => "cd_trait_playful_x",
+                { IsFullSizeDog: true }  => "ad_trait_playful_x",
+                { IsLittleDog: true }    => "al_trait_playful_x",
+                { IsKitten: true }       => "cc_trait_playful_x",
+                { IsCat: true }          => "ac_trait_playful_x",
+                { Child: true }          => "c_standing_whew2",
+                { TeenOrAbove: true }    => "a_standing_whew2",
+                _                        => null
+            };
+
+            if (animName is not null)
+            {
+                Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+            }
+            return true;
+        }
+
+        public override void Cleanup()
+        {
+            try
+            {
+                foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(Actor))
+                {
+                    Actor.Motives.SetMax(motive);
+                }
+                if ((Actor.CurrentOccultType & OccultTypes.Fairy) is not OccultTypes.None)
+                {
+                    Actor.Motives.SetMax(CommodityKind.AuraPower);
+                }
+                if ((Actor.CurrentOccultType & OccultTypes.Witch) is not OccultTypes.None)
+                {
+                    Actor.Motives.SetValue(CommodityKind.MagicFatigue, Actor.Motives.GetMin(CommodityKind.MagicFatigue));
+                }
+                if (mEffect is not null)
+                {
+                    mEffect.Stop();
+                    mEffect.Dispose();
+                    mEffect = null;
+                }
+                Actor.BuffManager.AddElement((BuffNames)HashString64("Gamefreak130_SatisfiedBuff"), (Origin)HashString64("FromWonderPower"));
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "SatisfactionTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
+                base.Cleanup();
+            }
+            finally
+            {
+                WonderPowerManager.TogglePowerRunning();
+            }
+        }
+    }
+
     public class ReceiveMagicalCheck : Interaction<Sim, Sim>
     {
         public class Definition : SoloSimInteractionDefinition<ReceiveMagicalCheck>

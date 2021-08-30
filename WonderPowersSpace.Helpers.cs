@@ -2519,29 +2519,9 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				return false;
 			}
-			//CONSIDER vis eff
-			//CONSIDER eor sting here instead?
-			Camera.FocusOnSim(selectedSim);
-			if (selectedSim.IsSelectable)
-			{
-				PlumbBob.SelectActor(selectedSim);
-			}
-			// This sting typo physically pains me
-			Audio.StartSound("sting_dream_fullfill");
-			foreach (CommodityKind motive in (Responder.Instance.HudModel as HudModel).GetMotives(selectedSim))
-			{
-				selectedSim.Motives.SetMax(motive);
-			}
-			if ((selectedSim.CurrentOccultType & OccultTypes.Fairy) is not OccultTypes.None)
-			{
-				selectedSim.Motives.SetMax(CommodityKind.AuraPower);
-			}
-			if ((selectedSim.CurrentOccultType & OccultTypes.Witch) is not OccultTypes.None)
-			{
-				selectedSim.Motives.SetValue(CommodityKind.MagicFatigue, selectedSim.Motives.GetMin(CommodityKind.MagicFatigue));
-			}
-			selectedSim.BuffManager.AddElement((BuffNames)HashString64("Gamefreak130_SatisfiedBuff"), (Origin)HashString64("FromWonderPower"));
-			WonderPowerManager.TogglePowerRunning();
+
+			SuperSatisfy satisfy = new SuperSatisfy.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as SuperSatisfy;
+			selectedSim.InteractionQueue.AddNext(satisfy);
 			return true;
         }
 

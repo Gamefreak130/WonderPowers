@@ -196,6 +196,8 @@
 <STR>Gameplay/WonderMode:RayOfSunshineTNS</STR>
 <KEY>Gameplay/WonderMode:RepairTNS</KEY>
 <STR>Gameplay/WonderMode:RepairTNS</STR>
+<KEY>Gameplay/WonderMode:SatisfactionTNS</KEY>
+<STR>Gameplay/WonderMode:SatisfactionTNS</STR>
 <KEY>Gameplay/WonderMode:TransmogrifyTNS</KEY>
 <STR>Gameplay/WonderMode:TransmogrifyTNS</STR>
 <KEY>Gameplay/WonderMode:WealthTNS</KEY>
