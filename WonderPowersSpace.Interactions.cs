@@ -12,6 +12,7 @@ using Sims3.Gameplay.Objects;
 using Sims3.Gameplay.Services;
 using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.UI;
+using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.SimIFace.CAS;
 using Sims3.UI;
@@ -888,6 +889,70 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 }
                 Actor.BuffManager.AddElement(BuffStrokeOfGenius.kBuffStrokeOfGeniusGuid, (Origin)HashString64("FromWonderPower"));
                 StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "StrokeOfGeniusTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
+            }
+            finally
+            {
+                WonderPowerManager.TogglePowerRunning();
+            }
+        }
+    }
+
+    public class ActivateSuperLucky : Interaction<Sim, Sim>
+    {
+        public class Definition : SoloSimInteractionDefinition<ActivateSuperLucky>
+        {
+            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => true;
+
+            public override string GetInteractionName(ref InteractionInstanceParameters parameters) => WonderPowerManager.LocalizeString("SuperLuckyDialogTitle");
+        }
+
+        private VisualEffect mEffect;
+
+        public override bool Run()
+        {
+            Camera.FocusOnSim(Actor);
+            if (Actor.IsSelectable)
+            {
+                PlumbBob.SelectActor(Actor);
+            }
+            mEffect = VisualEffect.Create("ep7wandspellluck_main");
+            mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Pelvis);
+            mEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
+            AlarmManager.Global.AddAlarm(1f, TimeUnit.Minutes, () => Audio.StartSound("sting_superlucky"), "Gamefreak130 wuz here -- Super Lucky sting alarm", AlarmType.NeverPersisted, null);
+
+            string animName = Actor.SimDescription switch
+            {
+                { IsFoal: true }         => "ch_trait_friendly_x",
+                { IsHorse: true }        => "ah_trait_friendly_x",
+                { IsPuppy: true }        => "cd_trait_friendly_x",
+                { IsFullSizeDog: true }  => "ad_trait_friendly_x",
+                { IsLittleDog: true }    => "al_trait_friendly_x",
+                { IsKitten: true }       => "cc_trait_friendly_x",
+                { IsCat: true }          => "ac_trait_friendly_x",
+                { Child: true }          => "c_superlucky_x",
+                { TeenOrAbove: true}     => "a_superlucky_x",
+                _                        => null
+            };
+
+            if (animName is not null)
+            {
+                Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+            }
+            return true;
+        }
+
+        public override void Cleanup()
+        {
+            try
+            {
+                if (mEffect is not null)
+                {
+                    mEffect.Stop();
+                    mEffect.Dispose();
+                    mEffect = null;
+                }
+                Actor.BuffManager.AddElement(BuffSuperLucky.kBuffSuperLuckyGuid, (Origin)HashString64("FromWonderPower"));
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "SuperLuckyTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
             }
             finally
             {

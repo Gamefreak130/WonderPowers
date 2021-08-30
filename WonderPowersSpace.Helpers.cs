@@ -2594,17 +2594,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				return false;
 			}
 
-			//CONSIDER animation, visual effect?
-			//CONSIDER Toggle power on sound finish?
-			//TODO cancel all interactions
-			Audio.StartSound("sting_goodmood");
-			Camera.FocusOnSim(selectedSim);
-			if (selectedSim.IsSelectable)
-			{
-				PlumbBob.SelectActor(selectedSim);
-			}
-			selectedSim.BuffManager.AddElement(BuffSuperLucky.kBuffSuperLuckyGuid, (Origin)HashString64("FromWonderPower"));
-			WonderPowerManager.TogglePowerRunning();
+			ActivateSuperLucky activateSuperLucky = new ActivateSuperLucky.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ActivateSuperLucky;
+			selectedSim.InteractionQueue.AddNext(activateSuperLucky);
 			return true;
 		}
 

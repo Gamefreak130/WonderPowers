@@ -202,6 +202,8 @@
 <STR>Gameplay/WonderMode:SicknessTNS</STR>
 <KEY>Gameplay/WonderMode:StrokeOfGeniusTNS</KEY>
 <STR>Gameplay/WonderMode:StrokeOfGeniusTNS</STR>
+<KEY>Gameplay/WonderMode:SuperLuckyTNS</KEY>
+<STR>Gameplay/WonderMode:SuperLuckyTNS</STR>
 <KEY>Gameplay/WonderMode:TransmogrifyTNS</KEY>
 <STR>Gameplay/WonderMode:TransmogrifyTNS</STR>
 <KEY>Gameplay/WonderMode:WealthTNS</KEY>
