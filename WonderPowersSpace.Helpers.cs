@@ -25,9 +25,6 @@ using Sims3.Gameplay.Objects.Beds;
 using Sims3.Gameplay.Objects.Environment;
 using Sims3.Gameplay.Objects.FoodObjects;
 using Sims3.Gameplay.Objects.Miscellaneous;
-using Sims3.Gameplay.Skills;
-using Sims3.Gameplay.Socializing;
-using Sims3.Gameplay.TimeTravel;
 using Sims3.Gameplay.UI;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
@@ -36,7 +33,6 @@ using Sims3.SimIFace.Enums;
 using Sims3.UI;
 using Sims3.UI.CAS;
 using Sims3.UI.CAS.CAP;
-using Sims3.UI.Dialogs;
 using Sims3.UI.Hud;
 using System;
 using System.Collections.Generic;
@@ -2601,7 +2597,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool TransmogrifyActivation(bool _)
 		{
-			// TODO extract to interaction
 			IEnumerable<SimDescription> targets = from sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors()
 												  where sim.SimDescription.ToddlerOrAbove && !sim.OccultManager.DisallowClothesChange() && !sim.BuffManager.DisallowClothesChange() && !sim.BuffManager.HasElement((BuffNames)BuffTransmogrify.kBuffTransmogrifyGuid)
 												  select sim.SimDescription;
@@ -2610,16 +2605,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				return false;
 			}
-			SimDescription oldDescription = selectedSim.SimDescription;
-			CASAgeGenderFlags newSpecies = CASAgeGenderFlags.None;
-			CASAgeGenderFlags newAge = oldDescription.Age switch 
-			{
-				CASAgeGenderFlags.Toddler or CASAgeGenderFlags.Child or CASAgeGenderFlags.Teen  => CASAgeGenderFlags.Child,
-				CASAgeGenderFlags.YoungAdult or CASAgeGenderFlags.Adult                         => CASAgeGenderFlags.Adult,
-				CASAgeGenderFlags.Elder                                                         => CASAgeGenderFlags.Elder,
-				_                                                                               => CASAgeGenderFlags.None
-			};
 
+			CASAgeGenderFlags newSpecies = CASAgeGenderFlags.None;
 			List<ObjectPicker.HeaderInfo> list = new()
 			{
 				new("Ui/Tooltip/CAS/Load:SpeciesAll", "Ui/Tooltip/CAS/Load:SpeciesAll", 300)
@@ -2648,7 +2635,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 					new ObjectPicker.ThumbAndTextColumn(new ThumbnailKey(ResourceKey.CreatePNGKey("moodlet_horsie", 0x48000000u), ThumbnailSize.ExtraLarge), Localization.LocalizeString("Ui/Tooltip/CAS/Load:SpeciesHorse"))
 				})
 			};
-			list2.Remove(list2.Find(row => oldDescription.Species == (CASAgeGenderFlags)row.Item));
+			list2.Remove(list2.Find(row => selectedSim.SimDescription.Species == (CASAgeGenderFlags)row.Item));
 
 			List<ObjectPicker.TabInfo> list3 = new()
 			{
@@ -2662,256 +2649,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				newSpecies = selection is not null ? (CASAgeGenderFlags)selection[0].Item : CASAgeGenderFlags.None;
 			}
 
-			Camera.FocusOnSim(selectedSim);
-			if (selectedSim.IsSelectable)
-			{
-				PlumbBob.SelectActor(selectedSim);
-			}
-			Audio.StartSound(newSpecies is CASAgeGenderFlags.Human ? "sting_transmogrifytohuman" : "sting_transmogrifytopet", selectedSim.Position);
-			VisualEffect effect = VisualEffect.Create("ep11portalspawn_main");
-			effect.SetPosAndOrient(selectedSim.Position, selectedSim.ForwardVector, selectedSim.UpVector);
-			effect.Start();
-
-			string animName = oldDescription switch
-			{
-				{ IsFoal: true }                        => "ch_whinny_x",
-				{ IsHorse: true }                       => "ah_whinny_x",
-				{ IsPuppy: true }                       => "cd_react_stand_whimper_x",
-				{ IsFullSizeDog: true }                 => "ad_react_stand_whimper_x",
-				{ IsLittleDog: true }                   => "al_react_stand_whimper_x",
-				{ IsKitten: true }                      => "cc_petNeeds_standing_hunger_whinyMeow_x",
-				{ IsCat: true }                         => "ac_petNeeds_standing_hunger_whinyMeow_x",
-				{ Child: true }                         => "c_buff_wallFlower_x",
-				{ TeenOrAbove: true }                   => "a_buff_wallFlower_x",
-				_                                       => null
-			};
-
-			if (!string.IsNullOrEmpty(animName))
-			{
-				float num = SimClock.ElapsedTime(TimeUnit.Minutes);
-				while (SimClock.ElapsedTime(TimeUnit.Minutes) - num < 0.5f)
-				{
-					Simulator.Sleep(1U);
-				}
-				selectedSim.PlaySoloAnimation(animName, false, selectedSim.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
-			}
-
-			float num2 = SimClock.ElapsedTime(TimeUnit.Minutes);
-			while (SimClock.ElapsedTime(TimeUnit.Minutes) - num2 < 2.5f)
-			{
-				Simulator.Sleep(1U);
-			}
-
-			bool turnIntoUnicorn = (oldDescription.IsGenie || oldDescription.IsWitch || oldDescription.IsFairy) && newSpecies is CASAgeGenderFlags.Horse;
-			SimDescription newDescription = newSpecies is CASAgeGenderFlags.Human 
-										  ? Genetics.MakeSim(newAge, oldDescription.Gender, oldDescription.HomeWorld, uint.MaxValue) 
-										  : turnIntoUnicorn
-										  ? GeneticsPet.MakePet(newAge, oldDescription.Gender, newSpecies, OccultUnicorn.NPCOutfit(oldDescription.IsFemale, newAge))
-										  : GeneticsPet.MakeRandomPet(newAge, oldDescription.Gender, newSpecies);
-			if (newDescription is null)
-            {
-				return false;
-            }
-			Relationship.sAllRelationships[newDescription] = new();
-			foreach (Relationship oldRelationship in Relationship.GetRelationships(oldDescription))
-			{
-				if (oldRelationship is not null)
-				{
-					Sim otherSim = oldRelationship.GetOtherSim(selectedSim);
-					if (otherSim is not null)
-					{
-						Relationship newRelationship = new(newDescription, otherSim.SimDescription);
-						Relationship.sAllRelationships[newDescription].Add(otherSim.SimDescription, newRelationship);
-						// If game is using asymmetric relationships, copy each half of the pair
-						// Otherwise, both Sims will share a common relationship
-						Relationship oldRelationship2 = Relationship.Get(otherSim, selectedSim, false);
-						if (oldRelationship != oldRelationship2)
-                        {
-							Relationship newRelationship2 = new(otherSim.SimDescription, newDescription);
-							Relationship.sAllRelationships[otherSim.SimDescription].Add(newDescription, newRelationship2);
-							newRelationship2.LTR.CopyLtr(oldRelationship2.LTR);
-							newRelationship2.LTR.UpdateLTR();
-                        }
-						else
-                        {
-							Relationship.sAllRelationships[otherSim.SimDescription].Add(newDescription, newRelationship);
-						}
-						newRelationship.LTR.CopyLtr(oldRelationship.LTR);
-						newRelationship.LTR.UpdateLTR();
-					}
-				}
-			}
-			newDescription.FirstName = oldDescription.FirstNameUnlocalized;
-			newDescription.LastName = oldDescription.LastNameUnlocalized;
-			newDescription.Bio = oldDescription.BioUnlocalized;
-			newDescription.VoicePitchModifier = oldDescription.VoicePitchModifier;
-			if (newSpecies is CASAgeGenderFlags.Human)
-            {
-				newDescription.VoiceVariation = (VoiceVariationType)RandomUtil.GetInt(2);
-            } 
-			newDescription.mLifetimeHappiness = oldDescription.mLifetimeHappiness;
-			newDescription.mSpendableHappiness = oldDescription.mSpendableHappiness;
-
-			// Pick traits for new Sim based on old Sim's traits
-			IEnumerable<TraitNames> mappingTraits = oldDescription.TraitManager.List
-																			   .Where(trait => trait.IsVisible)
-																			   .SelectMany(trait => TransmogrifyTraitMapping.sInstance.GetMappedTraits(newDescription, trait.Guid));
-			List<TraitNames> traitsToAdd = mappingTraits.Distinct().ToList();
-			List<float> weightsToAdd = Enumerable.Repeat(0f, traitsToAdd.Count).ToList();
-			foreach (TraitNames mappingTrait in mappingTraits)
-            {
-				weightsToAdd[traitsToAdd.IndexOf(mappingTrait)]++;
-            }
-
-			// Manually tune the weight of the unstable trait, since it is mapped to every pet trait
-			int unstableIndex = traitsToAdd.IndexOf(TraitNames.Unstable);
-			if (unstableIndex > -1)
-            {
-				weightsToAdd[unstableIndex] = 0.75f;
-            }
-
-			int numToAdd = newSpecies is CASAgeGenderFlags.Human ? newDescription.TraitManager.NumTraitsForAge() : 3;
-			while (traitsToAdd.Count > 0 && newDescription.CountVisibleTraits() < numToAdd)
-            {
-				TraitNames traitToAdd = RandomUtil.GetWeightedRandomObjectFromList(weightsToAdd, traitsToAdd);
-				newDescription.TraitManager.AddElement(traitToAdd);
-				int indexAdded = traitsToAdd.IndexOf(traitToAdd);
-				traitsToAdd.RemoveAt(indexAdded);
-				weightsToAdd.RemoveAt(indexAdded);
-			}
-			// If not all trait slots are filled out, fill the remaining slots out at random
-			newDescription.TraitManager.AddRandomTrait(numToAdd - newDescription.CountVisibleTraits());
-
-			// CONSIDER copy over stattrackers and/or VisaManager
-			LifeEventManager newManager = newDescription.LifeEventManager, oldManager = oldDescription.LifeEventManager;
-			newManager.ProcessPendingLifeEvents(true);
-			newManager.mActiveNodes = oldManager.mActiveNodes;
-			newManager.mCurrentNumberOfVisibleLifeEvents = oldManager.mCurrentNumberOfVisibleLifeEvents;
-			newManager.mHasShownWarningDialog = oldManager.mHasShownWarningDialog;
-			newManager.mLifeEvents = oldManager.mLifeEvents;
-			newManager.mTimeOfDeath = oldManager.mTimeOfDeath;
-
-			if (turnIntoUnicorn)
-            {
-				newDescription.OccultManager.AddOccultType(OccultTypes.Unicorn, true, false, false);
-				SkillManager skillManager = newDescription.SkillManager;
-				Racing skill = skillManager.AddElement(SkillNames.Racing) as Racing;
-				skill.ForceSkillLevelUp(10);
-				Jumping skill2 = skillManager.AddElement(SkillNames.Jumping) as Jumping;
-				skill2.ForceSkillLevelUp(10);
-			}
-			if (oldDescription.IsUnicorn && newSpecies is CASAgeGenderFlags.Human)
-            {
-				newDescription.OccultManager.AddOccultType(RandomUtil.GetRandomObjectFromList(OccultTypes.Fairy, OccultTypes.Witch, OccultTypes.Genie), true, false, false);
-			}
-			if (oldDescription.IsGhost)
-			{
-				newDescription.IsGhost = true;
-				newDescription.mDeathStyle = oldDescription.mDeathStyle;
-			}
-			selectedSim.Household.Add(newDescription);
-			oldDescription.Genealogy.ClearAllGenealogyInformation();
-
-			if (selectedSim.IsActiveSim)
-			{
-				UserToolUtils.OnClose();
-				LotManager.SelectNextSim();
-			}
-			Sim oldSim = selectedSim;
-			selectedSim = newDescription.Instantiate(selectedSim.Position);
-			oldSim.Destroy();
-			oldDescription.Dispose();
-			if (selectedSim.IsInActiveHousehold)
-			{
-				foreach (INotTransferableOnDeath notTransferableOnDeath in oldSim.Inventory.FindAll<INotTransferableOnDeath>(false))
-				{
-					notTransferableOnDeath.Destroy();
-				}
-				List<IGameObject> dolls = new();
-				if (GameUtils.IsInstalled(ProductVersion.EP4))
-				{
-					ulong simDescriptionId = oldSim.SimDescription.SimDescriptionId;
-					foreach (IImaginaryDoll imaginaryDoll in oldSim.Inventory.FindAll<IImaginaryDoll>(false))
-					{
-						if (imaginaryDoll.GetOwnerSimDescriptionId() == simDescriptionId)
-						{
-							if (oldSim.Inventory.TryToRemove(imaginaryDoll))
-							{
-								dolls.Add(imaginaryDoll);
-							}
-							else
-							{
-								imaginaryDoll.Destroy();
-							}
-						}
-					}
-				}
-				if (!oldSim.Inventory.IsEmpty)
-				{
-					oldSim.Inventory.MoveObjectsTo(selectedSim.Inventory);
-				}
-				foreach (IGameObject gameObject in dolls)
-				{
-					if (!oldSim.Inventory.TryToAdd(gameObject))
-					{
-						gameObject.Destroy();
-					}
-				}
-			}
-			foreach (LifeEventManager.LifeEventActiveNode node in newManager.mActiveNodes.SelectMany(kvp => kvp.Value))
-			{
-				node.mOwner = selectedSim;
-			}
-			oldSim.Dispose();
-			if (selectedSim.SimDescription.IsGhost)
-			{
-				Urnstone.SimToPlayableGhost(selectedSim);
-			}
-
-			if (CauseEffectService.GetInstance() is CauseEffectService service && service.GetTimeAlmanacTimeStatueData() is List<ITimeStatueUiData> timeAlmanacTimeStatueData)
-			{
-				foreach (ITimeStatueUiData timeStatueUiData in timeAlmanacTimeStatueData)
-				{
-                    if (timeStatueUiData is TimeStatueRecordData timeStatueRecordData && timeStatueRecordData.mRecordHolderId == oldSim.SimDescription.SimDescriptionId)
-                    {
-                        timeStatueRecordData.mRecordHolderId = 0UL;
-                    }
-                }
-			}
-
-			if (!(newDescription.IsPet && newDescription.Child))
-			{
-				effect.Stop();
-				effect.Dispose();
-				GameStates.sSingleton.mInWorldState.GotoCASMode((InWorldState.SubState)HashString32("CASTransmogrifyState"));
-				CASLogic singleton = CASLogic.GetSingleton();
-				singleton.LoadSim(selectedSim.SimDescription, selectedSim.CurrentOutfitCategory, 0);
-				singleton.UseTempSimDesc = true;
-				while (GameStates.NextInWorldStateId is not InWorldState.SubState.LiveMode)
-				{
-					Simulator.Sleep(1U);
-				}
-			}
-			// TODO final animation after transmog
-			if (selectedSim.BuffManager.AddElement((BuffNames)BuffTransmogrify.kBuffTransmogrifyGuid, (Origin)HashString64("FromWonderPower")))
-            {
-				BuffTransmogrify.BuffInstanceTransmogrify transmogrifyBuffInstance = selectedSim.BuffManager.GetElement(BuffTransmogrify.kBuffTransmogrifyGuid) as BuffTransmogrify.BuffInstanceTransmogrify;
-				BuffTransmogrify.TransmogType transmogType = selectedSim switch
-				{
-					{ IsADogSpecies: true }  => BuffTransmogrify.TransmogType.ToDog,
-					{ IsCat: true }          => BuffTransmogrify.TransmogType.ToCat,
-					{ IsHorse: true }        => BuffTransmogrify.TransmogType.ToHorse,
-					_                        => BuffTransmogrify.TransmogType.ToHuman
-				};
-				transmogrifyBuffInstance.SetTransmogType(transmogType, selectedSim);
-            } 
-			Camera.FocusOnSim(selectedSim);
-			if (selectedSim.IsSelectable)
-			{
-				PlumbBob.SelectActor(selectedSim);
-			}
-			StyledNotification.Show(new(WonderPowerManager.LocalizeString(selectedSim.IsFemale, "TransmogrifyTNS", selectedSim), selectedSim.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
-			WonderPowerManager.TogglePowerRunning();
+			StartTransmogrify startTransmogrifyInteraction = new StartTransmogrify.Definition(newSpecies).CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as StartTransmogrify;
+			selectedSim.InteractionQueue.AddNext(startTransmogrifyInteraction);
 			return true;
 		}
 
