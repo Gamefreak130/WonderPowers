@@ -283,19 +283,20 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		private static WonderPowerManager sInstance;
 
         private static readonly List<WonderPower> sAllWonderPowers = new();
-
-		private bool mIsPowerRunning;
+		
+		[PersistableStatic(false)]
+		private static bool sIsPowerRunning;
 
 		public static bool IsPowerRunning
 		{
-			get => sInstance.mIsPowerRunning;
+			get => sIsPowerRunning;
 			private set
             {
-				if (RewardTraitsPanel.Instance?.GetChildByID(799350305u, true) is Button button)
-				{
-					button.Enabled = !value;
-					sInstance.mIsPowerRunning = value;
-				}
+					if (RewardTraitsPanel.Instance?.GetChildByID(799350305u, true) is Button button)
+					{
+						button.Enabled = !value;
+					}
+					sIsPowerRunning = value;
 			}
 		}
 
@@ -654,7 +655,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		internal static void Init()
 		{
-			sInstance = new();
+			if (!GameStates.IsTravelling)
+			{
+				sInstance = new();
+			}
+			sIsPowerRunning = false;
 			//Simulator.AddObject(sInstance);
 		}
 

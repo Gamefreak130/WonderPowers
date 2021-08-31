@@ -66,10 +66,7 @@ namespace Gamefreak130
 
         private static void OnPreLoad()
         {
-            if (!GameStates.IsTravelling)
-            {
-                WonderPowerManager.Init();
-            }
+            WonderPowerManager.Init();
             new BuffBooter("Gamefreak130_KarmaBuffs").Boot();
             if (GenericManager<BuffNames, BuffInstance, BuffInstance>.sDictionary.TryGetValue((ulong)BuffNames.UnicornsBlessing, out BuffInstance buff))
             {
@@ -103,7 +100,6 @@ namespace Gamefreak130
                     Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(WonderModeMenu.Show));
                     eventArgs.Handled = true;
                 };
-                //TEST travel while powers running
                 button.Enabled = !WonderPowerManager.IsPowerRunning;
             }
             GameStates.sSingleton.mInWorldState.mStateMachine.AddState(new CASInstantBeautyState());
