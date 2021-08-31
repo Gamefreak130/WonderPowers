@@ -55,6 +55,6 @@
         public static int kWealthMinAmount = 10000;
 
         [Tunable, TunableComment("The maximum amount added to a Sim's household funds when affected by the Wealth karma power")]
-        public static int kWealthMaxAmount = 50000;
+        public static int kWealthMaxAmount = 30000;
     }
 }
