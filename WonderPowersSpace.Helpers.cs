@@ -99,21 +99,43 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 	//[Persistable]
 	public class WonderPower
 	{
-		public string WonderPowerName
-		{
-			get;
-			private set;
-		}
-
-		public bool IsBadPower 
-		{ 
-			get;
-			private set;
-		}
-
 		private readonly MethodInfo mRunMethod;
 
 		private readonly int mCost;
+
+		//[Persistable(false)]
+		private delegate bool RunDelegate(bool isBacklash);//, GameObject target);
+
+		public string WonderPowerName { get; private set; }
+
+		public bool IsBadPower { get; private set; }
+
+		public int Cost
+		{
+			get
+			{
+				/*if (WonderPowers.NumFreePowers > 0)
+				{
+					return 0;
+				}*/
+				int cost = mCost;
+				if (Household.ActiveHousehold is not null)
+				{
+					foreach (Sim current in Household.ActiveHousehold.Sims)
+					{
+						if (!IsBadPower && current.SimDescription.TraitManager.HasElement(TraitNames.Good))
+						{
+							//cost *= WonderPowers.kGoodTraitDiscount;
+						}
+						if (IsBadPower && current.SimDescription.TraitManager.HasElement(TraitNames.Evil))
+						{
+							//cost *= WonderPowers.kBadTraitDiscount;
+						}
+					}
+				}
+				return cost;
+			}
+		}
 
 		//public bool IsLocked;
 
@@ -135,9 +157,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			mRunMethod = runMethod;
 		}
 
-		//[Persistable(false)]
-		private delegate bool RunDelegate(bool isBacklash);//, GameObject target);
-
 		// The Run() method is used in a OneShotFunctionWithParam added to the Simulator when the power selection dialog ends,
 		// So that any power-specific dialogs should not fire until after the power selection dialog is disposed
 		// Hence why the boolean argument here is an object -- FunctionWithParam delegates take a generic object as their argument
@@ -151,16 +170,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
                     // Activation of any power will disable the karma menu
                     // Re-enabling is left to the powers' individual run methods when activation is complete
                     WonderPowerManager.TogglePowerRunning();
-					int newKarma = WonderPowerManager.GetKarma();
-					if (backlash)
-                    {
-						newKarma += Cost();
-                    }
-					else
-                    {
-						newKarma -= Cost();
-                    }
-					WonderPowerManager.SetKarma(newKarma);
+					int cost = backlash ? -Cost : Cost;
+					WonderPowerManager.Karma -= cost;
 					RunDelegate run = (RunDelegate)Delegate.CreateDelegate(typeof(RunDelegate), mRunMethod);
                     if (run(backlash))
                     {
@@ -175,7 +186,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 						else
                         {
 							StyledNotification.Show(new(WonderPowerManager.LocalizeString("PowerFailed"), StyledNotification.NotificationStyle.kGameMessagePositive));
-							WonderPowerManager.SetKarma(WonderPowerManager.GetKarma() + Cost());
+							WonderPowerManager.Karma += Cost;
 						}
 						WonderPowerManager.TogglePowerRunning();
 					}
@@ -188,35 +199,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
                     WonderPowerManager.TogglePowerRunning();
                     if (!backlash)
                     {
-                        WonderPowerManager.SetKarma(WonderPowerManager.GetKarma() + Cost());
+						WonderPowerManager.Karma += Cost;
                     }
                 }
             }
         }
-
-		public int Cost()
-        {
-			/*if (WonderPowers.NumFreePowers > 0)
-			{
-				return 0;
-			}*/
-			int cost = mCost;
-			if (Household.ActiveHousehold is not null)
-			{
-				foreach (Sim current in Household.ActiveHousehold.Sims)
-				{
-					if (!IsBadPower && current.SimDescription.TraitManager.HasElement(TraitNames.Good))
-					{
-						//cost *= WonderPowers.kGoodTraitDiscount;
-					}
-					if (IsBadPower && current.SimDescription.TraitManager.HasElement(TraitNames.Evil))
-					{
-						//cost *= WonderPowers.kBadTraitDiscount;
-					}
-				}
-			}
-			return cost;
-		}
     }
 
 	[Persistable]
@@ -287,21 +274,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		[PersistableStatic(false)]
 		private static bool sIsPowerRunning;
 
-		public static bool IsPowerRunning
-		{
-			get => sIsPowerRunning;
-			private set
-            {
-					if (RewardTraitsPanel.Instance?.GetChildByID(799350305u, true) is Button button)
-					{
-						button.Enabled = !value;
-					}
-					sIsPowerRunning = value;
-			}
-		}
-
-        public static void TogglePowerRunning() => IsPowerRunning = !IsPowerRunning;
-
         //private readonly List<WonderPowerActivation> mActiveWonderPowers = new List<WonderPowerActivation>();
 
         private bool mDebugBadPowersOn;
@@ -315,21 +287,13 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
         public static float NearbySimsDistance => kNearbySimsDistance;
 
-        private int Karma
+        public static int Karma
         {
-            get => mCurrentKarmaLevel;
+            get => sInstance.mCurrentKarmaLevel;
             set
             {
-                mCurrentKarmaLevel = value;
-                if (mCurrentKarmaLevel < -100)
-                {
-                    mCurrentKarmaLevel = -100;
-                }
-                if (mCurrentKarmaLevel > 100)
-                {
-                    mCurrentKarmaLevel = 100;
-                }
-                if (mCurrentKarmaLevel == 100)
+				sInstance.mCurrentKarmaLevel = MathUtils.Clamp(value, -100, 100);
+				if (sInstance.mCurrentKarmaLevel == 100)
                 {
                     //EventTracker.SendEvent(EventTypeId.kChallengeKarmaReached100);
                 }
@@ -344,12 +308,27 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
         public static bool BadPowersOn { get; set; } = true;
 
-        /*public static void SetKarmaWishModifierLevel(int nLevel)
+		public static bool IsPowerRunning
+		{
+			get => sIsPowerRunning;
+			private set
+			{
+				if (RewardTraitsPanel.Instance?.GetChildByID(799350305u, true) is Button button)
+				{
+					button.Enabled = !value;
+				}
+				sIsPowerRunning = value;
+			}
+		}
+
+		public static void TogglePowerRunning() => IsPowerRunning = !IsPowerRunning;
+
+		/*public static void SetKarmaWishModifierLevel(int nLevel)
 		{
 			sCurrentKarmaWishAmountModifier = kKarmaWishAmountModifierPerLevel * nLevel;
 		}*/
 
-        public static void OnOptionsLoaded()
+		public static void OnOptionsLoaded()
 		{
 			LoadDialogFlagsFromProfile();
 		}
@@ -541,10 +520,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		{
 			if (sInstance is not null)
 			{
-				Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(delegate ()
+				/*Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(delegate ()
 				{
 					sInstance.OnShowKarmaStar(dream);
-				}));
+				}));*/
 				sInstance.mTotalPromisesFulfilled++;
 				float num = 0;// sCurrentKarmaWishAmountModifier;
 				float num2 = kKarmaBasicWishAmount;
@@ -556,7 +535,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 		}
 
-		public void OnShowKarmaStar(object d)
+		/*public void OnShowKarmaStar(object d)
 		{
 			if (mKarmaPromisesFulfilled == 0)
 			{
@@ -573,24 +552,24 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				mTotalPromisesFulfilledKarma = 0f;
 				mKarmaPromisesFulfilled = 0;
 				mTotalPromisesFulfilled = 0;
-				/*while (KarmaDial.IsVisible)
+				while (KarmaDial.IsVisible)
 				{
 					Simulator.Sleep(0u);
-				}*/
+				}
 			}
-		}
+		}*/
 
-		public void ShowKarmaDial()
+		/*public void ShowKarmaDial()
 		{
 			float karma = GetKarma();
 			float num = karma + mTotalPromisesFulfilledKarma;
 			SetKarma((int)num);
-			/*KarmaDial.Load(karma, Karma, false);
+			KarmaDial.Load(karma, Karma, false);
 			if (!bHaveShownFirstWishFulfillmentDialog && sInstance != null)
 			{
 				KarmaDial.WishFulfilledCompletedFunction = (KarmaDial.WishFulfilledCompleted)(object)new KarmaDial.WishFulfilledCompleted(sInstance.DisplayWishFulfilledDialogPopup);
-			}*/
-		}
+			}
+		}*/
 
 		private void DisplayWishFulfilledDialogPopup()
 		{
@@ -601,7 +580,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public void UsedPower(WonderPower power)
 		{
-			int num = power.Cost();
+			int num = power.Cost;
 			if (num > 0f)
 			{
 				Karma -= num;
@@ -612,7 +591,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public void CancelledPower(WonderPower power)
 		{
-			int num = power.Cost();
+			int num = power.Cost;
 			if (num > 0f)
 			{
 				Karma += num;
@@ -685,11 +664,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 		}
 
-		public static bool HasEnoughKarma(int karma) => sInstance.Karma - karma >= -100;
-
-		public static int GetKarma() => sInstance.Karma;
-
-		public static void SetKarma(int karma) => sInstance.Karma = karma;
+		public static bool HasEnoughKarma(int cost) => Karma - cost >= -100;
 
 		public static void OnPowerUsed(WonderPower power)
 		{

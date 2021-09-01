@@ -1,9 +1,7 @@
 ﻿using Gamefreak130.WonderPowersSpace.Helpers;
 using Sims3.Gameplay;
 using Sims3.Gameplay.Core;
-using Sims3.Gameplay.Passport;
 using Sims3.Gameplay.Tutorial;
-using Sims3.Gameplay.UI;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
@@ -15,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
-using static Sims3.SimIFace.ResourceUtils;
 
 namespace Gamefreak130.WonderPowersSpace.UI
 {
@@ -35,18 +32,6 @@ namespace Gamefreak130.WonderPowersSpace.UI
 
 		private const string kBrowseWonderPowersMusic = "music_mode_karma";
 
-		//public delegate void PowerSelectHandler(string power);
-
-		private readonly bool sIncrementalButtonIndexing = false;
-
-		/*private List<WonderPower> mGoodPowers = new List<WonderPower>();
-
-		private List<WonderPower> mBadPowers = new List<WonderPower>();*/
-
-		private float mKarma;
-
-		//private PowerSelectHandler PowerSelected;
-
 		private readonly uint mMusicHandle;
 
 		private readonly MusicMode mPreviousMusicMode;
@@ -64,6 +49,10 @@ namespace Gamefreak130.WonderPowersSpace.UI
 		private readonly Text mPowerPoints;
 
 		private readonly Text mPowerName;
+
+		private readonly Window mAmountWindow;
+
+		private readonly Text mKarmaAmount;
 
 		private readonly TextEdit mPowerDesc;
 
@@ -83,18 +72,10 @@ namespace Gamefreak130.WonderPowersSpace.UI
 			}
 		}
 
-        private void SetKarma(float karma) => mKarma = karma;
-
         private WonderModeMenu() : base("WonderMode", 1, true, PauseMode.PauseSimulator, null)
 		{
 			if (mModalDialogWindow is not null)
 			{
-				/*for (int i = 0; i < 13; i++)
-				{
-					mWonderPowerCosts[i] = 0;
-				}
-				SetKarma(WonderPowers.GetKarma());
-				//PowerSelected = (PowerSelectHandler)(object)new PowerSelectHandler(WonderPowerSelected);*/
 				mPreviousMusicMode = AudioManager.MusicMode;
 				AudioManager.SetMusicMode(MusicMode.None);
 				mMusicHandle = Audio.StartSound(kBrowseWonderPowersMusic);
@@ -119,17 +100,49 @@ namespace Gamefreak130.WonderPowersSpace.UI
 				mKarmaMeter = mModalDialogWindow.GetChildByID(5u, true) as FillBarController;
 				if (mKarmaMeter is not null)
 				{
-					mKarmaMeter.Initialize(-100f, 100f, 0.5f);
-					/*if (this.mHudModel.CheatsEnabled)
+					mKarmaMeter.Initialize(-100f, 100f, WonderPowerManager.Karma == 0 ? 0.5f : WonderPowerManager.Karma);
+					if (Cheats.sTestingCheatsEnabled)
 					{
-						fillBarController.EnableCheatWindow(simDesc);
-						fillBarController.CheatBarDragged += new FillBarController.CheatFillBarDragHandler(this.OnRelationshipDrag);
-					}*/
+						mKarmaMeter.EnableCheatWindow(null);
+						mKarmaMeter.mCheatWindow.MouseMove += (_,_) => OnKarmaDrag((int)mKarmaMeter.Value);
+						mKarmaMeter.mCheatWindow.MouseDown += (_,_) => OnKarmaDrag((int)mKarmaMeter.Value);
+						mKarmaMeter.CheatBarDragged += (_,_) => OnKarmaDrag(int.Parse(mKarmaAmount.Caption));
+					}
 				}
 
-				mModalDialogWindow.GetChildByID(7, true).Caption = 999.ToString();
+				mKarmaAmount = mModalDialogWindow.GetChildByID(7, true) as Text;
+				mAmountWindow = mModalDialogWindow.GetChildByID(6, true) as Window;
+				SetUpAmountWindow();
 			}
 		}
+
+        private void SetUpAmountWindow()
+        {
+			mKarmaAmount.Caption = WonderPowerManager.Karma.ToString();
+			float num = mKarmaAmount.Area.Width;
+			float num2 = mKarmaAmount.Area.Height;
+			mKarmaAmount.AutoSize(false);
+			mKarmaAmount.AutoSize(true);
+			Rect area = mAmountWindow.Area;
+			area.Width += mKarmaAmount.Area.Width - num;
+			area.Height += mKarmaAmount.Area.Height - num2;
+			num = area.Width;
+			area.TopLeft = new(mKarmaMeter.Area.TopLeft.x - (num / 2) + ((WonderPowerManager.Karma + 100) * mKarmaMeter.Area.Width / 200) + 7, area.TopLeft.y);
+			area.Width = num;
+			mAmountWindow.Area = area;
+		}
+
+        private void OnKarmaDrag(int value)
+        {
+			mKarmaMeter.Value = value;
+			WonderPowerManager.Karma = value;
+			if (mKarmaMeter.Value == 0)
+            {
+				mKarmaMeter.Value = 0.5f;
+            }
+			SetUpAmountWindow();
+			SetPowerInfo((WonderPower)(mGoodPowerGrid.SelectedTag ?? mBadPowerGrid.SelectedTag));
+        }
 
         private void OnPowerSelect(ItemGrid sender, ItemGridCellClickEvent eventArgs)
         {
@@ -142,20 +155,21 @@ namespace Gamefreak130.WonderPowersSpace.UI
 
         private void SetPowerInfo(WonderPower power)
         {
-			if (WonderPowerManager.HasEnoughKarma(power.Cost()))
+			if (WonderPowerManager.HasEnoughKarma(power.Cost))
             {
-				//TODO Color
+				mPowerPoints.TextColor = new(11, 36, 110);
 				mAcceptButton.Enabled = true;
 				mAcceptButton.TooltipText = Localization.LocalizeString("Ui/Caption/Global:Accept");
             }
 			else
-            {//TODO Color
+            {
+				mPowerPoints.TextColor = new(255, 0, 0);
 				mAcceptButton.Enabled = false;
 				mAcceptButton.TooltipText = LocalizeString("NotEnoughKarma");
             }
 			(mPowerPreview.Drawable as ImageDrawable).Image = UIManager.LoadUIImage(ResourceKey.CreatePNGKey(power.WonderPowerName + "_Preview", 0u));
 			mPowerName.Caption = LocalizeString(power.WonderPowerName);
-			mPowerPoints.Caption = power.Cost() + " " + LocalizeString("Points");
+			mPowerPoints.Caption = power.Cost + " " + LocalizeString("Points");
 			mPowerDesc.Caption = LocalizeString(power.WonderPowerName + "Description");
 			mPowerPreview.Invalidate();
 		}
@@ -218,7 +232,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 					power = mBadPowerGrid.SelectedTag as WonderPower;
 				}
 
-				if (power != null && WonderPowerManager.HasEnoughKarma(power.Cost()))
+				if (power != null && WonderPowerManager.HasEnoughKarma(power.Cost))
 				{
 					Simulator.AddObject(new OneShotFunctionWithParams(power.Run, false));
 				}
@@ -299,17 +313,17 @@ namespace Gamefreak130.WonderPowersSpace.UI
 		{
 			if (CASPuck.Instance?.mPuckCommon is PuckCommon puckCommon)
 			{
-				if (Sims3.UI.Responder.Instance.PassportModel.WorldIsCurrentlyHostingASimViaPassport() && item is PuckCommon.OptionsMenuItems.MainMenu or PuckCommon.OptionsMenuItems.SaveGame or PuckCommon.OptionsMenuItems.SaveGameAs or PuckCommon.OptionsMenuItems.QuitToWindows or PuckCommon.OptionsMenuItems.QuitToWindowsAndSave)
+				if (Responder.Instance.PassportModel.WorldIsCurrentlyHostingASimViaPassport() && item is PuckCommon.OptionsMenuItems.MainMenu or PuckCommon.OptionsMenuItems.SaveGame or PuckCommon.OptionsMenuItems.SaveGameAs or PuckCommon.OptionsMenuItems.QuitToWindows or PuckCommon.OptionsMenuItems.QuitToWindowsAndSave)
 				{
-					if (!Sims3.UI.Responder.Instance.PassportModel.IsShowComplete() && !TwoButtonDialog.Show(Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:VerifyQuitWhileHosting"), 
-																													 Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:Yes"), 
-																													 Sims3.UI.Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:No")))
+					if (!Responder.Instance.PassportModel.IsShowComplete() && !TwoButtonDialog.Show(Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:VerifyQuitWhileHosting"),
+                                                                                                                     Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:Yes"),
+                                                                                                                     Responder.Instance.LocalizationModel.LocalizeString("UI/Caption/Passport:No")))
 					{
 						return;
 					}
 					try
 					{
-						Sims3.UI.Responder.Instance.PassportModel.SendSimHomeImmediately();
+                        Responder.Instance.PassportModel.SendSimHomeImmediately();
 					}
 					catch (Exception)
 					{
@@ -324,7 +338,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 						puckCommon.OnSaveAs();
 						return;
 					case PuckCommon.OptionsMenuItems.EditTown:
-						if (Sims3.UI.Responder.Instance.PassportModel.GetIsHostingSim())
+						if (Responder.Instance.PassportModel.GetIsHostingSim())
 						{
 							return;
 						}
@@ -669,7 +683,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 				return null;
 			}
 			UserToolUtils.OnClose();
-			Sims3.UI.Responder.Instance.HudModel.RestoreUIVisibility();
+            Responder.Instance.HudModel.RestoreUIVisibility();
 			if (EnableModalDialogs && sDialog is null)
 			{
 				MapTagFilterType sLastFilterType = MapViewController.sLastFilterType;
@@ -681,7 +695,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 				hasExclusiveAccess = sDialog.mHasExclusiveAccess;
 				sDialog = null;
 				MapViewController.sLastFilterType = sLastFilterType;
-				Sims3.UI.Responder.Instance.HudModel.RefreshMapTags();
+                Responder.Instance.HudModel.RefreshMapTags();
 				return result;
 			}
 			return null;
