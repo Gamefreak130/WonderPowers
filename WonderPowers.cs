@@ -14,6 +14,7 @@ using Sims3.Gameplay.Objects;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
+using Sims3.UI.Hud;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -83,6 +84,7 @@ namespace Gamefreak130
 
         private static void OnWorldLoadFinished(object sender, EventArgs e)
         {
+            EventTracker.AddListener(EventTypeId.kPromisedDreamCompleted, WonderPowerManager.OnPromiseFulfilled);
             EventTracker.AddListener(EventTypeId.kEnterInWorldSubState, OnEnteredWorld);
         }
 
@@ -93,7 +95,7 @@ namespace Gamefreak130
 
         private static ListenerAction OnEnteredWorld(Event e)
         {
-            if (Sims3.UI.Hud.RewardTraitsPanel.Instance?.GetChildByID(799350305u, true) is Button button)
+            if (RewardTraitsPanel.Instance?.GetChildByID(799350305u, true) is Button button)
             {
                 button.Click += (sender, eventArgs) =>
                 {
@@ -101,6 +103,19 @@ namespace Gamefreak130
                     eventArgs.Handled = true;
                 };
                 button.Enabled = !WonderPowerManager.IsPowerRunning;
+            }
+            if (SimDisplay.Instance is SimDisplay simDisplay)
+            {
+                // Remove and re-add existing event handlers to ensure ours fire first
+                simDisplay.mWishStagingAreaButton.MouseUp -= simDisplay.OnWishStagingAreaMouseUp;
+                simDisplay.mWishStagingAreaButton.MouseUp += WonderPowerManager.OnWishSlotMouseUp;
+                simDisplay.mWishStagingAreaButton.MouseUp += simDisplay.OnWishStagingAreaMouseUp;
+                for (SimDisplay.ControlIDs controlIDs = SimDisplay.ControlIDs.WishSlotButtonStart; controlIDs is not SimDisplay.ControlIDs.WishSlotButtonCount; controlIDs++)
+                {
+                    simDisplay.mWishSlotButtons[controlIDs - SimDisplay.ControlIDs.WishSlotButtonStart].MouseUp -= simDisplay.OnWishSlotButtonMouseUp;
+                    simDisplay.mWishSlotButtons[controlIDs - SimDisplay.ControlIDs.WishSlotButtonStart].MouseUp += WonderPowerManager.OnWishSlotMouseUp;
+                    simDisplay.mWishSlotButtons[controlIDs - SimDisplay.ControlIDs.WishSlotButtonStart].MouseUp += simDisplay.OnWishSlotButtonMouseUp;
+                }
             }
             GameStates.sSingleton.mInWorldState.mStateMachine.AddState(new CASInstantBeautyState());
             GameStates.sSingleton.mInWorldState.mStateMachine.AddState(new CASTransmogrifyState());

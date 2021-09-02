@@ -3,7 +3,16 @@
     using Sims3.SimIFace;
     public static class TunableSettings
     {
-        [Tunable, TunableComment("The that a Sim's needs are set to when affected by the Curse karma power (except for the bladder need, which will always be fully emptied")]
+        [Tunable, TunableComment("Amount of karma gained when the user fulfills a basic wish")]
+        public static int kKarmaBasicWishAmount = 5;
+
+        [Tunable, TunableComment("Amount of karma gained when the user fulfills a lifetime wish")]
+        public static int kKarmaLifetimeWishAmount = 200;
+
+        [Tunable, TunableComment("Amount of karma lost when the user cancels a wish")]
+        public static int kKarmaCancelWishAmount = 1;
+
+        [Tunable, TunableComment("The value that a Sim's needs are set to when affected by the Curse karma power (except for the bladder need, which will always be fully emptied")]
         public static int kCurseMotiveAmount = -95;
 
         [Tunable, TunableComment("The length of time in sim-minutes that the effects of the Cry Havoc karma power will last")]

@@ -15,7 +15,7 @@ using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
-using Sims3.Gameplay.DreamsAndPromises;
+using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.ObjectComponents;
@@ -227,34 +227,13 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		private static VisualEffect mWitchingFloorVfx;
 
-		private static bool bHaveShownFirstWishFulfillmentDialog = false;
+		private bool mHaveShownFirstWishFulfillmentDialog;
 
-		private static bool bHaveShownWitchingHourDialog = false;
-
-		private float mTotalPromisesFulfilledKarma;
-
-		private int mKarmaPromisesFulfilled;
-
-		private int mTotalPromisesFulfilled;
+		private bool mHaveShownWitchingHourDialog;
 
 		// TODO Sort through all of this
 		[Tunable, TunableComment("How many karma points the player starts with")]
 		private static readonly int kInitialKarmaLevel = 100;
-
-		[Tunable, TunableComment("How much karma is gained daily, low range")]
-		private static readonly float kKarmaDailyRationLow = 9f;
-
-		[Tunable, TunableComment("How much karma is gained daily, high range")]
-		private static readonly float kKarmaDailyRationHigh = 16f;
-
-		[Tunable, TunableComment("Amount of karma gained when the user fulfills a basic wish")]
-		private static readonly float kKarmaBasicWishAmount = 1f;
-
-		[Tunable, TunableComment("Amount of karma gained when the user fulfills a lifetime wish")]
-		private static readonly float kKarmaLifetimeWishAmount = 100f;
-
-		[Tunable, TunableComment("How much to modify the karma gain from completing a wish with each unlocked Karma level.")]
-		private static readonly int kKarmaWishAmountModifierPerLevel = 1;
 
 		[Tunable, TunableComment("Base bad karma event increase factor (added each time a good power is used)")]
 		private static readonly float kKarmaBadEventIncreaseConstant = 0f;
@@ -335,8 +314,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static void OnOptionsReset()
 		{
-			bHaveShownFirstWishFulfillmentDialog = false;
-			bHaveShownWitchingHourDialog = false;
+			sInstance.mHaveShownFirstWishFulfillmentDialog = false;
+			sInstance.mHaveShownWitchingHourDialog = false;
 			SaveDialogFlagsToProfile();
 		}
 
@@ -512,28 +491,48 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
         private void DisplayWitchingHourDialogPopup()
 		{
 			SimpleMessageDialog.Show(Localization.LocalizeString("UI/Wondermode/PopupDialog:HourOfReckoningTitle"), Localization.LocalizeString("UI/Wondermode/PopupDialog:HourOfReckoningText"));
-			bHaveShownWitchingHourDialog = true;
+			sInstance.mHaveShownWitchingHourDialog = true;
 			SaveDialogFlagsToProfile();
 		}
 
-		public static void OnPromiseFulfilled(IDreamAndPromise dream)
+		public static ListenerAction OnPromiseFulfilled(Event e)
 		{
-			if (sInstance is not null)
+			try
 			{
-				/*Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(delegate ()
+				DreamEvent dreamEvent = e as DreamEvent;
+				if (dreamEvent.IsFullfilled && dreamEvent.ActiveDreamNode.Owner.IsInActiveHousehold && dreamEvent.ActiveDreamNode.IsVisible)
 				{
-					sInstance.OnShowKarmaStar(dream);
-				}));*/
-				sInstance.mTotalPromisesFulfilled++;
-				float num = 0;// sCurrentKarmaWishAmountModifier;
-				float num2 = kKarmaBasicWishAmount;
-				if (dream is ActiveDreamNode activeDreamNode && activeDreamNode.Owner is not null && activeDreamNode.IsMajorWish)
-				{
-					num2 = kKarmaLifetimeWishAmount;
+					/*Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(delegate ()
+					{
+						sInstance.OnShowKarmaStar(dream);
+					}));*/
+
+					// TODO UI flourish
+					// CONSIDER multiply karma value by wish's LTH
+					int num = TunableSettings.kKarmaBasicWishAmount;
+					if (dreamEvent.ActiveDreamNode.IsMajorWish)
+					{
+						num = TunableSettings.kKarmaLifetimeWishAmount;
+					}
+					Karma += num;
 				}
-				sInstance.mTotalPromisesFulfilledKarma += num2 + num;
+			}
+			catch (Exception ex)
+            {
+				ExceptionLogger.sInstance.Log(ex);
+            }
+			return ListenerAction.Keep;
+		}
+
+		public static void OnWishSlotMouseUp(WindowBase sender, UIMouseEventArgs eventArgs)
+        {
+			if (sInstance is not null && eventArgs.MouseKey is MouseKeys.kMouseRight && sender.Tag is IDreamAndPromise { IsOneOffDream: false, IsMLCrisisDream: false })
+			{
+				// TODO UI flourish
+				Karma -= TunableSettings.kKarmaCancelWishAmount;
 			}
 		}
+
 
 		/*public void OnShowKarmaStar(object d)
 		{
@@ -574,7 +573,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		private void DisplayWishFulfilledDialogPopup()
 		{
 			SimpleMessageDialog.Show(Localization.LocalizeString("UI/Wondermode/PopupDialog:FirstWishFulfillmentTitle"), Localization.LocalizeString("UI/Wondermode/PopupDialog:FirstWishFulfillmentText"));
-			bHaveShownFirstWishFulfillmentDialog = true;
+			sInstance.mHaveShownFirstWishFulfillmentDialog = true;
 			SaveDialogFlagsToProfile();
 		}
 
@@ -710,7 +709,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		internal static string LocalizeString(bool isFemale, string name, params object[] parameters) => Localization.LocalizeString(isFemale, $"Gameplay/WonderMode:{name}", parameters);
 
-		/*public static void AddActivePower(WonderPowerActivation activePower)
+        /*public static void AddActivePower(WonderPowerActivation activePower)
 		{
 			sInstance.mActiveWonderPowers.Add(activePower);
 		}
@@ -724,7 +723,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		{
 			return sInstance.mActiveWonderPowers.Count > 0;
 		}*/
-	}
+    }
 
 	/*[Persistable(false)]
 	public abstract class WonderPowerActivation : ScriptObject
