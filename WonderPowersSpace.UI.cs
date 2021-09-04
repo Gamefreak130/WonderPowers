@@ -1,6 +1,9 @@
-﻿using Gamefreak130.WonderPowersSpace.Helpers;
+﻿using Gamefreak130.Common.Loggers;
+using Gamefreak130.Common.UI;
+using Gamefreak130.WonderPowersSpace.Helpers;
 using Sims3.Gameplay;
 using Sims3.Gameplay.Core;
+using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Tutorial;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
@@ -13,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
+using OneShotFunctionTask = Sims3.UI.OneShotFunctionTask;
 
 namespace Gamefreak130.WonderPowersSpace.UI
 {
@@ -112,11 +116,11 @@ namespace Gamefreak130.WonderPowersSpace.UI
 
 				mKarmaAmount = mModalDialogWindow.GetChildByID(7, true) as Text;
 				mAmountWindow = mModalDialogWindow.GetChildByID(6, true) as Window;
-				SetUpAmountWindow();
+				SetAmountWindow();
 			}
 		}
 
-        private void SetUpAmountWindow()
+        private void SetAmountWindow()
         {
 			mKarmaAmount.Caption = WonderPowerManager.Karma.ToString();
 			float num = mKarmaAmount.Area.Width;
@@ -140,8 +144,9 @@ namespace Gamefreak130.WonderPowersSpace.UI
             {
 				mKarmaMeter.Value = 0.5f;
             }
-			SetUpAmountWindow();
+			SetAmountWindow();
 			SetPowerInfo((WonderPower)(mGoodPowerGrid.SelectedTag ?? mBadPowerGrid.SelectedTag));
+			Simulator.AddObject(new OneShotFunctionTask(HudExtender.FinishEffectUpdate));
         }
 
         private void OnPowerSelect(ItemGrid sender, ItemGridCellClickEvent eventArgs)
@@ -253,7 +258,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
         }
 	}
 
-	public static class CASWonderMode
+	public static class CASPuckExtender
     {
 		public static void OnOptionsClick(WindowBase sender, UIButtonClickEventArgs _)
 		{
@@ -514,6 +519,184 @@ namespace Gamefreak130.WonderPowersSpace.UI
 			}
 		}
 	}
+
+	public static class HudExtender
+    {
+		private static ObjectGuid sEffectUpdateOneShot;
+
+		private static ObjectGuid sTextIncrementingOneShot;
+
+		public static void Init()
+        {
+			// CONSIDER Karma icon tooltip
+			EventTracker.AddListener(EventTypeId.kPromisedDreamCompleted, OnPromiseFulfilled);
+			if (RewardTraitsPanel.Instance?.GetChildByID(799350305u, true) is Button button)
+			{
+				button.Click += (sender, eventArgs) => {
+					Simulator.AddObject(new OneShotFunctionTask(WonderModeMenu.Show));
+					eventArgs.Handled = true;
+				};
+				button.Enabled = !WonderPowerManager.IsPowerRunning;
+				FinishEffectUpdate();
+			}
+
+			if (SimDisplay.Instance is SimDisplay simDisplay)
+			{
+				// Remove and re-add existing event handlers to ensure ours fire first
+				simDisplay.mWishStagingAreaButton.MouseUp -= simDisplay.OnWishStagingAreaMouseUp;
+				simDisplay.mWishStagingAreaButton.MouseUp += OnWishSlotMouseUp;
+				simDisplay.mWishStagingAreaButton.MouseUp += simDisplay.OnWishStagingAreaMouseUp;
+				for (SimDisplay.ControlIDs controlIDs = SimDisplay.ControlIDs.WishSlotButtonStart; controlIDs is not SimDisplay.ControlIDs.WishSlotButtonCount; controlIDs++)
+				{
+					simDisplay.mWishSlotButtons[controlIDs - SimDisplay.ControlIDs.WishSlotButtonStart].MouseUp -= simDisplay.OnWishSlotButtonMouseUp;
+					simDisplay.mWishSlotButtons[controlIDs - SimDisplay.ControlIDs.WishSlotButtonStart].MouseUp += OnWishSlotMouseUp;
+					simDisplay.mWishSlotButtons[controlIDs - SimDisplay.ControlIDs.WishSlotButtonStart].MouseUp += simDisplay.OnWishSlotButtonMouseUp;
+				}
+			}
+		}
+
+		private static ListenerAction OnPromiseFulfilled(Event e)
+		{
+			// CONSIDER show notification on first ever wish fulfill
+			try
+			{
+				DreamEvent dreamEvent = e as DreamEvent;
+				if (dreamEvent.IsFullfilled && dreamEvent.ActiveDreamNode.Owner.IsInActiveHousehold && dreamEvent.ActiveDreamNode.IsVisible)
+				{
+					// CONSIDER multiply karma value by wish's LTH
+					int num = TunableSettings.kKarmaBasicWishAmount;
+					if (dreamEvent.ActiveDreamNode.IsMajorWish)
+					{
+						num = TunableSettings.kKarmaLifetimeWishAmount;
+					}
+					num = Math.Min(num, 100 - WonderPowerManager.Karma);
+					WonderPowerManager.Karma += num;
+					if (sEffectUpdateOneShot == ObjectGuid.InvalidObjectGuid)
+					{
+						sEffectUpdateOneShot = Simulator.AddObject(new OneShotFunctionWithParams(StartFulfillEffects, num, StopWatch.TickStyles.Seconds, SimDisplay.Instance.mFulfillPromiseGlowEffectDuration + (SimDisplay.Instance.mFulfillPromiseIconGrowEffectDuration / 2f)));
+					}
+				}
+			}
+			catch (Exception ex)
+            {
+				ExceptionLogger.sInstance.Log(ex);
+            }
+			return ListenerAction.Keep;
+		}
+
+		private static void OnWishSlotMouseUp(WindowBase sender, UIMouseEventArgs eventArgs)
+        {
+			if (SimDisplay.Instance is SimDisplay { mbWishStagingAreaEffectInProgress: true } simDisplay)
+            {
+				simDisplay.KillWishStagingAreaEffect();
+				simDisplay.mCurrentStagingAreaIndex = simDisplay.mStagingAreaDreams.Count - 1;
+				simDisplay.RefreshStagingAreaCurrent();
+				simDisplay.UpdateStagingAreaArrows();
+			}
+			if (eventArgs.MouseKey is MouseKeys.kMouseRight && sender.Tag is IDreamAndPromise { IsOneOffDream: false, IsMLCrisisDream: false })
+			{
+				WonderPowerManager.Karma -= TunableSettings.kKarmaCancelWishAmount;
+				Simulator.AddObject(new OneShotFunctionTask(StartSpendEffects));
+			}
+		}
+
+		public static void StartSpendEffects()
+        {
+			if (RewardTraitsPanel.Instance is RewardTraitsPanel traitsPanel)
+			{
+				traitsPanel.KillFulfillPromiseEffects();
+				traitsPanel.SetTextModulateStatus(traitsPanel.mHudModel.GetCurrentSimInfo());
+				FinishEffectUpdate();
+				Window glowWindow = traitsPanel.GetChildByID(0x2FA51C34, true) as Window;
+				(glowWindow.EffectList[0] as FadeEffect).Duration = traitsPanel.mCurrentPointsFrameFadeEffectDuration;
+				glowWindow.Visible = true;
+				traitsPanel.mMainBurstFadeEffect.Duration = traitsPanel.mMainBurstFadeEffectDuration;
+				traitsPanel.mMainBurstEffectWin.Visible = true;
+
+				Simulator.AddObject(new OneShotFunctionTask(delegate {
+					traitsPanel.mHorizontalBurstFadeEffect.Duration = traitsPanel.mHorizontalBurstEffectDuration;
+					traitsPanel.mHorizontalBurstEffectWin.Visible = true;
+				}, StopWatch.TickStyles.Seconds, traitsPanel.mMainBurstFadeEffectDuration));
+
+				sEffectUpdateOneShot = Simulator.AddObject(new OneShotFunctionTask(delegate {
+					traitsPanel.mMainBurstFadeEffect.Duration = traitsPanel.mMainBurstFadeEffectDuration;
+					traitsPanel.mMainBurstEffectWin.Visible = false;
+					traitsPanel.mHorizontalBurstFadeEffect.Duration = traitsPanel.mHorizontalBurstEffectDuration;
+					traitsPanel.mHorizontalBurstEffectWin.Visible = false;
+					FinishEffectUpdate();
+				}, StopWatch.TickStyles.Seconds, traitsPanel.mMainBurstFadeEffectDuration + traitsPanel.mHorizontalBurstEffectDuration));
+			}
+		}
+
+		private static void StartFulfillEffects(object num)
+        {
+			if (RewardTraitsPanel.Instance is RewardTraitsPanel traitsPanel)
+			{
+				Window glowWindow = traitsPanel.GetChildByID(0x2FA51C34, true) as Window;
+				(glowWindow.EffectList[0] as FadeEffect).Duration = traitsPanel.mCurrentPointsFrameFadeEffectDuration;
+				glowWindow.Visible = true;
+				sTextIncrementingOneShot = Simulator.AddObject(new OneShotFunctionWithParams(IncrementPointsOverTimeToTarget, num));
+				sEffectUpdateOneShot = Simulator.AddObject(new OneShotFunctionTask(FinishEffectUpdate, StopWatch.TickStyles.Seconds, 3f));
+			}
+		}
+
+		private static void IncrementPointsOverTimeToTarget(object o)
+        {
+			int increment = (int)o;
+			if (RewardTraitsPanel.Instance is RewardTraitsPanel traitsPanel && increment > 0)
+			{
+				float ratePerSecond = increment / 2f;
+				StopWatch stopWatch = StopWatch.Create(StopWatch.TickStyles.Seconds);
+				stopWatch.Start();
+				float num = 0;
+				float prevTime = 0;
+				while (num < increment)
+				{
+					float elapsedTime = stopWatch.GetElapsedTimeFloat();
+					float delta = elapsedTime - prevTime;
+					prevTime = elapsedTime;
+					num += ratePerSecond * delta;
+					Text karmaText = traitsPanel.GetChildByID(0x2FA51C09, true) as Text;
+					karmaText.Caption = EAText.GetNumberString(Math.Min((int)num, increment) + WonderPowerManager.Karma - increment);
+					karmaText.AutoSize(false);
+					if (sTextIncrementingOneShot == ObjectGuid.InvalidObjectGuid)
+					{
+						return;
+					}
+					Simulator.Sleep(0U);
+				}
+				if (!traitsPanel.mbWaitingOnWishFulfilledEffect)
+                {
+					traitsPanel.PlayFulfillPromiseEffectStep(3);
+                }
+			}
+			sTextIncrementingOneShot = ObjectGuid.InvalidObjectGuid;
+		}
+
+		public static void FinishEffectUpdate()
+        {
+			if (RewardTraitsPanel.Instance is RewardTraitsPanel traitsPanel)
+			{
+				UIHelper.HideElementById(traitsPanel, 0x2FA51C34);
+				if (!traitsPanel.mbWaitingOnWishFulfilledEffect)
+                {
+					Text karmaText = traitsPanel.GetChildByID(0x2FA51C09, true) as Text;
+					karmaText.Caption = EAText.GetNumberString(WonderPowerManager.Karma);
+					karmaText.AutoSize(false);
+				}
+			}
+			if (sEffectUpdateOneShot != ObjectGuid.InvalidObjectGuid)
+			{
+				Simulator.DestroyObject(sEffectUpdateOneShot);
+				sEffectUpdateOneShot = ObjectGuid.InvalidObjectGuid;
+			}
+			if (sTextIncrementingOneShot != ObjectGuid.InvalidObjectGuid)
+			{
+				Simulator.DestroyObject(sTextIncrementingOneShot);
+				sTextIncrementingOneShot = ObjectGuid.InvalidObjectGuid;
+			}
+		}
+    }
 
 	/*public class KarmaDial
 	{

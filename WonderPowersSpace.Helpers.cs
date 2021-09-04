@@ -15,7 +15,6 @@ using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
-using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.ObjectComponents;
@@ -71,7 +70,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 						bool isBad = row.GetBool("IsBad");
 						int cost = row.GetInt("Cost");
 						MethodInfo methodInfo = FindMethod(runMethod, typeof(ActivationMethods));
-						WonderPowerManager.Add(new(name, isBad, cost, methodInfo));
+						WonderPowerManager.AddPower(new(name, isBad, cost, methodInfo));
 					}
 				}
 			}
@@ -166,12 +165,13 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             {
 				try
 				{
-                    Gameflow.SetGameSpeed(Normal, Gameflow.SetGameSpeedContext.Gameplay);
+					Gameflow.SetGameSpeed(Normal, Gameflow.SetGameSpeedContext.Gameplay);
                     // Activation of any power will disable the karma menu
                     // Re-enabling is left to the powers' individual run methods when activation is complete
                     WonderPowerManager.TogglePowerRunning();
 					int cost = backlash ? -Cost : Cost;
 					WonderPowerManager.Karma -= cost;
+					HudExtender.StartSpendEffects();
 					RunDelegate run = (RunDelegate)Delegate.CreateDelegate(typeof(RunDelegate), mRunMethod);
                     if (run(backlash))
                     {
@@ -495,45 +495,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			SaveDialogFlagsToProfile();
 		}
 
-		public static ListenerAction OnPromiseFulfilled(Event e)
-		{
-			try
-			{
-				DreamEvent dreamEvent = e as DreamEvent;
-				if (dreamEvent.IsFullfilled && dreamEvent.ActiveDreamNode.Owner.IsInActiveHousehold && dreamEvent.ActiveDreamNode.IsVisible)
-				{
-					/*Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(delegate ()
-					{
-						sInstance.OnShowKarmaStar(dream);
-					}));*/
-
-					// TODO UI flourish
-					// CONSIDER multiply karma value by wish's LTH
-					int num = TunableSettings.kKarmaBasicWishAmount;
-					if (dreamEvent.ActiveDreamNode.IsMajorWish)
-					{
-						num = TunableSettings.kKarmaLifetimeWishAmount;
-					}
-					Karma += num;
-				}
-			}
-			catch (Exception ex)
-            {
-				ExceptionLogger.sInstance.Log(ex);
-            }
-			return ListenerAction.Keep;
-		}
-
-		public static void OnWishSlotMouseUp(WindowBase sender, UIMouseEventArgs eventArgs)
-        {
-			if (sInstance is not null && eventArgs.MouseKey is MouseKeys.kMouseRight && sender.Tag is IDreamAndPromise { IsOneOffDream: false, IsMLCrisisDream: false })
-			{
-				// TODO UI flourish
-				Karma -= TunableSettings.kKarmaCancelWishAmount;
-			}
-		}
-
-
 		/*public void OnShowKarmaStar(object d)
 		{
 			if (mKarmaPromisesFulfilled == 0)
@@ -655,7 +616,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		//internal static void LoadValues() => Ferry<WonderPowerManager>.UnloadCargo();
 
-		public static void Add(WonderPower s)
+		public static void AddPower(WonderPower s)
 		{
 			if (!sAllWonderPowers.Any(power => power.WonderPowerName == s.WonderPowerName))
 			{
@@ -2872,8 +2833,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 					if (puck.GetChildByID((uint)CASPuck.ControlIDs.OptionsButton, true) is Button button2)
                     {
 						button2.Click -= puck.OnOptionsClick;
-						button2.Click -= CASWonderMode.OnOptionsClick;
-						button2.Click += CASWonderMode.OnOptionsClick;
+						button2.Click -= CASPuckExtender.OnOptionsClick;
+						button2.Click += CASPuckExtender.OnOptionsClick;
                     }
                 }
 			}
@@ -2990,8 +2951,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 					if (puck.GetChildByID((uint)CASPuck.ControlIDs.OptionsButton, true) is Button button2)
 					{
 						button2.Click -= puck.OnOptionsClick;
-						button2.Click -= CASWonderMode.OnOptionsClick;
-						button2.Click += CASWonderMode.OnOptionsClick;
+						button2.Click -= CASPuckExtender.OnOptionsClick;
+						button2.Click += CASPuckExtender.OnOptionsClick;
 					}
 				}
 			}
