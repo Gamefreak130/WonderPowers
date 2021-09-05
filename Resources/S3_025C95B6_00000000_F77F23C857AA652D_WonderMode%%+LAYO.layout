@@ -1616,12 +1616,12 @@
                     </prop>
                   </object>
                 </prop>
-                <prop name="TextEditFlags" propid="0x0ff11730" type="uint32" value="0x00000054" />
+                <prop name="TextEditFlags" propid="0x0ff11730" type="uint32" value="0x00000011" />
                 <prop name="Wrap Mode" propid="0x0ff11734" type="uint32" value="2" />
                 <prop name="Max Text Length" propid="0x0ff11735" type="int32" value="1000" />
                 <prop name="Cursor Index" propid="0x0ff11736" type="uint32" value="0" />
                 <prop name="Anchor Index" propid="0x0ff11737" type="uint32" value="0" />
-                <prop name="Undo History Size" propid="0x0ff11738" type="uint32" value="10" />
+                <prop name="Undo History Size" propid="0x0ff11738" type="uint32" value="0" />
               </object>
               <!--<object cls="Window" clsid="0x4ec1b8d8">
                 <prop name="WindowFlags" propid="0xeec1b000" type="uint32" value="0x00002013" />

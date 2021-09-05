@@ -98,6 +98,14 @@
 <STR>UI/WonderMode/KarmaMenu:Wealth</STR>
 <KEY>UI/WonderMode/KarmaMenu:WealthDescription</KEY>
 <STR>UI/WonderMode/KarmaMenu:WealthDescription</STR>
+<KEY>UI/WonderMode/BacklashDialog:Title</KEY>
+<STR>UI/WonderMode/BacklashDialog:Title</STR>
+<KEY>UI/WonderMode/BacklashDialog:BacklashDeciding</KEY>
+<STR>UI/WonderMode/BacklashDialog:BacklashDeciding</STR>
+<KEY>UI/WonderMode/BacklashDialog:BacklashCast</KEY>
+<STR>UI/WonderMode/BacklashDialog:BacklashCast</STR>
+<KEY>UI/WonderMode/BacklashDialog:BacklashSpared</KEY>
+<STR>UI/WonderMode/BacklashDialog:BacklashSpared</STR>
 <KEY>Ui/Caption/ObjectPicker:Ghost</KEY>
 <STR>Ui/Caption/ObjectPicker:Ghost</STR>
 <KEY>Ui/Caption/Options:KarmaMenu</KEY>

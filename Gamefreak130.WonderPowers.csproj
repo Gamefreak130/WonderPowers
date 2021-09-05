@@ -214,6 +214,7 @@
     <Content Include="Resources\TransmogrifyTraitMapping.xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\S3_025C95B6_00000000_2EFA36FFE6D8335F_KarmicBacklashDialog%25%25+LAYO.layout" />
     <None Include="Resources\S3_025C95B6_00000000_A72BB6B7B4B9DD84_HUDRewardTraitsPanel%25%25+LAYO.layout" />
     <None Include="Resources\S3_025C95B6_00000000_BE899B75F7F9536D_OptionsDialog%25%25+LAYO.layout" />
     <None Include="Resources\S3_025C95B6_00000000_DC721D2C07F01139_WonderPowerEntry%25%25+LAYO.layout" />
