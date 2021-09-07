@@ -184,7 +184,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 			mGoodPowerGrid.Clear();
 			mBadPowerGrid.Clear();
 			ResourceKey resKey = ResourceKey.CreateUILayoutKey("WonderPowerEntry", 0u);
-			foreach (WonderPower power in WonderPowerManager.GetWonderPowerList())
+			foreach (WonderPower power in WonderPowerManager.WonderPowerList)
             {
 				Window window = UIManager.LoadLayout(resKey).GetWindowByExportID(1) as Window;
 				if (window is not null)
@@ -479,14 +479,14 @@ namespace Gamefreak130.WonderPowersSpace.UI
 						return;
 					case PuckCommon.OptionsMenuItems.MainMenu:
 						GameStates.mQuitting = true;
-						Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(QuitToMenuTask));
+						Simulator.AddObject(new OneShotFunctionTask(QuitToMenuTask));
 						return;
 					case PuckCommon.OptionsMenuItems.QuitToWindowsAndSave:
 						puckCommon.OnQuitToWindowsAndSave();
 						return;
 					case PuckCommon.OptionsMenuItems.QuitToWindows:
 						GameStates.mQuitting = true;
-						Simulator.AddObject(new Sims3.UI.OneShotFunctionTask(QuitToWindowsTask));
+						Simulator.AddObject(new OneShotFunctionTask(QuitToWindowsTask));
 						return;
 					case PuckCommon.OptionsMenuItems.QuitToLauncher:
 						puckCommon.OnQuitToLauncher();
@@ -811,150 +811,6 @@ namespace Gamefreak130.WonderPowersSpace.UI
 			}
 		}
     }
-
-	/*public class KarmaDial
-	{
-		public delegate void WitchingHourCompleted();
-
-		public delegate void WishFulfilledCompleted();
-
-		public static float mPreviousKarma;
-
-		public static float mCurrentKarma;
-
-		public static WitchingHourCompleted WitchingHourCompletedFunction = null;
-
-		public static WishFulfilledCompleted WishFulfilledCompletedFunction = null;
-
-		private static KarmaDial sInstance = null;
-
-		private bool mbVisible;
-
-		private bool mbMovieLoaded;
-
-		private static bool mIsMidnight = false;
-
-		private LoadCompletedCallback mMovieLoaded;
-
-		private MovieDoneCallback mMovieDone;
-
-		private GameSpeedChangedCallback mGameSpeedChanged;
-
-		public static bool IsVisible
-		{
-			get
-			{
-				return sInstance != null && sInstance.mbVisible;
-			}
-		}
-
-		internal static KarmaDial Instance
-		{
-			get
-			{
-				return sInstance;
-			}
-		}
-
-		public static void Show()
-		{
-			if (sInstance == null)
-			{
-				return;
-			}
-			if (!sInstance.mbMovieLoaded)
-			{
-				return;
-			}
-			sInstance.mbVisible = true;
-			ScaleformManager.KarmaDialInit((int)mPreviousKarma, (int)mCurrentKarma);
-			if (mIsMidnight)
-			{
-				ScaleformManager.ScaleformInvoke("KarmaDial", "_root.KarmaDial_Panel.KD_SETMIDNIGHT");
-			}
-			ScaleformManager.ScaleformInvoke("KarmaDial", "_root.KarmaDial_Panel.KD_SHOW");
-		}
-
-		private void OnGameSpeedChange(Gameflow.GameSpeed newSpeed, bool locked)
-		{
-			if (sInstance != null)
-			{
-				if (newSpeed == Gameflow.GameSpeed.Pause)
-				{
-					ScaleformManager.ScaleformInvoke("KarmaDial", "_root.KarmaDial_Panel.KD_PAUSE");
-					return;
-				}
-				ScaleformManager.ScaleformInvoke("KarmaDial", "_root.KarmaDial_Panel.KD_PLAY");
-			}
-		}
-
-		public static void Hide()
-		{
-			if (sInstance == null)
-			{
-				return;
-			}
-			Unload();
-		}
-
-		public static void Load(float prevKarma, float newKarma, bool isMidnight)
-		{
-			if (sInstance == null)
-			{
-				sInstance = new KarmaDial();
-				sInstance.mMovieLoaded = new LoadCompletedCallback(sInstance.MovieLoaded);
-				sInstance.mMovieDone = new MovieDoneCallback(sInstance.MovieDone);
-				sInstance.mGameSpeedChanged = new GameSpeedChangedCallback(sInstance.OnGameSpeedChange);
-				mPreviousKarma = prevKarma;
-				mCurrentKarma = newKarma;
-				mIsMidnight = isMidnight;
-				WitchingHourCompletedFunction = null;
-				WishFulfilledCompletedFunction = null;
-				ScaleformManager.LoadScaleformMovie("KarmaDial", sInstance.mMovieLoaded, sInstance.mMovieDone, 3);
-				Responder.Instance.GameSpeedChanged += sInstance.mGameSpeedChanged;
-			}
-		}
-
-		public static void Unload()
-		{
-			if (sInstance != null)
-			{
-				ScaleformManager.UnLoadScaleformMovie("KarmaDial");
-				Responder.Instance.GameSpeedChanged -= sInstance.mGameSpeedChanged;
-				sInstance = null;
-			}
-		}
-
-		public static void SetMidnight()
-		{
-			mIsMidnight = true;
-		}
-
-		private void MovieLoaded()
-		{
-			mbMovieLoaded = true;
-			Show();
-		}
-
-		public void MovieDone()
-		{
-			if (!mIsMidnight)
-			{
-				WishFulfilledCompletedFunction?.Invoke();
-			}
-			else
-			{
-				WitchingHourCompletedFunction?.Invoke();
-			}
-			Hide();
-		}
-
-		private KarmaDial()
-		{
-			mCurrentKarma = 0f;
-			mPreviousKarma = 0f;
-		}
-	}*/
 
 	public class MapTagPickerUncancellable : MapTagPickerDialog
     {

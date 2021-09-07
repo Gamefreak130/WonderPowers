@@ -1,8 +1,4 @@
-﻿<KEY>UI/Wondermode/PopupDialog:HourOfReckoningTitle</KEY>
-<STR>UI/Wondermode/PopupDialog:HourOfReckoningTitle</STR>
-<KEY>UI/Wondermode/PopupDialog:FirstWishFulfillmentTitle</KEY>
-<STR>UI/Wondermode/PopupDialog:FirstWishFulfillmentTitle</STR>
-<KEY>UI/Caption/HUD/RewardTraitsPanel:Karma</KEY>
+﻿<KEY>UI/Caption/HUD/RewardTraitsPanel:Karma</KEY>
 <STR>UI/Caption/HUD/RewardTraitsPanel:Karma</STR>
 <KEY>UI/Caption/HUD/WonderMode:SelectKarmaPower</KEY>
 <STR>UI/Caption/HUD/WonderMode:SelectKarmaPower</STR>
@@ -294,5 +290,3 @@
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_WealthBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_WealthBuffDescription</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_WealthBuffDescription</STR>
-<KEY></KEY>
-<STR></STR>

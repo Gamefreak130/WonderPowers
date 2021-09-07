@@ -186,6 +186,7 @@
       <Link>System\Linq\Lookup.cs</Link>
     </Compile>
     <Compile Include="WonderPowersSpace.Buffs.cs" />
+    <Compile Include="WonderPowersSpace.Helpers.ActivationMethods.cs" />
     <Compile Include="WonderPowersSpace.Helpers.cs" />
     <Compile Include="WonderPowers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

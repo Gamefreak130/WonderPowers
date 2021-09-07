@@ -223,7 +223,6 @@
         <prop name="FillDrawable" propid="0xeec1b007" type="object">
           <object cls="ImageDrawable" clsid="0xcf3c4eae">
             <prop name="Image" propid="0x4f3c4a26" type="image" key="2f7d0004:00000000:22341d395b7b0836" />
-            <!--<prop name="DrawMask" propid="0x4f3c4a2c" type="image" key="2f7d0004:00000000:6fad90340399de70" />-->
             <prop name="AlignmentHorizontal" propid="0x4f3c4a29" type="uint32" value="3" />
             <prop name="AlignmentVertical" propid="0x4f3c4a28" type="uint32" value="3" />
             <prop name="ImageDrawableFlags" propid="0x4f3c4a27" type="uint32" value="0x00000000" />

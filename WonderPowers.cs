@@ -19,10 +19,10 @@ using System.Reflection;
 
 namespace Gamefreak130
 {
-    //TODO Cleanup LAYO
-    //TODO Check code for unused blocks, zero references, notimplementedexceptions
-    //TODO Command to set karma, reset cooldown
-    //CONSIDER Common exception catching for event listeners
+    // TODO Command to set karma, reset cooldown
+    // TODO Write STBLs
+    // TODO Create tunable settings XML
+    // CONSIDER Common exception catching for event listeners
     public static class WonderPowers
     {
         [Tunable]
@@ -35,7 +35,6 @@ namespace Gamefreak130
             World.OnStartupAppEventHandler += OnStartupApp;
             World.OnWorldLoadFinishedEventHandler += OnWorldLoadFinished;
             LoadSaveManager.ObjectGroupsPreLoad += OnPreLoad;
-            World.OnWorldQuitEventHandler += OnWorldQuit;
         }
 
         private static void OnStartupApp(object sender, EventArgs e)
@@ -77,15 +76,7 @@ namespace Gamefreak130
             Tunings.Inject(GhostHunter.ReactToAngryGhost.Singleton.GetType(), typeof(Sim), typeof(WonderPowersSpace.Interactions.ReactToGhost.Definition), typeof(Sim), true);
         }
 
-        private static void OnWorldLoadFinished(object sender, EventArgs e)
-        {
-            EventTracker.AddListener(EventTypeId.kEnterInWorldSubState, OnEnteredWorld);
-        }
-
-        private static void OnWorldQuit(object sender, EventArgs e)
-        {
-            //TODO remove if still empty once we're done lol
-        }
+        private static void OnWorldLoadFinished(object sender, EventArgs e) => EventTracker.AddListener(EventTypeId.kEnterInWorldSubState, OnEnteredWorld);
 
         private static ListenerAction OnEnteredWorld(Event e)
         {

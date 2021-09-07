@@ -56,7 +56,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
             public override void Init(CryHavocSituation parent)
             {
-                //CONSIDER reaction broadcast?
+                // CONSIDER reaction broadcast?
                 // This sting is handled separately from the WonderPowerManager
                 // So that we can stop it once the situation is finished, even if there is no backlash
                 Parent.mSoundHandle = Audio.StartSound("sting_cryhavoc", Lot.Position);

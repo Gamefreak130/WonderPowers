@@ -3,6 +3,9 @@
     using Sims3.SimIFace;
     public static class TunableSettings
     {
+        [Tunable, TunableComment("How many karma points the player starts with")]
+        public static int kInitialKarmaLevel = 0;
+
         [Tunable, TunableComment("Amount of karma gained when the user fulfills a basic wish")]
         public static int kKarmaBasicWishAmount = 5;
 
@@ -11,6 +14,12 @@
 
         [Tunable, TunableComment("Amount of karma lost when the user cancels a wish")]
         public static int kKarmaCancelWishAmount = 1;
+
+        [Tunable, TunableComment("Discount multiplier applied to the cost of good karma powers per Sim in the active household with the Good trait")]
+        public static float kGoodTraitKarmaDiscount = 0.8f;
+
+        [Tunable, TunableComment("Discount multiplier applied to the cost of bad karma powers per Sim in the active household with the Evil trait")]
+        public static float kEvilTraitKarmaDiscount = 0.8f;
 
         [Tunable, TunableComment("The base percent chance of a karmic backlash when a power activation results in a negative karma balance")]
         public static float kBacklashBaseChance = 25;
