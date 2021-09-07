@@ -42,6 +42,7 @@ using static Sims3.Gameplay.GlobalFunctions;
 using static Sims3.SimIFace.Gameflow.GameSpeed;
 using static Sims3.SimIFace.ResourceUtils;
 using Gameflow = Sims3.Gameplay.Gameflow;
+using OneShotFunctionTask = Sims3.UI.OneShotFunctionTask;
 using Queries = Sims3.Gameplay.Queries;
 using Responder = Sims3.UI.Responder;
 
@@ -96,7 +97,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 	}
 
 	//[Persistable]
-	public class WonderPower
+	public class WonderPower : IWeightable
 	{
 		private readonly MethodInfo mRunMethod;
 
@@ -136,19 +137,21 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 		}
 
-		//public bool IsLocked;
+		public float Weight => Cost;
 
-		/*public abstract bool WasUsed
+        //public bool IsLocked;
+
+        /*public abstract bool WasUsed
 		{
 			get;
 			set;
 		}*/
 
-		/*public WonderPower()
+        /*public WonderPower()
         {
         }*/
 
-		public WonderPower(string name, bool isBad, int cost, MethodInfo runMethod)
+        public WonderPower(string name, bool isBad, int cost, MethodInfo runMethod)
 		{
 			WonderPowerName = name;
 			IsBadPower = isBad;
@@ -173,19 +176,15 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 					WonderPowerManager.Karma -= cost;
 					HudExtender.StartSpendEffects();
 					RunDelegate run = (RunDelegate)Delegate.CreateDelegate(typeof(RunDelegate), mRunMethod);
-                    if (run(backlash))
-                    {
-						//TODO potential backlash
-                    }
-					else
+                    if (!run(backlash))
                     {
 						if (backlash)
                         {
-							PlumbBob.SelectedActor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("BacklashFailed"), StyledNotification.NotificationStyle.kSystemMessage);
+							PlumbBob.SelectedActor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("BacklashFailed"), StyledNotification.NotificationStyle.kGameMessagePositive);
                         }
 						else
                         {
-							StyledNotification.Show(new(WonderPowerManager.LocalizeString("PowerFailed"), StyledNotification.NotificationStyle.kGameMessagePositive));
+							StyledNotification.Show(new(WonderPowerManager.LocalizeString("PowerFailed"), StyledNotification.NotificationStyle.kSystemMessage));
 							WonderPowerManager.Karma += Cost;
 						}
 						WonderPowerManager.TogglePowerRunning();
@@ -196,37 +195,19 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
                     // Since this is a Task, NRaas ErrorTrap can't catch any exceptions that occur
                     // So we'll do it live, f*** it! I'll write it, and we'll do it live!
                     PowerExceptionLogger.sInstance.Log(e);
-                    WonderPowerManager.TogglePowerRunning();
                     if (!backlash)
                     {
 						WonderPowerManager.Karma += Cost;
                     }
-                }
+					WonderPowerManager.TogglePowerRunning();
+				}
             }
         }
     }
 
 	[Persistable]
-	public sealed class WonderPowerManager //: ScriptObject
+	public sealed class WonderPowerManager
 	{
-		private enum WitchingHourState
-		{
-			NONE,
-			PRE_WITCHINGHOUR,
-			WITCHINGHOUR,
-			POST_WITCHINGHOUR
-		}
-
-		private const int kWishFulfillmentIndex = 0;
-
-		private const int kWitchingHourIndex = 1;
-
-		private static WonderPower mWitchingHourPower;
-
-		private static VisualEffect mWitchingVfx;
-
-		private static VisualEffect mWitchingFloorVfx;
-
 		private bool mHaveShownFirstWishFulfillmentDialog;
 
 		private bool mHaveShownWitchingHourDialog;
@@ -243,8 +224,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static Vector3 kWonderBuffVfxOffset = new(0.097f, 0.5f, -0.113f);
 
-		private static WitchingHourState smWitchingHourState = WitchingHourState.NONE;
-
 		[PersistableStatic(true)]
 		private static WonderPowerManager sInstance;
 
@@ -253,16 +232,18 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		[PersistableStatic(false)]
 		private static bool sIsPowerRunning;
 
-        //private readonly List<WonderPowerActivation> mActiveWonderPowers = new List<WonderPowerActivation>();
+		[PersistableStatic(false)]
+		private static bool sIsBacklashRunning;
 
-        private bool mDebugBadPowersOn;
+		private static uint sStingHandle;
+
+		//private readonly List<WonderPowerActivation> mActiveWonderPowers = new List<WonderPowerActivation>();
+
+		private bool mDebugBadPowersOn;
 
 		private DateAndTime mlastRunTime;
 
 		private int mCurrentKarmaLevel = kInitialKarmaLevel;
-
-		[PersistableStatic]
-		private static float sCurrentBadKarmaChance = 0f;
 
         public static float NearbySimsDistance => kNearbySimsDistance;
 
@@ -295,19 +276,64 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				if (RewardTraitsPanel.Instance?.GetChildByID(799350305u, true) is Button button)
 				{
 					button.Enabled = !value;
+					button.TooltipText = value ? LocalizeString("PowerIsDeploying") : "";
 				}
 				sIsPowerRunning = value;
 			}
 		}
 
-		public static void TogglePowerRunning() => IsPowerRunning = !IsPowerRunning;
+		public static void TogglePowerRunning()
+		{
+			IsPowerRunning = !IsPowerRunning;
+			if (!IsPowerRunning && GameStates.GetInWorldSubState() is LiveModeState && (GameStates.sSingleton.mInWorldState.mBaseCallFlag & StateMachineState.BaseCallFlag.kShutdown) == 0u)
+            {
+				Simulator.AddObject(new OneShotFunctionTask(TryStartBacklash));
+            }
+		}
 
-		/*public static void SetKarmaWishModifierLevel(int nLevel)
+        public static void PlayPowerSting(string stingName) => sStingHandle = Audio.StartSound(stingName);
+
+		public static void PlayPowerSting(string stingName, Vector3 sourcePosition) => sStingHandle = Audio.StartSound(stingName, sourcePosition);
+
+		public static void PlayPowerSting(string stingName, ObjectGuid sourceObject, bool loop = false) => sStingHandle = Audio.StartObjectSound(sourceObject, stingName, loop);
+
+        private static void TryStartBacklash()
+        {
+			if (sIsBacklashRunning || Karma >= 0)
+            {
+				sIsBacklashRunning = false;
+				return;
+            }
+			if (sStingHandle != 0)
+			{
+				Audio.StopSound(sStingHandle);
+				sStingHandle = 0;
+			}
+			WonderPower power = ChooseBacklashPower();
+			if (power is not null && RandomUtil.RandomChance(TunableSettings.kBacklashBaseChance - (Karma * TunableSettings.kBacklashChanceIncreasePerKarmaPoint)))
+            {
+				KarmicBacklashDialog.Show(false);
+				sIsBacklashRunning = true;
+				power.Run(true);
+            }
+			else
+            {
+				KarmicBacklashDialog.Show(true);
+			}
+        }
+
+		private static WonderPower ChooseBacklashPower()
+		{
+			List<WonderPower> validBacklashPowers = sAllWonderPowers.FindAll(power => power.IsBadPower && power.Cost < -Karma);
+			return validBacklashPowers.Count > 0 ? RandomUtil.GetWeightedRandomObjectFromList(validBacklashPowers) : null;
+		}
+
+        /*public static void SetKarmaWishModifierLevel(int nLevel)
 		{
 			sCurrentKarmaWishAmountModifier = kKarmaWishAmountModifierPerLevel * nLevel;
 		}*/
 
-		public static void OnOptionsLoaded()
+        public static void OnOptionsLoaded()
 		{
 			LoadDialogFlagsFromProfile();
 		}
@@ -351,142 +377,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 			}*/
 		}
-
-		/*public override ScriptExecuteType Init(bool postLoad)
-		{
-			return ScriptExecuteType.Threaded;
-		}*/
-
-		public static bool IsInWitchingHour()
-		{
-			return smWitchingHourState is not WitchingHourState.NONE;
-		}
-
-		/*public override void Simulate()
-		{
-			try
-			{
-				smWitchingHourState = WitchingHourState.NONE;
-				mlastRunTime = SimClock.CurrentTime();
-				DateAndTime a = mlastRunTime + new DateAndTime(SimClock.ConvertToTicks(1440f - (mlastRunTime.Hour * 60f) - 5f, TimeUnit.Minutes));
-				while (!Sims3.SimIFace.Environment.HasEditInGameModeSwitch)
-				{
-					DateAndTime b = SimClock.CurrentTime();
-					uint tickCount = 1u;
-					switch (smWitchingHourState)
-					{
-						case WitchingHourState.NONE:
-							if (a <= b)
-							{
-								smWitchingHourState = WitchingHourState.PRE_WITCHINGHOUR;
-                                Gameflow.SetGameSpeed(Normal, Gameflow.SetGameSpeedContext.Gameplay);
-								LotManager.SetAutoGameSpeed();
-							}
-							break;
-						case WitchingHourState.PRE_WITCHINGHOUR:
-							mWitchingHourPower = null;
-							mWitchingVfx = VisualEffect.Create("wonderKarma_lot");
-							if (mWitchingVfx != null)
-							{
-								//Vector3 floorPosition = WonderPowerActivation.GetFloorPosition(true, LotManager.ActiveLot);
-								//mWitchingVfx.SetPosAndOrient(floorPosition, Vector3.UnitX, Vector3.UnitY);
-								mWitchingVfx.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
-							}
-							mWitchingFloorVfx = VisualEffect.Create("wonderKarma_lotFloor");
-							if (mWitchingFloorVfx != null)
-							{
-								//Vector3 floorPosition2 = WonderPowerActivation.GetFloorPosition(false, LotManager.ActiveLot);
-								//mWitchingFloorVfx.SetPosAndOrient(floorPosition2, Vector3.UnitX, Vector3.UnitY);
-								mWitchingFloorVfx.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
-							}
-							smWitchingHourState = WitchingHourState.WITCHINGHOUR;
-							break;
-						case WitchingHourState.WITCHINGHOUR:
-							if ((DebugBadPowersOn && b.Hour != mlastRunTime.Hour) || b.DayOfWeek != mlastRunTime.DayOfWeek)
-							{
-								bool flag = false;
-								if (!AnyPowersRunning() && BadPowersOn)
-								{
-									mWitchingHourPower = CheckTriggerBadPower();
-									if (mWitchingHourPower != null)
-									{
-										flag = true;
-									}
-								}
-								if (!flag)
-								{
-									float karma = Karma;
-									float @float = RandomUtil.GetFloat(kKarmaDailyRationLow, kKarmaDailyRationHigh);
-									if (Karma < 100f)
-									{
-										//Karma += @float;
-									}
-									VisualEffect visualEffect = VisualEffect.Create("wonderkarma_lot_out");
-									if (visualEffect != null)
-									{
-										//Vector3 floorPosition3 = WonderPowerActivation.GetFloorPosition(true, LotManager.ActiveLot);
-										//visualEffect.SetPosAndOrient(floorPosition3, Vector3.UnitX, Vector3.UnitY);
-										visualEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
-									}
-									KarmaDial.Load(karma, Karma, true);
-									if (!bHaveShownWitchingHourDialog)
-									{
-										KarmaDial.WitchingHourCompletedFunction = (KarmaDial.WitchingHourCompleted)(object)new KarmaDial.WitchingHourCompleted(DisplayWitchingHourDialogPopup);
-									}
-								}
-								else
-								{
-									VisualEffect visualEffect2 = VisualEffect.Create("wonderKarma_lotbad");
-									if (visualEffect2 != null)
-									{
-										//Vector3 floorPosition4 = WonderPowerActivation.GetFloorPosition(true, LotManager.ActiveLot);
-										//visualEffect2.SetPosAndOrient(floorPosition4, Vector3.UnitX, Vector3.UnitY);
-										visualEffect2.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
-									}
-									VisualEffect visualEffect3 = VisualEffect.Create("wonderKarma_lotbad");
-									if (visualEffect3 != null)
-									{
-										//Vector3 floorPosition5 = WonderPowerActivation.GetFloorPosition(false, LotManager.ActiveLot);
-										//visualEffect3.SetPosAndOrient(floorPosition5, Vector3.UnitX, Vector3.UnitY);
-										visualEffect3.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
-									}
-								}
-								mlastRunTime = b;
-								if (mWitchingVfx != null)
-								{
-									mWitchingVfx.Stop();
-									mWitchingVfx.Dispose();
-									mWitchingVfx = null;
-								}
-								if (mWitchingFloorVfx != null)
-								{
-									mWitchingFloorVfx.Stop();
-									mWitchingFloorVfx.Dispose();
-									mWitchingFloorVfx = null;
-								}
-								tickCount = (uint)SimClock.ConvertToTicks(5f, TimeUnit.Minutes);
-								a = mlastRunTime + new DateAndTime(SimClock.ConvertToTicks(1440f - (mlastRunTime.Hour * 60f) - 5f, TimeUnit.Minutes));
-								smWitchingHourState = WitchingHourState.POST_WITCHINGHOUR;
-							}
-							break;
-						case WitchingHourState.POST_WITCHINGHOUR:
-							if (mWitchingHourPower != null)
-							{
-								mWitchingHourPower.Run(true);
-								mWitchingHourPower = null;
-							}
-							smWitchingHourState = WitchingHourState.NONE;
-							LotManager.SetAutoGameSpeed();
-							break;
-					}
-					Simulator.Sleep(tickCount);
-				}
-				Simulator.Sleep(uint.MaxValue);
-			}
-			catch (Exception)
-			{
-			}
-		}*/
 
         private void DisplayWitchingHourDialogPopup()
 		{
@@ -538,27 +428,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			SaveDialogFlagsToProfile();
 		}
 
-		public void UsedPower(WonderPower power)
-		{
-			int num = power.Cost;
-			if (num > 0f)
-			{
-				Karma -= num;
-			}
-			sCurrentBadKarmaChance += kKarmaBadEventIncreaseConstant;
-			//power.WasUsed = true;
-		}
-
-		public void CancelledPower(WonderPower power)
-		{
-			int num = power.Cost;
-			if (num > 0f)
-			{
-				Karma += num;
-				sCurrentBadKarmaChance -= kKarmaBadEventIncreaseConstant;
-			}
-		}
-
 		/*private WonderPower CheckTriggerBadPower()
 		{
 			float @float = RandomUtil.GetFloat(100f);
@@ -599,24 +468,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				sInstance = new();
 			}
 			sIsPowerRunning = false;
-			//Simulator.AddObject(sInstance);
+			sIsBacklashRunning = false;
+			sStingHandle = 0;
 		}
 
-		/*internal static void ReInit()
-		{
-			foreach (WonderPowerActivation mActiveWonderPower in sInstance.mActiveWonderPowers)
-			{
-				mActiveWonderPower.CleanupAfterPower();
-			}
-			Ferry<WonderPowerManager>.LoadCargo();
-			sCurrentBadKarmaChance = 0f;
-			//sInstance.Destroy();
-			Init();
-		}*/
-
-		//internal static void LoadValues() => Ferry<WonderPowerManager>.UnloadCargo();
-
-		public static void AddPower(WonderPower s)
+		internal static void AddPower(WonderPower s)
 		{
 			if (!sAllWonderPowers.Any(power => power.WonderPowerName == s.WonderPowerName))
 			{
@@ -625,22 +481,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		}
 
 		public static bool HasEnoughKarma(int cost) => Karma - cost >= -100;
-
-		public static void OnPowerUsed(WonderPower power)
-		{
-			if (sInstance is not null)
-			{
-				sInstance.UsedPower(power);
-			}
-		}
-
-		public static void OnPowerCancelled(WonderPower power)
-		{
-			if (sInstance is not null)
-			{
-				sInstance.CancelledPower(power);
-			}
-		}
 
         public static WonderPower GetByName(string name) => sAllWonderPowers.Find(power => name.Equals(power?.WonderPowerName, StringComparison.InvariantCultureIgnoreCase));
 
@@ -2038,7 +1878,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				: actor.LotCurrent;
 
 			Audio.StartSound("earthquake_shake", lot.Position);
-			Audio.StartSound("sting_earthquake");
+			WonderPowerManager.PlayPowerSting("sting_earthquake");
 			Camera.FocusOnLot(lot.LotId, 2f); //2f is standard lerptime
 			CameraController.Shake(FireFightingJob.kEarthquakeCameraShakeIntensity, FireFightingJob.kEarthquakeCameraShakeDuration);
 
@@ -2193,7 +2033,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool GoodMoodActivation(bool _)
         {
-			Audio.StartSound("sting_goodmood");
+			WonderPowerManager.PlayPowerSting("sting_goodmood");
 			Camera.FocusOnSelectedSim();
 			foreach (Sim sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors())
 			{
@@ -2268,7 +2108,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				selectedLot = HelperMethods.SelectTarget(WonderPowerManager.LocalizeString("MeteorDestinationTitle"), WonderPowerManager.LocalizeString("MeteorDestinationConfirm"));
 			}
 
-			Audio.StartSound("sting_meteor_forshadow");
+			WonderPowerManager.PlayPowerSting("sting_meteor_forshadow");
 			selectedLot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(selectedLot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted);
 			Meteor.TriggerMeteorEvent(selectedLot.GetRandomPosition(false, true));
 			AlarmManager.Global.AddAlarm(Meteor.kMeteorLifetime + 3, TimeUnit.Minutes, WonderPowerManager.TogglePowerRunning, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted, null);
@@ -2304,7 +2144,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			{
 				Camera.FocusOnLot(target.LotId, 1f);
 				handle = AlarmManager.Global.AddAlarm(2f, TimeUnit.Minutes, WonderPowerManager.TogglePowerRunning, "Gamefreak130 wuz here -- Activation complete alarm", AlarmType.AlwaysPersisted, null);
-				Audio.StartSound("sting_repair");
+				WonderPowerManager.PlayPowerSting("sting_repair");
 				if (target.GetSharedFridgeInventory() is SharedFridgeInventory inventory)
 				{
 					foreach (ISpoilable spoilable in new List<ISpoilable>(inventory.SpoiledFood))
@@ -2494,7 +2334,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			VisualEffect visualEffect = VisualEffect.Create("ep7wandspellpestilence_main");
 			visualEffect.ParentTo(selectedSim, Sim.FXJoints.Pelvis);
 			visualEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
-			Audio.StartSound("sting_sickness");
+			WonderPowerManager.PlayPowerSting("sting_sickness");
 			BuffKarmicSickness.AddKarmicSickness(selectedSim);
 			StyledNotification.Show(new(WonderPowerManager.LocalizeString(selectedSim.IsFemale, "SicknessTNS", selectedSim), selectedSim.ObjectId, StyledNotification.NotificationStyle.kGameMessageNegative));
 			WonderPowerManager.TogglePowerRunning();

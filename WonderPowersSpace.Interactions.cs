@@ -72,7 +72,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             mEffect.ParentTo(Actor, Sim.FXJoints.Pelvis);
             mEffect.Start();
             Actor.PlaySoloAnimation("a2o_handiness_fail_electrocution_x", true, ProductVersion.BaseGame);
-            Audio.StartSound("sting_curse");
+            WonderPowerManager.PlayPowerSting("sting_curse");
             return true;
         }
 
@@ -125,7 +125,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            Audio.StartSound("sting_lifetime_opp_success");
+            WonderPowerManager.PlayPowerSting("sting_lifetime_opp_success");
             bool flag = base.Run();
             Actor.UpdateWalkStyle();
             return flag;
@@ -158,7 +158,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            Audio.StartSound("sting_job_demote");
+            WonderPowerManager.PlayPowerSting("sting_job_demote");
             mEffect = VisualEffect.Create("ep7WandSpellHauntingHit_main");
             mEffect.ParentTo(Actor, Sim.FXJoints.Head);
             mEffect.Start();
@@ -340,7 +340,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 casghostData.DeathStyle = Actor.SimDescription.mDeathStyle;
             }
             string name = (Actor.SimDescription.Age is not CASAgeGenderFlags.Child) ? "ep4PotionWearOff" : "ep4PotionWearOffChild";
-            Audio.StartObjectSound(Actor.ObjectId, "sting_ghost_appear", false);
+            WonderPowerManager.PlayPowerSting("sting_ghost_appear", Actor.ObjectId);
             VisualEffect.FireOneShotEffect(name, Actor, Sim.FXJoints.Spine0, VisualEffect.TransitionType.SoftTransition);
             Urnstone.SimToPlayableGhost(Actor);
 
@@ -484,7 +484,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             {
                 PlumbBob.SelectActor(Actor);
             }
-            Audio.StartSound("sting_instantbeauty");
+            WonderPowerManager.PlayPowerSting("sting_instantbeauty");
 
             string animName = Actor.SimDescription switch
             {
@@ -547,7 +547,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             mEffect = VisualEffect.Create("ep7moodlampimpactgreen_main");
             mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Pelvis);
             mEffect.Start();
-            Audio.StartSound("sting_luckybreak");
+            WonderPowerManager.PlayPowerSting("sting_luckybreak");
             Camera.FocusOnSim(Actor);
             if (Actor.IsSelectable)
             {
@@ -624,7 +624,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             mEffect = VisualEffect.Create("ep7ghostgoldmed_ghost");
             mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Neck);
             mEffect.Start();
-            Audio.StartSound("sting_luckyfind");
+            WonderPowerManager.PlayPowerSting("sting_luckyfind");
             Camera.FocusOnSim(Actor);
             if (Actor.IsSelectable)
             {
@@ -699,7 +699,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             {
                 PlumbBob.SelectActor(Actor);
             }
-            Audio.StartSound("sting_rayofsunshine");
+            WonderPowerManager.PlayPowerSting("sting_rayofsunshine");
             string animName = Actor.SimDescription switch
             {
                 { Baby: true }           => "b_idle_breathe_x",
@@ -781,7 +781,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 PlumbBob.SelectActor(Actor);
             }
             // This sting typo physically pains me
-            Audio.StartSound("sting_dream_fullfill");
+            WonderPowerManager.PlayPowerSting("sting_dream_fullfill");
             string animName = Actor.SimDescription switch
             {
                 { Baby: true }           => "b_idle_breathe_x",
@@ -859,7 +859,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             mEffect = VisualEffect.Create("ep2inventiondiscovery");
             mEffect.ParentTo(Actor, Sim.FXJoints.Head);
             mEffect.Start();
-            Audio.StartSound("sting_strokeofgenius");
+            WonderPowerManager.PlayPowerSting("sting_strokeofgenius");
             string animName = Actor.SimDescription switch
             {
                 { IsFoal: true }         => "ch_trait_genius_x",
@@ -923,7 +923,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             mEffect = VisualEffect.Create("ep7wandspellluck_main");
             mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Pelvis);
             mEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
-            AlarmManager.Global.AddAlarm(1f, TimeUnit.Minutes, () => Audio.StartSound("sting_superlucky"), "Gamefreak130 wuz here -- Super Lucky sting alarm", AlarmType.NeverPersisted, null);
+            AlarmManager.Global.AddAlarm(1f, TimeUnit.Minutes, () => WonderPowerManager.PlayPowerSting("sting_superlucky"), "Gamefreak130 wuz here -- Super Lucky sting alarm", AlarmType.NeverPersisted, null);
 
             string animName = Actor.SimDescription switch
             {
@@ -1002,7 +1002,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             {
                 PlumbBob.SelectActor(Actor);
             }
-            Audio.StartSound(newSpecies is CASAgeGenderFlags.Human ? "sting_transmogrifytohuman" : "sting_transmogrifytopet", Actor.Position);
+            WonderPowerManager.PlayPowerSting(newSpecies is CASAgeGenderFlags.Human ? "sting_transmogrifytohuman" : "sting_transmogrifytopet", Actor.Position);
             VisualEffect effect = VisualEffect.Create("ep11portalspawn_main");
             effect.SetPosAndOrient(Actor.Position, Actor.ForwardVector, Actor.UpVector);
             effect.Start();
@@ -1332,7 +1332,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            Audio.StartSound("sting_wealth");
+            WonderPowerManager.PlayPowerSting("sting_wealth");
             EnterStateMachine("ReceiveMagicalCheck", "WinLottoEnter", "x");
             AnimateSim("PullOutCheck");
             AnimateSim("VictoryDance");

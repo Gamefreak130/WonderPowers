@@ -57,6 +57,8 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             public override void Init(CryHavocSituation parent)
             {
                 //CONSIDER reaction broadcast?
+                // This sting is handled separately from the WonderPowerManager
+                // So that we can stop it once the situation is finished, even if there is no backlash
                 Parent.mSoundHandle = Audio.StartSound("sting_cryhavoc", Lot.Position);
                 Parent.mExitHandle = AlarmManager.Global.AddAlarm(TunableSettings.kCryHavocLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- CryHavoc Situation Alarm", AlarmType.AlwaysPersisted, null);
                 Camera.FocusOnLot(Lot.LotId, 2f); //2f is standard lerpTime
@@ -196,7 +198,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
             public override void Init(FireSituation parent)
             {
-                Audio.StartSound("sting_firestorm");
+                WonderPowerManager.PlayPowerSting("sting_firestorm");
                 Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted); //2f is standard lerptime
 
                 // For each fire spawned, there is a 25% chance it will ignite a burnable object,
@@ -333,6 +335,8 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
             public override void Init(GhostsSituation parent)
             {
+                // This sting is handled separately from the WonderPowerManager
+                // So that we can stop it once the situation is finished, even if there is no backlash
                 Parent.mMusicHandle = Audio.StartSound("sting_ghosts", Lot.Position);
                 Parent.mExitHandle = AlarmManager.Global.AddAlarm(TunableSettings.kGhostInvasionLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- GhostInvasion Situation Alarm", AlarmType.AlwaysPersisted, null);
                 Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted);

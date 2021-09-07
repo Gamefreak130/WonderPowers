@@ -12,7 +12,13 @@
         [Tunable, TunableComment("Amount of karma lost when the user cancels a wish")]
         public static int kKarmaCancelWishAmount = 1;
 
-        [Tunable, TunableComment("The value that a Sim's needs are set to when affected by the Curse karma power (except for the bladder need, which will always be fully emptied")]
+        [Tunable, TunableComment("The base percent chance of a karmic backlash when a power activation results in a negative karma balance")]
+        public static float kBacklashBaseChance = 25;
+
+        [Tunable, TunableComment("The increase in percent chance of a karmic backlash per point of negative karma")]
+        public static float kBacklashChanceIncreasePerKarmaPoint = 0.5f;
+
+        [Tunable, TunableComment("The value that a Sim's needs are set to when affected by the Curse karma power (except for the bladder need, which will always be fully emptied)")]
         public static int kCurseMotiveAmount = -95;
 
         [Tunable, TunableComment("The length of time in sim-minutes that the effects of the Cry Havoc karma power will last")]
@@ -21,10 +27,10 @@
         [Tunable, TunableComment("The minimum number of Sims that will be affected by the Cry Havoc karma power")]
         public static int kCryHavocMinSims = 8;
 
-        [Tunable, TunableComment("Interactions Sims are compelled to perform when affected by the Cry Havoc karma power")]
+        [Tunable, TunableComment("Action keys of the social interactions Sims are compelled to perform when affected by the Cry Havoc karma power")]
         public static string[] kCryHavocSimInteractions = { "Force Fight!", "Slap", "Yell At" };
 
-        [Tunable, TunableComment("Interactions pets are compelled to perform when affected by the Cry Havoc karma power")]
+        [Tunable, TunableComment("Action keys of the social interactions pets are compelled to perform when affected by the Cry Havoc karma power")]
         public static string[] kCryHavocPetInteractions = { "Fight Pet", "Chase Mean" };
 
         [Tunable, TunableComment("The minimum number of objects to break during the Quake Maker karma power")]

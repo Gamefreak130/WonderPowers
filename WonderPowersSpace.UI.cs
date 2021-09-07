@@ -68,9 +68,9 @@ namespace Gamefreak130.WonderPowersSpace.UI
 		{
 			if (sMenu is null)
 			{
-				using (WonderModeMenu menu = new())
+				using (sMenu = new())
 				{
-					menu.StartModal();
+					sMenu.StartModal();
 				}
 				sMenu = null;
 			}
@@ -256,6 +256,119 @@ namespace Gamefreak130.WonderPowersSpace.UI
 			EndDialog(0u);
 			eventArgs.Handled = true;
         }
+	}
+
+	public class KarmicBacklashDialog : ModalDialog
+    {
+		private enum ControlIds : uint
+        {
+			kDialogTitle = 0xBBAE53DB,
+			kFirstIcon = 0x00001003,
+			kFinalIcon,
+			kBacklashText = 0xD6DA8F16,
+			kAcceptButton = 0x05DA4900
+        }
+
+		private readonly Button mAcceptButton;
+
+		private readonly TextEdit mBacklashText;
+
+		private readonly FadeEffect mIconFadeEffect;
+
+		private readonly Window mFirstIcon;
+
+		private readonly Window mFinalIcon;
+
+		private readonly bool mSpareFromBacklash;
+
+		private uint mStingHandle;
+
+		private static KarmicBacklashDialog sMenu;
+
+		public static void Show(bool spareFromBacklash)
+		{
+			if (sMenu is null)
+			{
+				using (sMenu = new(spareFromBacklash))
+				{
+					sMenu.StartModal();
+				}
+				sMenu = null;
+			}
+		}
+
+		private KarmicBacklashDialog(bool spareFromBacklash) : base("KarmicBacklashDialog", 1, true, PauseMode.PauseSimulator, null)
+		{
+			if (mModalDialogWindow is not null)
+			{
+				mModalDialogWindow.GetChildByID((uint)ControlIds.kDialogTitle, true).Caption = LocalizeString("Title");
+				mAcceptButton = mModalDialogWindow.GetChildByID((uint)ControlIds.kAcceptButton, true) as Button;
+				mAcceptButton.Enabled = false;
+				mAcceptButton.Click += OnAcceptClick;
+				mBacklashText = mModalDialogWindow.GetChildByID((uint)ControlIds.kBacklashText, true) as TextEdit;
+				mBacklashText.Caption = LocalizeString("BacklashDeciding");
+
+				mSpareFromBacklash = spareFromBacklash;
+				mFirstIcon = mModalDialogWindow.GetChildByID((uint)ControlIds.kFirstIcon, true) as Window;
+				mIconFadeEffect = mFirstIcon.EffectList[0] as FadeEffect;
+				mFinalIcon = mModalDialogWindow.GetChildByID((uint)ControlIds.kFinalIcon, true) as Window;
+				if (mSpareFromBacklash)
+                {
+					mFirstIcon.SetImage("backlash_bg");
+					mFinalIcon.SetImage("backlash_spare_bg");
+                }
+				else
+                {
+					mFirstIcon.SetImage("backlash_spare_bg");
+					mFinalIcon.SetImage("backlash_bg");
+				}
+				Simulator.AddObject(new OneShotFunctionTask(PlayRouletteEffect));
+			}
+		}
+
+		private void PlayRouletteEffect()
+        {
+			mIconFadeEffect.TriggerEffect(false);
+			mIconFadeEffect.ResetEffect(false);
+			StopWatch stopWatch = StopWatch.Create(StopWatch.TickStyles.Seconds);
+			stopWatch.Start();
+			float duration = 5.4f;
+			float effectLengthToAdd = 1.7f;
+			float num = 0;
+			float prevTime = 0;
+			float ratePerSecond = effectLengthToAdd / duration;
+			float initialDuration = mIconFadeEffect.Duration;
+			while (num < effectLengthToAdd)
+			{
+				float elapsedTime = stopWatch.GetElapsedTimeFloat();
+				float delta = elapsedTime - prevTime;
+				prevTime = elapsedTime;
+				num += ratePerSecond * delta;
+				mIconFadeEffect.Duration = Math.Min(num, effectLengthToAdd) + initialDuration;
+				Simulator.Sleep(0U);
+			}
+			mFirstIcon.Visible = false;
+			Simulator.AddObject(new OneShotFunctionTask(FinishRoulette));
+		}
+
+		private void FinishRoulette()
+        {
+			mStingHandle = Audio.StartSound(mSpareFromBacklash ? "sting_backlash_spared" : "sting_backlash_cast");
+			mBacklashText.Caption = LocalizeString(mSpareFromBacklash ? "BacklashSpared" : "BacklashCast");
+			mAcceptButton.Enabled = true;
+        }
+
+		private void OnAcceptClick(WindowBase sender, UIButtonClickEventArgs eventArgs)
+		{
+			if (mStingHandle != 0)
+            {
+				Audio.StopSound(mStingHandle);
+            }
+			EndDialog(1u);
+			eventArgs.Handled = true;
+		}
+
+		private static string LocalizeString(string name, params object[] parameters) => Localization.LocalizeString($"UI/WonderMode/BacklashDialog:{name}", parameters);
 	}
 
 	public static class CASPuckExtender
@@ -537,6 +650,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 					eventArgs.Handled = true;
 				};
 				button.Enabled = !WonderPowerManager.IsPowerRunning;
+				button.TooltipText = WonderPowerManager.IsPowerRunning ? WonderPowerManager.LocalizeString("PowerIsDeploying") : "";
 				FinishEffectUpdate();
 			}
 
