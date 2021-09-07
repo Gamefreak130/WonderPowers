@@ -330,25 +330,31 @@ namespace Gamefreak130.WonderPowersSpace.UI
         {
 			mIconFadeEffect.TriggerEffect(false);
 			mIconFadeEffect.ResetEffect(false);
-			StopWatch stopWatch = StopWatch.Create(StopWatch.TickStyles.Seconds);
-			stopWatch.Start();
-			float duration = 5.4f;
-			float effectLengthToAdd = 1.7f;
-			float num = 0;
-			float prevTime = 0;
-			float ratePerSecond = effectLengthToAdd / duration;
+
+			int ticksPerSecond = 2;
+			float duration = 5.5f;
+			float effectLengthToAdd = 2.25f;
+			float tickLength = duration / (ticksPerSecond * duration);
+			float ratePerTick = effectLengthToAdd / (ticksPerSecond * duration);
 			float initialDuration = mIconFadeEffect.Duration;
-			while (num < effectLengthToAdd)
-			{
-				float elapsedTime = stopWatch.GetElapsedTimeFloat();
-				float delta = elapsedTime - prevTime;
-				prevTime = elapsedTime;
-				num += ratePerSecond * delta;
-				mIconFadeEffect.Duration = Math.Min(num, effectLengthToAdd) + initialDuration;
-				Simulator.Sleep(0U);
+
+			float num = 0;
+			void IncrementRouletteDuration()
+            {
+				if (num < effectLengthToAdd)
+				{
+					num += ratePerTick;
+					mIconFadeEffect.Duration = Math.Min(num, effectLengthToAdd) + initialDuration;
+					Simulator.AddObject(new OneShotFunctionTask(IncrementRouletteDuration, StopWatch.TickStyles.Seconds, tickLength));
+				}
+				else
+                {
+					mFirstIcon.Visible = false;
+					FinishRoulette();
+				}
 			}
-			mFirstIcon.Visible = false;
-			Simulator.AddObject(new OneShotFunctionTask(FinishRoulette));
+
+			Simulator.AddObject(new OneShotFunctionTask(IncrementRouletteDuration, StopWatch.TickStyles.Seconds, tickLength));
 		}
 
 		private void FinishRoulette()
