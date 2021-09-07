@@ -254,7 +254,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		private static WonderPower ChooseBacklashPower()
 		{
-			List<WonderPower> validBacklashPowers = sAllWonderPowers.FindAll(power => power.IsBadPower && power.Cost < -Karma);
+			List<WonderPower> validBacklashPowers = sAllWonderPowers.FindAll(power => power.IsBadPower && power.Cost <= -Karma);
 			return validBacklashPowers.Count > 0 ? RandomUtil.GetWeightedRandomObjectFromList(validBacklashPowers) : null;
 		}
 
