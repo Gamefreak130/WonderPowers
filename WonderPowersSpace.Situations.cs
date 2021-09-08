@@ -57,10 +57,10 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             public override void Init(CryHavocSituation parent)
             {
                 // CONSIDER reaction broadcast?
+                Parent.mExitHandle = AlarmManager.AddAlarm(TunableSettings.kCryHavocLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- CryHavoc Situation Alarm", AlarmType.AlwaysPersisted, null);
                 // This sting is handled separately from the WonderPowerManager
                 // So that we can stop it once the situation is finished, even if there is no backlash
                 Parent.mSoundHandle = Audio.StartSound("sting_cryhavoc", Lot.Position);
-                Parent.mExitHandle = AlarmManager.Global.AddAlarm(TunableSettings.kCryHavocLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- CryHavoc Situation Alarm", AlarmType.AlwaysPersisted, null);
                 Camera.FocusOnLot(Lot.LotId, 2f); //2f is standard lerpTime
                 Parent.mFighters = Lot.GetAllActors().FindAll(IsValidFighter);
                 Parent.mFogEmitters = HelperMethods.CreateFogEmittersOnLot(Lot);
@@ -198,43 +198,49 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
             public override void Init(FireSituation parent)
             {
-                WonderPowerManager.PlayPowerSting("sting_firestorm");
-                Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted); //2f is standard lerptime
-
-                // For each fire spawned, there is a 25% chance it will ignite a burnable object,
-                // A 25% chance it will ignite a valid sim on the lot,
-                // And a 50% chance it will spawn directly on the ground
-                List<GameObject> burnableObjects = Lot.GetObjects<GameObject>(@object => @object is not Sim and not PlumbBob && @object.GetFireType() is not FireType.DoesNotBurn && !@object.Charred);
-                List<Sim> burnableSims = Lot.GetSims(sim => sim.IsHuman && sim.SimDescription.ChildOrAbove);
-                int numFires = RandomUtil.GetInt(TunableSettings.kFireMin, TunableSettings.kFireMax);
-                for (int i = 0; i < numFires; i++)
+                try
                 {
-                    if (RandomUtil.CoinFlip())
+                    WonderPowerManager.PlayPowerSting("sting_firestorm");
+                    Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted); //2f is standard lerptime
+
+                    // For each fire spawned, there is a 25% chance it will ignite a burnable object,
+                    // A 25% chance it will ignite a valid sim on the lot,
+                    // And a 50% chance it will spawn directly on the ground
+                    List<GameObject> burnableObjects = Lot.GetObjects<GameObject>(@object => @object is not Sim and not PlumbBob && @object.GetFireType() is not FireType.DoesNotBurn && !@object.Charred);
+                    List<Sim> burnableSims = Lot.GetSims(sim => sim.IsHuman && sim.SimDescription.ChildOrAbove);
+                    int numFires = RandomUtil.GetInt(TunableSettings.kFireMin, TunableSettings.kFireMax);
+                    for (int i = 0; i < numFires; i++)
                     {
-                        if (RandomUtil.CoinFlip() && burnableObjects.Count != 0)
+                        if (RandomUtil.CoinFlip())
                         {
-                            GameObject @object = RandomUtil.GetRandomObjectFromList(burnableObjects);
-                            FireManager.AddFire(@object.PositionOnFloor, true);
-                            AlarmManager.Global.AddAlarm(30f, TimeUnit.Seconds, delegate {
-                                VisualEffect effect = VisualEffect.Create("ep2DetonateMedium");
-                                effect.SetPosAndOrient(@object.Position, @object.ForwardVector, @object.UpVector);
-                                effect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
-                            }, "Gamefreak130 wuz here -- visual effect alarm", AlarmType.NeverPersisted, null);
-                            burnableObjects.Remove(@object);
+                            if (RandomUtil.CoinFlip() && burnableObjects.Count != 0)
+                            {
+                                GameObject @object = RandomUtil.GetRandomObjectFromList(burnableObjects);
+                                FireManager.AddFire(@object.PositionOnFloor, true);
+                                AlarmManager.AddAlarm(30f, TimeUnit.Seconds, delegate {
+                                    VisualEffect effect = VisualEffect.Create("ep2DetonateMedium");
+                                    effect.SetPosAndOrient(@object.Position, @object.ForwardVector, @object.UpVector);
+                                    effect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
+                                }, "Gamefreak130 wuz here -- visual effect alarm", AlarmType.NeverPersisted, null);
+                                burnableObjects.Remove(@object);
+                            }
+                            else if (burnableSims.Count != 0)
+                            {
+                                Sim sim = RandomUtil.GetRandomObjectFromList(burnableSims);
+                                sim.BuffManager.AddElement(BuffNames.OnFire, (Origin)HashString64("FromWonderPower"));
+                                burnableSims.Remove(sim);
+                            }
+                            continue;
                         }
-                        else if (burnableSims.Count != 0)
-                        {
-                            Sim sim = RandomUtil.GetRandomObjectFromList(burnableSims);
-                            sim.BuffManager.AddElement(BuffNames.OnFire, (Origin)HashString64("FromWonderPower"));
-                            burnableSims.Remove(sim);
-                        }
-                        continue;
+                        Vector3 pos = Lot.GetRandomPosition(true, true);
+                        FireManager.AddFire(pos, true);
                     }
-                    Vector3 pos = Lot.GetRandomPosition(true, true);
-                    FireManager.AddFire(pos, true);
+                    StyledNotification.Show(new(WonderPowerManager.LocalizeString("FireTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
                 }
-                StyledNotification.Show(new(WonderPowerManager.LocalizeString("FireTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
-                Parent.CheckForExit();
+                finally
+                {
+                    Parent.CheckForExit();
+                }
             }
         }
 
@@ -254,13 +260,13 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
         private void CheckForExit()
         {
-            if ((Lot.FireManager is null or { NoFire: true }) && Lot.GetSims(sim => FirefighterSituation.IsSimOnFire(sim)).Count == 0)
+            if (Lot is null || ((Lot.FireManager is null or { NoFire: true }) && Lot.GetSims(sim => FirefighterSituation.IsSimOnFire(sim)).Count == 0))
             {
                 Exit();
             }
             else
             {
-                mExitHandle = AlarmManager.Global.AddAlarm(1f, TimeUnit.Minutes, CheckForExit, "Gamefreak130 wuz here -- Fire situation alarm", AlarmType.AlwaysPersisted, null);
+                mExitHandle = AlarmManager.AddAlarm(1f, TimeUnit.Minutes, CheckForExit, "Gamefreak130 wuz here -- Fire situation alarm", AlarmType.AlwaysPersisted, null);
             }
         }
     }
@@ -335,10 +341,10 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
             public override void Init(GhostsSituation parent)
             {
+                Parent.mExitHandle = AlarmManager.AddAlarm(TunableSettings.kGhostInvasionLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- GhostInvasion Situation Alarm", AlarmType.AlwaysPersisted, null);
                 // This sting is handled separately from the WonderPowerManager
                 // So that we can stop it once the situation is finished, even if there is no backlash
                 Parent.mMusicHandle = Audio.StartSound("sting_ghosts", Lot.Position);
-                Parent.mExitHandle = AlarmManager.Global.AddAlarm(TunableSettings.kGhostInvasionLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- GhostInvasion Situation Alarm", AlarmType.AlwaysPersisted, null);
                 Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted);
                 foreach (Sim sim in Lot.GetSims(sim => sim.IsSleeping))
                 {
