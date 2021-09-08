@@ -468,13 +468,20 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
+            if (WonderPowers.IsMasterControllerIntegrationInstalled)
+            {
+                HelperMethods.IntegrateMasterControllerCAS(Actor.SimDescription);
+            }
+            else
+            {
+                CASLogic singleton = CASLogic.GetSingleton();
+                singleton.LoadSim(Actor.SimDescription, Actor.CurrentOutfitCategory, 0);
+                singleton.UseTempSimDesc = true;
+            }
             GameStates.sSingleton.mInWorldState.GotoCASMode((InWorldState.SubState)HashString32("CASInstantBeautyState"));
-            CASLogic singleton = CASLogic.GetSingleton();
-            singleton.LoadSim(Actor.SimDescription, Actor.CurrentOutfitCategory, 0);
-            singleton.UseTempSimDesc = true;
             while (GameStates.NextInWorldStateId is not InWorldState.SubState.LiveMode)
             {
-                Simulator.Sleep(1U);
+                Simulator.Sleep(0U);
             }
             mEffect = VisualEffect.Create("ep4imaginaryfriendtransformthrow");
             mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Neck);
@@ -1255,13 +1262,20 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
             if (!(Actor.IsPet && Actor.SimDescription.Child))
             {
+                if (WonderPowers.IsMasterControllerIntegrationInstalled)
+                {
+                    HelperMethods.IntegrateMasterControllerCAS(Actor.SimDescription);
+                }
+                else
+                {
+                    CASLogic singleton = CASLogic.GetSingleton();
+                    singleton.LoadSim(Actor.SimDescription, Actor.CurrentOutfitCategory, 0);
+                    singleton.UseTempSimDesc = true;
+                }
                 GameStates.sSingleton.mInWorldState.GotoCASMode((InWorldState.SubState)HashString32("CASTransmogrifyState"));
-                CASLogic singleton = CASLogic.GetSingleton();
-                singleton.LoadSim(Actor.SimDescription, Actor.CurrentOutfitCategory, 0);
-                singleton.UseTempSimDesc = true;
                 while (GameStates.NextInWorldStateId is not InWorldState.SubState.LiveMode)
                 {
-                    Simulator.Sleep(1U);
+                    Simulator.Sleep(0U);
                 }
             }
 

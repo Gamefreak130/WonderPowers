@@ -22,6 +22,7 @@ namespace Gamefreak130
     // TODO Command to set karma, reset cooldown
     // TODO Write STBLs
     // TODO Create tunable settings XML
+    // TODO Catch interaction exceptions and refund power cost if we cannot recover
     // CONSIDER Common exception catching for event listeners
     public static class WonderPowers
     {
@@ -29,6 +30,8 @@ namespace Gamefreak130
         private static readonly bool kCJackB;
 
         public static bool IsKidsMagicInstalled;
+
+        public static bool IsMasterControllerIntegrationInstalled;
 
         static WonderPowers()
         {
@@ -44,6 +47,7 @@ namespace Gamefreak130
                 TransmogrifyTraitMapping.Init();
             }
             IsKidsMagicInstalled = ReflectionEx.IsAssemblyLoaded("Skydome_KidsMagic");
+            IsMasterControllerIntegrationInstalled = ReflectionEx.IsAssemblyLoaded("NRaasMasterControllerIntegration");
             foreach (ConstructorInfo ctor in AppDomain.CurrentDomain.GetAssemblies()
                                                                     .SelectMany(assembly => assembly.GetExportedTypes())
                                                                     .Where(type => !type.IsAbstract && !type.IsGenericTypeDefinition && typeof(PowerBooter).IsAssignableFrom(type))

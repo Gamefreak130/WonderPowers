@@ -1,4 +1,5 @@
 ﻿using Gamefreak130.Common.Booters;
+using Gamefreak130.Common.Helpers;
 using Gamefreak130.Common.Loggers;
 using Gamefreak130.Common.Structures;
 using Gamefreak130.Common.UI;
@@ -13,6 +14,7 @@ using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.UI;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
+using Sims3.SimIFace.CAS;
 using Sims3.UI;
 using Sims3.UI.CAS;
 using Sims3.UI.CAS.CAP;
@@ -400,6 +402,50 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			IMapTagPickerInfo info = MapTagPickerUncancellable.Show(list, title, confirm);
 			return LotManager.GetLot(info.LotId);
 		}
+
+		public static void IntegrateMasterControllerCAS(SimDescription sim)
+        {
+			SimDescription.DeathType deathType = sim.DeathStyle;
+
+			Type casBase = Type.GetType("NRaas.MasterControllerSpace.Sims.CASBase, NRaasMasterController");
+			// Generate OnGetMode delegate using generics and reflection
+			Type onGetModeType = Type.GetType("NRaas.MasterControllerSpace.Sims.CASBase+OnGetMode, NRaasMasterController");
+			MethodInfo getMode = typeof(HelperMethods).GetMethod(nameof(GetInvalidCASMode), BindingFlags.NonPublic | BindingFlags.Static);
+			getMode = getMode.MakeGenericMethod(Type.GetType("NRaas.MasterControllerSpace.Sims.CASBase+EditType, NRaasMasterController"));
+			object getModeDelegate = Delegate.CreateDelegate(onGetModeType, getMode);
+			// Put it all together to set up MasterController CAS
+			ReflectionEx.StaticInvoke(casBase, "Perform", new[] { sim, getModeDelegate }, new[] { typeof(SimDescription), onGetModeType });
+
+			// Reversing outfit and death style changes made due to CASMode not being set to Full
+			sim.SetDeathStyle(deathType, true);
+			FieldInfo swapOutfits = casBase.GetField("sSwapOutfits", BindingFlags.NonPublic | BindingFlags.Static);
+			FieldInfo actualCategory = casBase.GetField("sActualCategory", BindingFlags.NonPublic | BindingFlags.Static);
+			if (swapOutfits.GetValue(null) is true && actualCategory.GetValue(null) is not OutfitCategories.Naked)
+			{
+				object value = sim.Outfits[actualCategory.GetValue(null)];
+				sim.Outfits[actualCategory.GetValue(null)] = sim.Outfits[OutfitCategories.Everyday];
+				sim.Outfits[OutfitCategories.Everyday] = value;
+
+				actualCategory.SetValue(null, OutfitCategories.Everyday);
+				casBase.GetField("sActualIndex", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 0);
+				swapOutfits.SetValue(null, false);
+			}
+		}
+
+#pragma warning disable IDE0060 // Remove unused parameter
+
+		/// <summary>
+		/// Method matching delegate type "NRaas.MasterControllerSpace.Sims.CASBase.OnGetMode" used to delay CAS mode state transition when setting up MasterController's CAS
+		/// </summary>
+		/// <remarks>
+		/// <typeparamref name="T"/> should ALWAYS be of type "NRaas.MasterControllerSpace.Sims.CASBase.EditType". The only reason this is generic is to let us substitute the type in at runtime using reflection
+		/// </remarks>
+		/// <typeparam name="T">Should always be of type "NRaas.MasterControllerSpace.Sims.CASBase.EditType"</typeparam>
+		/// <returns>An invalid <see cref="CASMode"/>, allowing "NRaas.MasterControllerSpace.Sims.CASBase.Perform" to run without automatically transitioning to CAS</returns>
+		private static CASMode GetInvalidCASMode<T>(SimDescription _, ref OutfitCategories __, ref int ___, ref T ____) where T : Enum
+            => (CASMode)(-1);
+
+#pragma warning restore IDE0060 // Remove unused parameter
 	}
 
 	public class TransmogrifyTraitMapping
@@ -458,7 +504,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 	public class CASInstantBeautyState : CASFullModeState
     {
-		// CONSIDER route through MasterControllerIntegration if necessary
 		public CASInstantBeautyState() : base()
         {
 			mStateId = (int)HashString32("CASInstantBeautyState");
@@ -487,8 +532,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				{
 					UIHelper.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.CharacterButton);
 					UIHelper.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.CharacterText);
-					UIHelper.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.ClothingButton);
-					UIHelper.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.ClothingText);
 					UIHelper.HideElementById(CASCharacterSheet.gSingleton, (uint)CASCharacterSheet.ControlIDs.RandomizeButton);
 				}
 
@@ -552,7 +595,6 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 	public class CASTransmogrifyState : CASFullModeState
 	{
-		// CONSIDER route through MasterControllerIntegration if necessary
 		public CASTransmogrifyState() : base()
 		{
 			mStateId = (int)HashString32("CASTransmogrifyState");
