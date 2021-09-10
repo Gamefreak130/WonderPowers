@@ -216,10 +216,15 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			return true;
 		}
 
-		public static bool FeralPossessionActivation(bool isBacklash)
+		public static bool FeralPossessionActivation(bool _)
 		{
-			//TODO this
-			throw new NotImplementedException();
+			Sim sim = PlumbBob.SelectedActor;
+			Lot lot = sim.LotCurrent.IsWorldLot
+				? GetClosestObject(LotManager.AllLotsWithoutCommonExceptions.Cast<Lot>(), sim)
+				: sim.LotCurrent;
+
+			new FeralPossessionSituation(lot);
+			return true;
 		}
 
 		public static bool FireActivation(bool isBacklash)

@@ -4,12 +4,18 @@ using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
+using Sims3.Gameplay.InteractionsShared;
+using Sims3.Gameplay.ObjectComponents;
 using Sims3.Gameplay.UI;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
+using Sims3.SimIFace.CAS;
 using Sims3.UI;
+using System.Collections.Generic;
+using System.Linq;
 using static Sims3.Gameplay.ActorSystems.BuffCommodityDecayModifier;
 using static Sims3.SimIFace.ResourceUtils;
 using Responder = Sims3.UI.Responder;
@@ -19,6 +25,8 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
     public class BuffCryHavoc : Buff
     {
         public const ulong kBuffCryHavocGuid = 0x9DFC9F7522618833;
+
+        private const int kMaxInteractions = 2;
 
         public BuffCryHavoc(BuffData data) : base(data)
         {
@@ -33,7 +41,8 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
             Sim actor = arg as Sim;
             if (actor.BuffManager.HasElement(kBuffCryHavocGuid))
             {
-                if (actor.CurrentInteraction is null || actor.CurrentInteraction.GetPriority().Level < InteractionPriorityLevel.CriticalNPCBehavior)
+                string[] validActionKeys = actor.IsPet ? TunableSettings.kCryHavocPetInteractions : TunableSettings.kCryHavocSimInteractions;
+                if (actor.InteractionQueue.Count < kMaxInteractions)
                 {
                     Sim target = RandomUtil.GetRandomObjectFromList(actor.LotCurrent.GetAllActors());
                     if (CanFight(actor, target))
@@ -42,14 +51,210 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
                         InteractionHelper.ForceSocialInteraction(actor, target, social, InteractionPriorityLevel.CriticalNPCBehavior, false);
                     }
                 }
-                actor.AddAlarm(1f, TimeUnit.Seconds, delegate { CruiseForBruise(actor); }, "Gamefreak130 wuz here -- Cry Havoc alarm", AlarmType.DeleteOnReset);
+                actor.AddAlarm(1f, TimeUnit.Minutes, delegate { CruiseForBruise(actor); }, "Gamefreak130 wuz here -- Cry Havoc alarm", AlarmType.DeleteOnReset);
             }
         }
 
         private static bool CanFight(Sim x, Sim y)
-            => y is not null && (y.CurrentInteraction is null || y.CurrentInteraction.GetPriority().Level < InteractionPriorityLevel.CriticalNPCBehavior) && x != y 
+            => y is not null && y.InteractionQueue.Count < kMaxInteractions && x != y 
             && x.BuffManager.HasElement(kBuffCryHavocGuid) && y.BuffManager.HasElement(kBuffCryHavocGuid)
             && x.IsPet == y.IsPet && ((x.SimDescription.Teen && y.SimDescription.Teen) || (x.SimDescription.YoungAdultOrAbove && y.SimDescription.YoungAdultOrAbove));
+    }
+
+    public class BuffKarmicPossession : Buff
+    {
+        public const ulong kBuffKarmicPossessionGuid = 0xF23046B315CBFB49;
+
+        private const float kStaggerOffset = 3;
+
+        private const float kAlarmTime = 5;
+
+        private class BuffInstanceKarmicPossession : BuffInstance
+        {
+            private const int kMaxInteractions = 2;
+
+            private VisualEffect mEffect;
+
+            private AlarmHandle mAlarm;
+
+            private ulong mActorId;
+
+            private int mLastBehavior;
+
+            public BuffInstanceKarmicPossession()
+            {
+            }
+
+            public BuffInstanceKarmicPossession(Buff buff, BuffNames buffGuid, int effectValue, float timeoutSimMinutes) : base(buff, buffGuid, effectValue, timeoutSimMinutes)
+            {
+            }
+
+            public override BuffInstance Clone() => new BuffInstanceKarmicPossession(mBuff, Guid, EffectValue, TimeoutCount);
+
+            public override void Dispose(BuffManager bm)
+            {
+                if (mAlarm != AlarmHandle.kInvalidHandle)
+                {
+                    bm.Actor.RemoveAlarm(mAlarm);
+                    mAlarm = AlarmHandle.kInvalidHandle;
+                }
+                if (mEffect is not null)
+                {
+                    mEffect.Stop();
+                    mEffect.Dispose();
+                    mEffect = null;
+                }
+                base.Dispose(bm);
+            }
+
+            public void StartVisualEffect(BuffManager bm)
+            {
+                if (mEffect is not null)
+                {
+                    mEffect.Stop();
+                    mEffect.Dispose();
+                    mEffect = null;
+                }
+                mEffect = VisualEffect.Create("ep6geniemakewishnegative_main");
+                mEffect.ParentTo(bm.Actor, Sim.FXJoints.Head);
+                mEffect.Start();
+            }
+
+            public void StartAlarm(BuffManager bm)
+            {
+                mActorId = bm.Actor.SimDescription.SimDescriptionId;
+                StartAlarm(bm.Actor, sStaggerTime);
+            }
+
+            public void StartAlarm(Sim sim, float time)
+            {
+                if (mAlarm != AlarmHandle.kInvalidHandle)
+                {
+                    sim.RemoveAlarm(mAlarm);
+                    mAlarm = AlarmHandle.kInvalidHandle;
+                }
+                mAlarm = sim.AddAlarm(time, TimeUnit.Minutes, TriggerBadBehavior, "Gamefreak130 wuz here -- Feral Possession bad behavior alarm", AlarmType.DeleteOnReset);
+            }
+
+            private int BehaviorCount() 
+                => SimDescription.Find(mActorId)?.CreatedSim switch
+            {
+                { IsKitten: true }       => 3,
+                { IsCat: true }          => 5,
+                { IsPuppy: true }        => 3,
+                { IsADogSpecies: true }  => 4,
+                _                        => -1
+            };
+
+            private void TriggerBadBehavior()
+            {
+                float time = 1f;
+                Sim actor = SimDescription.Find(mActorId)?.CreatedSim;
+                int behaviorCount = BehaviorCount();
+                if (actor is not null && actor.InteractionQueue.Count < kMaxInteractions && behaviorCount != -1)
+                {
+                    InteractionInstance interactionInstance = null;
+                    bool flag = false;
+                    mLastBehavior = (mLastBehavior + RandomUtil.GetInt(1, behaviorCount - 1)) % behaviorCount;
+                    switch (mLastBehavior)
+                    {
+                        case 1:
+                        {
+                            List<GameObject> scratchableObjects = actor.LotCurrent.GetObjects<GameObject>(obj => obj.Repairable is ScratchableRepairable { Broken: false });
+                            GameObject gameObject = RandomUtil.GetRandomObjectFromList(scratchableObjects);
+                            if (gameObject is not null)
+                            {
+                                interactionInstance = ScratchObject.Singleton.CreateInstance(gameObject, actor, new(InteractionPriorityLevel.RequiredNPCBehavior), false, false);
+                            }
+                            break;
+                        }
+                        case 2:
+                        {
+                            Sim sim = RandomUtil.GetRandomObjectFromList(actor.LotCurrent.GetSims(sim => sim.SimDescription.ChildOrAbove));
+                            if (sim is not null)
+                            {
+                                InteractionHelper.ForceSocialInteraction(actor, sim, actor.IsCat ? "Cat Hiss" : "Growl At", InteractionPriorityLevel.CriticalNPCBehavior, false);
+                                flag = true;
+                            }
+                            break;
+                        }
+                        case 3:
+                        {
+                            Sim sim = RandomUtil.GetRandomObjectFromList(actor.LotCurrent.GetAnimalsOfType(CASAGSAvailabilityFlags.CatAdult | CASAGSAvailabilityFlags.CatElder | CASAGSAvailabilityFlags.DogAdult | CASAGSAvailabilityFlags.DogElder | 
+                                                                                                           CASAGSAvailabilityFlags.LittleDogAdult | CASAGSAvailabilityFlags.LittleDogElder | CASAGSAvailabilityFlags.Raccoon));
+
+                            if (sim is not null)
+                            {
+                                string actionKey = actor.SimDescription.Child
+                                    ? actor.IsCat 
+                                        ? "Cat Hiss" 
+                                        : "Growl At"
+                                    : "Fight Pet";
+
+                                InteractionHelper.ForceSocialInteraction(actor, sim, actionKey, InteractionPriorityLevel.CriticalNPCBehavior, false);
+                                flag = true;
+                            }
+                            break;
+                        }
+                        case 4:
+                        {
+                            Sim sim = RandomUtil.GetRandomObjectFromList(actor.LotCurrent.GetAnimals().ToList());
+                            if (sim is not null)
+                            {
+                                string actionKey = sim.IsCat && sim.SimDescription.AdultOrAbove ? "Pounce Mean" : "Cat Hiss";
+                                InteractionHelper.ForceSocialInteraction(actor, sim, actionKey, InteractionPriorityLevel.CriticalNPCBehavior, false);
+                                flag = true;
+                            }
+                            break;
+                        }
+                        default:
+                            InteractionDefinition definition = actor.IsADogSpecies ? Sim.DogPee.PeeIndoorSingleton : Sim.CatPee.PeeIndoorSingleton;
+                            interactionInstance = definition.CreateInstance(actor, actor, new(InteractionPriorityLevel.RequiredNPCBehavior), false, false);
+                            break;
+                    }
+                    if (flag || (interactionInstance != null && actor.InteractionQueue.AddNext(interactionInstance)))
+                    {
+                        time = kAlarmTime;
+                    }
+                }
+                StartAlarm(actor, time);
+            }
+        }
+
+        private static float sStaggerTime = 1;
+
+        public BuffKarmicPossession(BuffData data) : base(data)
+        {
+        }
+
+        public override BuffInstance CreateBuffInstance() => new BuffInstanceKarmicPossession(this, BuffGuid, EffectValue, TimeoutSimMinutes);
+
+        public override bool ShouldAdd(BuffManager bm, MoodAxis axisEffected, int moodValue) => base.ShouldAdd(bm, axisEffected, moodValue) && bm.Actor.IsPet;
+
+        public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
+        {
+            base.OnAddition(bm, bi, travelReaddition);
+            bm.Actor.SimDescription.IsNeverSelectable = true;
+            if (PlumbBob.SelectedActor == bm.Actor)
+            {
+                LotManager.SelectNextSim();
+            }
+            bm.Actor.Motives.SetValue(CommodityKind.Bladder, -40);
+            BuffInstanceKarmicPossession karmicPossession = bi as BuffInstanceKarmicPossession;
+            karmicPossession.StartVisualEffect(bm);
+            karmicPossession.StartAlarm(bm);
+            sStaggerTime = (sStaggerTime + kStaggerOffset) % kAlarmTime;
+        }
+
+        public override void OnRemoval(BuffManager bm, BuffInstance bi)
+        {
+            bi.Dispose(bm);
+            // Pets should never be roommates, but I'm including the sanity check here just in case
+            if (bm.Actor.Household is not null && !Household.RoommateManager.IsNPCRoommate(bm.Actor))
+            {
+                bm.Actor.SimDescription.IsNeverSelectable = false;
+            }
+        }
     }
 
     public class BuffLuckyFind : BuffTemporaryTraitEx
@@ -97,18 +302,18 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
             [DoesntRequireTuning]
             public class Definition : SoloSimInteractionDefinition<CoughingFit>, ISoloInteractionDefinition
             {
-                public static string LocalizeString(string name, params object[] parameters) => Localization.LocalizeString(sLocalizationKey + name, parameters);
+                public static string LocalizeString(string name, params object[] parameters) => Localization.LocalizeString(kLocalizationKey + name, parameters);
 
                 public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop) => LocalizeString("CoughingFit", new object[0]);
 
                 public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback) => a == target && isAutonomous;
             }
 
-            public const string sLocalizationKey = "Gameplay/ActorSystems/BuffPestilencePlague/CoughingFit:";
+            public const string kLocalizationKey = "Gameplay/ActorSystems/BuffPestilencePlague/CoughingFit:";
 
             public static ISoloInteractionDefinition Singleton = new Definition();
 
-            public static string LocalizeString(string name, params object[] parameters) => Localization.LocalizeString(sLocalizationKey + name, parameters);
+            public static string LocalizeString(string name, params object[] parameters) => Localization.LocalizeString(kLocalizationKey + name, parameters);
 
             public override bool Run()
             {
@@ -258,7 +463,7 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
                 base.Dispose(bm);
             }
 
-            public void SetVisualEffect(VisualEffect newEffect)
+            public void StartVisualEffect(BuffManager bm)
             {
                 if (mEffect is not null)
                 {
@@ -266,7 +471,9 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
                     mEffect.Dispose();
                     mEffect = null;
                 }
-                mEffect = newEffect;
+                mEffect = VisualEffect.Create("ep1EyeCandy");
+                mEffect.ParentTo(bm.Actor, Sim.FXJoints.Spine1);
+                mEffect.Start();
             }
         }
 
@@ -279,10 +486,7 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
         public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
         {
             BuffInstanceSuperLucky superLucky = bi as BuffInstanceSuperLucky;
-            VisualEffect effect = VisualEffect.Create("ep1EyeCandy");
-            superLucky.SetVisualEffect(effect);
-            effect.ParentTo(bm.Actor, Sim.FXJoints.Spine1);
-            effect.Start();
+            superLucky.StartVisualEffect(bm);
             base.OnAddition(bm, bi, travelReaddition);
         }
 

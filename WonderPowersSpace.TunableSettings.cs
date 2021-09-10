@@ -54,6 +54,12 @@
         [Tunable, TunableComment("The maximum number of trash spawned during the Quake Maker karma power")]
         public static int kEarthquakeMaxTrash = 10;
 
+        [Tunable, TunableComment("The length of time in sim-minutes that the effects of the Feral Possession karma power will last")]
+        public static int kFeralPossessionLength = 180;
+
+        [Tunable, TunableComment("The minimum number of dogs and cats that will be affected by the Feral Possession karma power")]
+        public static int kFeralPossessionMinPets = 5;
+
         [Tunable, TunableComment("The minimum number of fires spawned during the Fire Storm karma power")]
         public static int kFireMin = 3;
 

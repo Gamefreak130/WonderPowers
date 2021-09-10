@@ -67,7 +67,9 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
                 if (Parent.mFighters.Count < TunableSettings.kCryHavocMinSims)
                 {
-                    List<Sim> otherSims = Queries.GetObjects<Sim>().Where(sim => !Parent.mFighters.Contains(sim) && IsValidFighter(sim)).ToList();
+                    List<Sim> otherSims = Queries.GetObjects<Sim>()
+                                                 .Where(sim => !Parent.mFighters.Contains(sim) && IsValidFighter(sim))
+                                                 .ToList();
                     while (Parent.mFighters.Count < TunableSettings.kCryHavocMinSims && otherSims.Count != 0)
                     {
                         Sim closestSim = GetClosestObject(otherSims, Lot);
@@ -83,7 +85,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                     }
                 }
                 PruneFighters();
-                foreach (Sim sim in Parent.mFighters.Where(sim => sim is not null))
+                foreach (Sim sim in Parent.mFighters.OfType<Sim>())
                 {
                     sim.AssignRole(Parent);
                     GoToLotAndFight visitLot = new GoToLotAndFight.Definition().CreateInstance(Lot, sim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as GoToLotAndFight;
@@ -95,20 +97,20 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             private bool IsValidFighter(Sim sim) => sim is { IsHorse: false, CanBeSocializedWith: true, SimDescription: { TeenOrAbove: true } };
 
             // Two Sims can fight each other only if they are both pets, both teens, or both adults or older
-            // This method ensures that there are at least two fighters in each of these three groups
+            // This method ensures that there are an even number of fighters in each of these three groups
             // So that any Sim always has someone to fight with
             private void PruneFighters()
             {
                 Predicate<Sim>[] predicates = {
                     (sim) => sim.IsPet,
                     (sim) => sim.SimDescription.Teen,
-                    (sim) => sim.IsHuman && sim.SimDescription.AdultOrAbove
+                    (sim) => sim.IsHuman && sim.SimDescription.YoungAdultOrAbove
                 };
                 
                 foreach (Predicate<Sim> predicate in predicates)
                 {
                     int predicateCount = Parent.mFighters.FindAll(predicate).Count;
-                    if (predicateCount > 0 && predicateCount % 2 == 0)
+                    if (predicateCount > 0 && predicateCount % 2 != 0)
                     {
                         Parent.mFighters.RemoveAt(Parent.mFighters.FindIndex(predicate));
                     }
@@ -120,7 +122,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
         {
             try
             {
-                foreach (Sim sim in mFighters.Where(sim => sim is not null))
+                foreach (Sim sim in mFighters.OfType<Sim>())
                 {
                     sim.InteractionQueue.CancelAllInteractions();
                     sim.OverlayComponent.PlayReaction(ReactionTypes.MotiveFailEnergy, sim, false);
@@ -168,6 +170,189 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             if (mFighters.Count == 0)
             {
                 Exit();
+            }
+        }
+    }
+
+    public class FeralPossessionSituation : RootSituation
+    {
+        public FeralPossessionSituation()
+        {
+        }
+
+        public FeralPossessionSituation(Lot lot) : base(lot) => SetState(new StartSituation(this));
+
+        private List<Sim> mPossessed;
+
+        private List<Sim> mCreatedPets;
+
+        private List<GameObject> mFogEmitters;
+
+        private AlarmHandle mExitHandle;
+
+        private uint mSoundHandle;
+
+        private class StartSituation : ChildSituation<FeralPossessionSituation>
+        {
+            public StartSituation()
+            {
+            }
+
+            public StartSituation(FeralPossessionSituation parent) : base(parent)
+            {
+            }
+
+            public override void Init(FeralPossessionSituation parent)
+            {
+                // CONSIDER reaction broadcast?
+                Parent.mExitHandle = AlarmManager.AddAlarm(TunableSettings.kFeralPossessionLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- FeralPossession Situation Alarm", AlarmType.AlwaysPersisted, null);
+                // This sting is handled separately from the WonderPowerManager
+                // So that we can stop it once the situation is finished, even if there is no backlash
+
+                // TODO abstract base situation class?
+                // TODO greet cry havoc/possessed sims on lot
+                Parent.mSoundHandle = Audio.StartSound("sting_feralpossession", Lot.Position);
+                Camera.FocusOnLot(Lot.LotId, 2f); //2f is standard lerpTime
+                Parent.mPossessed = Lot.GetAnimalsOfType(CASAGSAvailabilityFlags.CatChild | CASAGSAvailabilityFlags.CatAdult | CASAGSAvailabilityFlags.CatElder | CASAGSAvailabilityFlags.DogChild | CASAGSAvailabilityFlags.DogAdult | CASAGSAvailabilityFlags.DogElder);
+                Parent.mCreatedPets = new();
+                Parent.mFogEmitters = HelperMethods.CreateFogEmittersOnLot(Lot);
+
+                if (Parent.mPossessed.Count < TunableSettings.kFeralPossessionMinPets)
+                {
+                    List<Sim> otherPets = Queries.GetObjects<Sim>()
+                                                 .Where(sim => !Parent.mPossessed.Contains(sim) && (sim.IsCat || sim.IsADogSpecies))
+                                                 .ToList();
+
+                    while (Parent.mPossessed.Count < TunableSettings.kFeralPossessionMinPets && otherPets.Count != 0)
+                    {
+                        Sim closestSim = GetClosestObject(otherPets, Lot);
+                        if (closestSim is not null)
+                        {
+                            Parent.mPossessed.Add(closestSim);
+                            otherPets.Remove(closestSim);
+                        }
+                        else
+                        {
+                            otherPets.RemoveAt(0);
+                        }
+                    }
+
+                    for (int i = 0; i < TunableSettings.kFeralPossessionMinPets - Parent.mPossessed.Count; i++)
+                    {
+                        Simulator.AddObject(new OneShotFunction(CreatePossessedPet));
+                    }
+                }
+
+                foreach (Sim pet in Parent.mPossessed.OfType<Sim>())
+                {
+                    pet.AssignRole(Parent);
+                    if (pet.LotCurrent != Lot)
+                    {
+                        ForceSituationSpecificInteraction(pet, pet.CreateTeleportInstanceToPositionOnLot(Lot, null, null));
+                    }
+                    pet.BuffManager.AddElement(Buffs.BuffKarmicPossession.kBuffKarmicPossessionGuid, (Origin)HashString64("FromWonderPower"));
+                }
+                PlumbBob.SelectedActor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(PlumbBob.SelectedActor.IsFemale, "FeralPossessionTNS", PlumbBob.SelectedActor), StyledNotification.NotificationStyle.kGameMessageNegative);
+            }
+
+            private void CreatePossessedPet()
+            {
+                SimDescription createdPet = GeneticsPet.MakeRandomPet(CASAgeGenderFlags.Adult, RandomUtilEx.CoinFlipSelect(CASAgeGenderFlags.Male, CASAgeGenderFlags.Female), RandomUtilEx.CoinFlipSelect(CASAgeGenderFlags.Dog, CASAgeGenderFlags.Cat));
+                GeneticsPet.AssignRandomTraits(createdPet);
+                Household.PetHousehold.AddSilent(createdPet);
+                createdPet.OnHouseholdChanged(Household.PetHousehold, false);
+                Sim instantiatedPet = createdPet.Instantiate(Service.GetPositionNearLotCorners(Lot));
+
+                VisualEffect vfx = VisualEffect.Create(instantiatedPet.IsFullSizeDog ? "ep5TeleportDog" : "ep5TeleportSmall");
+                vfx.SetPosAndOrient(instantiatedPet.Position, instantiatedPet.ForwardVector, instantiatedPet.UpVector);
+                vfx.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
+
+                instantiatedPet.AssignRole(Parent);
+                Parent.mCreatedPets.Add(instantiatedPet);
+                Parent.mPossessed.Add(instantiatedPet);
+                instantiatedPet.BuffManager.AddElement(Buffs.BuffKarmicPossession.kBuffKarmicPossessionGuid, (Origin)HashString64("FromWonderPower"));
+            }
+        }
+
+        public override void CleanUp()
+        {
+            try
+            {
+                List<Sim> createdPets = mCreatedPets.OfType<Sim>().ToList();
+                List<Sim> possessed = mPossessed.OfType<Sim>().ToList();
+                mCreatedPets.Clear();
+                mPossessed.Clear();
+
+                foreach (Sim pet in createdPets)
+                {
+                    pet.BuffManager.RemoveElement(Buffs.BuffKarmicPossession.kBuffKarmicPossessionGuid);
+                    VisualEffect visualEffect = VisualEffect.Create("ep6GenieTargetSimDisappear_main");
+                    visualEffect.ParentTo(pet, Sim.FXJoints.Spine0);
+                    visualEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
+                    pet.FadeOut(false, true);
+                    pet.SimDescription.Dispose();
+                }
+
+                foreach (Sim pet in possessed)
+                {
+                    pet.InteractionQueue.CancelAllInteractions();
+                    pet.BuffManager.RemoveElement(Buffs.BuffKarmicPossession.kBuffKarmicPossessionGuid);
+                    if (!pet.IsAtHome)
+                    {
+                        Sim.MakeSimGoHome(pet, false, new(InteractionPriorityLevel.CriticalNPCBehavior));
+                    }
+                }
+                foreach (GameObject emitter in mFogEmitters)
+                {
+                    emitter.Destroy();
+                    emitter.Dispose();
+                }
+                if (mSoundHandle != 0U)
+                {
+                    Audio.StopSound(mSoundHandle);
+                    mSoundHandle = 0U;
+                }
+                AlarmManager.RemoveAlarm(mExitHandle);
+                mExitHandle = AlarmHandle.kInvalidHandle;
+                base.CleanUp();
+            }
+            finally
+            {
+                WonderPowerManager.TogglePowerRunning();
+            }
+        }
+
+        public override void OnReset(Sim sim)
+        {
+            if (mCreatedPets.Contains(sim))
+            {
+                sim.BuffManager.RemoveElement(Buffs.BuffKarmicPossession.kBuffKarmicPossessionGuid);
+                sim.FadeOut(false, true);
+                sim.SimDescription.Dispose();
+            }
+            else if (mPossessed.Contains(sim))
+            {
+                sim.BuffManager.RemoveElement(Buffs.BuffKarmicPossession.kBuffKarmicPossessionGuid);
+                sim.RemoveRole(this);
+                mPossessed.Remove(sim);
+                if (mPossessed.Count == 0)
+                {
+                    Exit();
+                }
+            }
+        }
+
+        public override void OnParticipantDeleted(Sim participant)
+        {
+            participant.RemoveRole(this);
+            mCreatedPets.Remove(participant);
+            if (mPossessed.Contains(participant))
+            {
+                mPossessed.Remove(participant);
+                if (mPossessed.Count == 0)
+                {
+                    Exit();
+                }
             }
         }
     }
@@ -407,10 +592,10 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                     ghost.SetDeathStyle(RandomUtil.GetRandomObjectFromList(sValidDeathTypes), false);
                     TraitNames trait = ghost.DeathStyle switch
                     {
-                        SimDescription.DeathType.Drown => TraitNames.Hydrophobic,
-                        SimDescription.DeathType.Electrocution => TraitNames.AntiTV,
-                        SimDescription.DeathType.Burn => TraitNames.Pyromaniac,
-                        _ => TraitNames.Unknown
+                        SimDescription.DeathType.Drown          => TraitNames.Hydrophobic,
+                        SimDescription.DeathType.Electrocution  => TraitNames.AntiTV,
+                        SimDescription.DeathType.Burn           => TraitNames.Pyromaniac,
+                        _                                       => TraitNames.Unknown
                     };
                     ghost.TraitManager.AddHiddenElement(trait);
                 }

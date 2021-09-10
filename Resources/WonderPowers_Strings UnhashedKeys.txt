@@ -182,6 +182,8 @@
 <STR>Gameplay/WonderMode:DoomTNS</STR>
 <KEY>Gameplay/WonderMode:EarthquakeTNS</KEY>
 <STR>Gameplay/WonderMode:EarthquakeTNS</STR>
+<KEY>Gameplay/WonderMode:FeralPossessionTNS</KEY>
+<STR>Gameplay/WonderMode:FeralPossessionTNS</STR>
 <KEY>Gameplay/WonderMode:FireTNS</KEY>
 <STR>Gameplay/WonderMode:FireTNS</STR>
 <KEY>Gameplay/WonderMode:GhostifyTNS</KEY>
@@ -226,6 +228,10 @@
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuffDescription</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuffDescription</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_KarmicPossessionBuff</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_KarmicPossessionBuff</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_KarmicPossessionBuffDescription</KEY>
+<STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_KarmicPossessionBuffDescription</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GhostifyBuff</KEY>
 <STR>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GhostifyBuff</STR>
 <KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GhostifyBuffDescription</KEY>

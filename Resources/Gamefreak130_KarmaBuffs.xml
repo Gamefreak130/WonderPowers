@@ -53,6 +53,16 @@
     <TimeoutLength>180</TimeoutLength>
   </BuffList>
   <BuffList>
+    <Hex>Gamefreak130_KarmicPossessionBuff=0xF23046B315CBFB49</Hex>
+    <BuffName>Gamefreak130_KarmicPossessionBuff</BuffName>
+    <BuffDescription>Gamefreak130_KarmicPossessionBuffDescription</BuffDescription>
+    <ThumbFilename>feralpossession</ThumbFilename>
+    <EffectValue>-20</EffectValue>
+    <AxisEffected>Angry</AxisEffected>
+    <PermaMoodlet>True</PermaMoodlet>
+    <CustomClassName>Gamefreak130.WonderPowersSpace.Buffs.BuffKarmicPossession, Gamefreak130.WonderPowers</CustomClassName>
+  </BuffList>
+  <BuffList>
     <Hex>Gamefreak130_GhostifyBuff=0xABECC1DBFB07E2B9</Hex>
     <BuffName>Gamefreak130_GhostifyBuff</BuffName>
     <BuffDescription>Gamefreak130_GhostifyBuffDescription</BuffDescription>
