@@ -76,6 +76,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				PlumbBob.SelectActor(selectedSim);
 			}
 			InteractionInstance instance = new BeCursed.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false);
+			if (!instance.Test())
+			{ 
+				return false; 
+			} 
 			selectedSim.InteractionQueue.AddNext(instance);
 			return true;
 		}
@@ -112,6 +116,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				PlumbBob.SelectActor(ghost);
 			}
 			InteractionInstance instance = new DivineInterventionResurrect.Definition().CreateInstance(ghost, ghost, new(InteractionPriorityLevel.MaxDeath), false, false);
+			if (!instance.Test())
+			{
+				return false;
+			}
 			ghost.InteractionQueue.AddNext(instance);
 			return true;
 		}
@@ -146,6 +154,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				PlumbBob.SelectActor(selectedSim);
 			}
 			InteractionInstance instance = new BeDoomed.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false);
+			if (!instance.Test())
+			{
+				return false;
+			}
 			selectedSim.InteractionQueue.AddNext(instance);
 			return true;
 		}
@@ -294,6 +306,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 
 			Ghostify ghostifyInteraction = new Ghostify.Definition(ghostType).CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as Ghostify;
+			if (!ghostifyInteraction.Test())
+			{
+				return false;
+			}
 			selectedSim.InteractionQueue.AddNext(ghostifyInteraction);
 			return true;
 		}
@@ -319,16 +335,26 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static bool GoodMoodActivation(bool _)
 		{
-			WonderPowerManager.PlayPowerSting("sting_goodmood");
+			bool flag = false;
 			Camera.FocusOnSelectedSim();
 			foreach (Sim sim in PlumbBob.SelectedActor.LotCurrent.GetAllActors())
 			{
 				ActivateGoodMood interaction = new ActivateGoodMood.Definition().CreateInstance(sim, sim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ActivateGoodMood;
+				if (!interaction.Test())
+				{
+					continue;
+				}
 				sim.InteractionQueue.AddNext(interaction);
+				flag = true;
 			}
-			PlumbBob.SelectedActor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(PlumbBob.SelectedActor.IsFemale, "GoodMoodTNS", PlumbBob.SelectedActor), StyledNotification.NotificationStyle.kGameMessagePositive);
-			WonderPowerManager.TogglePowerRunning();
-			return true;
+			if (flag)
+			{
+				WonderPowerManager.PlayPowerSting("sting_goodmood");
+				PlumbBob.SelectedActor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(PlumbBob.SelectedActor.IsFemale, "GoodMoodTNS", PlumbBob.SelectedActor), StyledNotification.NotificationStyle.kGameMessagePositive);
+				WonderPowerManager.TogglePowerRunning();
+				return true;
+			}
+			return false;
 		}
 
 		public static bool InstantBeautyActivation(bool _)
@@ -342,6 +368,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				return false;
 			}
 			Beautify beautify = new Beautify.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as Beautify;
+			if (!beautify.Test())
+			{
+				return false;
+			}
 			selectedSim.InteractionQueue.AddNext(beautify);
 			return true;
 		}
@@ -358,6 +388,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				return false;
 			}
 			ActivateLuckyBreak activateLuckyBreak = new ActivateLuckyBreak.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ActivateLuckyBreak;
+			if (!activateLuckyBreak.Test())
+			{
+				return false;
+			}
 			selectedSim.InteractionQueue.AddNext(activateLuckyBreak);
 			return true;
 		}
@@ -375,6 +409,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 
 			ActivateLuckyFind activateLuckyFind = new ActivateLuckyFind.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ActivateLuckyFind;
+			if (!activateLuckyFind.Test())
+			{
+				return false;
+			}
 			selectedSim.InteractionQueue.AddNext(activateLuckyFind);
 			return true;
 		}
@@ -413,6 +451,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 
 			ActivateRayOfSunshine activateRayOfSunshine = new ActivateRayOfSunshine.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ActivateRayOfSunshine;
+			if (!activateRayOfSunshine.Test())
+			{
+				return false;
+			}
 			selectedSim.InteractionQueue.AddNext(activateRayOfSunshine);
 			return true;
 		}
@@ -583,6 +625,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 
 			SuperSatisfy satisfy = new SuperSatisfy.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as SuperSatisfy;
+			if (!satisfy.Test())
+			{
+				return false;
+			}
 			selectedSim.InteractionQueue.AddNext(satisfy);
 			return true;
 		}
@@ -640,6 +686,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 
 			ActivateStrokeOfGenius activateStrokeOfGenius = new ActivateStrokeOfGenius.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ActivateStrokeOfGenius;
+			if (!activateStrokeOfGenius.Test())
+			{
+				return false;
+			}
 			selectedSim.InteractionQueue.AddNext(activateStrokeOfGenius);
 			return true;
 		}
@@ -657,6 +707,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 
 			ActivateSuperLucky activateSuperLucky = new ActivateSuperLucky.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ActivateSuperLucky;
+			if (!activateSuperLucky.Test())
+			{
+				return false;
+			}
 			selectedSim.InteractionQueue.AddNext(activateSuperLucky);
 			return true;
 		}
@@ -716,6 +770,10 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 
 			StartTransmogrify startTransmogrifyInteraction = new StartTransmogrify.Definition(newSpecies).CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as StartTransmogrify;
+			if (!startTransmogrifyInteraction.Test())
+			{
+				return false;
+			}
 			selectedSim.InteractionQueue.AddNext(startTransmogrifyInteraction);
 			return true;
 		}
@@ -731,12 +789,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				return false;
 			}
 
-			Camera.FocusOnSim(selectedSim);
-			if (selectedSim.IsSelectable)
-			{
-				PlumbBob.SelectActor(selectedSim);
-			}
 			ReceiveMagicalCheck receiveInteraction = new ReceiveMagicalCheck.Definition().CreateInstance(selectedSim, selectedSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as ReceiveMagicalCheck;
+			if (!receiveInteraction.Test())
+			{
+				return false;
+			}
 			selectedSim.InteractionQueue.AddNext(receiveInteraction);
 			return true;
 		}

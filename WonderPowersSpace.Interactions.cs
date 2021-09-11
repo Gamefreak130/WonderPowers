@@ -1,4 +1,5 @@
-﻿using Gamefreak130.WonderPowersSpace.Buffs;
+﻿using Gamefreak130.Common.Loggers;
+using Gamefreak130.WonderPowersSpace.Buffs;
 using Gamefreak130.WonderPowersSpace.Helpers;
 using Sims3.Gameplay;
 using Sims3.Gameplay.ActiveCareer.ActiveCareers;
@@ -21,6 +22,7 @@ using Sims3.SimIFace.CAS;
 using Sims3.UI;
 using Sims3.UI.Dialogs;
 using Sims3.UI.Hud;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using static Sims3.SimIFace.ResourceUtils;
@@ -68,12 +70,24 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            mEffect = VisualEffect.Create("ep7moodlampimpactred_main");
-            mEffect.ParentTo(Actor, Sim.FXJoints.Pelvis);
-            mEffect.Start();
-            Actor.PlaySoloAnimation("a2o_handiness_fail_electrocution_x", true, ProductVersion.BaseGame);
-            WonderPowerManager.PlayPowerSting("sting_curse");
-            return true;
+            try
+            {
+                mEffect = VisualEffect.Create("ep7moodlampimpactred_main");
+                mEffect.ParentTo(Actor, Sim.FXJoints.Pelvis);
+                mEffect.Start();
+                Actor.PlaySoloAnimation("a2o_handiness_fail_electrocution_x", true, ProductVersion.BaseGame);
+                WonderPowerManager.PlayPowerSting("sting_curse");
+                return true;
+            }
+            catch (ResetException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.sInstance.Log(ex);
+            }
+            return false;
         }
 
         public override void Cleanup()
@@ -115,7 +129,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
         {
             public override InteractionInstance CreateInstance(ref InteractionInstanceParameters parameters)
             {
-                InteractionInstance instance = new DivineInterventionResurrect() { ResetAge = true, MustRun = true, Hidden = true };
+                InteractionInstance instance = new DivineInterventionResurrect() { ResetAge = true, MustRun = true };
                 instance.Init(ref parameters);
                 return instance;
             }
@@ -125,16 +139,32 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            WonderPowerManager.PlayPowerSting("sting_lifetime_opp_success");
-            bool flag = base.Run();
-            Actor.UpdateWalkStyle();
+            bool flag = false;
+            try
+            {
+                WonderPowerManager.PlayPowerSting("sting_lifetime_opp_success");
+                flag = base.Run();
+                Actor.UpdateWalkStyle();
+            }
+            catch (ResetException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.sInstance.Log(ex);
+            }
             return flag;
         }
-
+        // TODO Divine intervention buff
         public override void Cleanup()
         {
             try
             {
+                if (Target.SimDescription.IsGhost && Urnstone.FindGhostsGrave(Target) is Urnstone urnstone)
+                {
+                    urnstone.GhostToSim(Target, ResetAge, !Target.SimDescription.IsPlayableGhost);
+                }
                 StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "DivineInterventionTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
                 base.Cleanup();
             }
@@ -158,30 +188,42 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            WonderPowerManager.PlayPowerSting("sting_job_demote");
-            mEffect = VisualEffect.Create("ep7WandSpellHauntingHit_main");
-            mEffect.ParentTo(Actor, Sim.FXJoints.Head);
-            mEffect.Start();
-
-            string animName = Actor.SimDescription switch 
+            try
             {
-                { IsFoal: true }                        => "ch_whinny_x",
-                { IsHorse: true }                       => "ah_whinny_x",
-                { IsPuppy: true }                       => "cd_react_stand_whimper_x",
-                { IsFullSizeDog: true }                 => "ad_react_stand_whimper_x",
-                { IsLittleDog: true }                   => "al_react_stand_whimper_x",
-                { IsKitten: true }                      => "cc_petNeeds_standing_hunger_whinyMeow_x",
-                { IsCat: true }                         => "ac_petNeeds_standing_hunger_whinyMeow_x",
-                { Child: true }                         => "c_motDistress_sleepy_x", 
-                { TeenOrAbove: true }                   => "a_motDistress_sleepy_x",
-                _                                       => null
-            };
+                WonderPowerManager.PlayPowerSting("sting_job_demote");
+                mEffect = VisualEffect.Create("ep7WandSpellHauntingHit_main");
+                mEffect.ParentTo(Actor, Sim.FXJoints.Head);
+                mEffect.Start();
 
-            if (!string.IsNullOrEmpty(animName))
-            {
-                Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                string animName = Actor.SimDescription switch
+                {
+                    { IsFoal: true }         => "ch_whinny_x",
+                    { IsHorse: true }        => "ah_whinny_x",
+                    { IsPuppy: true }        => "cd_react_stand_whimper_x",
+                    { IsFullSizeDog: true }  => "ad_react_stand_whimper_x",
+                    { IsLittleDog: true }    => "al_react_stand_whimper_x",
+                    { IsKitten: true }       => "cc_petNeeds_standing_hunger_whinyMeow_x",
+                    { IsCat: true }          => "ac_petNeeds_standing_hunger_whinyMeow_x",
+                    { Child: true }          => "c_motDistress_sleepy_x",
+                    { TeenOrAbove: true }    => "a_motDistress_sleepy_x",
+                    _                        => null
+                };
+
+                if (!string.IsNullOrEmpty(animName))
+                {
+                    Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                }
+                return true;
             }
-            return true;
+            catch (ResetException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.sInstance.Log(ex);
+            }
+            return false;
         }
 
         public override void Cleanup()
@@ -328,61 +370,82 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            Camera.FocusOnSim(Actor);
-            if (Actor.IsSelectable)
+            try
             {
-                PlumbBob.SelectActor(Actor);
-            }
+                Camera.FocusOnSim(Actor);
+                if (Actor.IsSelectable)
+                {
+                    PlumbBob.SelectActor(Actor);
+                }
 
-            Actor.SimDescription.mDeathStyle = (InteractionDefinition as Definition).mGhostType;
-            if (Actor.SimDescription.SupernaturalData is CASGhostData casghostData)
-            {
-                casghostData.DeathStyle = Actor.SimDescription.mDeathStyle;
-            }
-            string name = (Actor.SimDescription.Age is not CASAgeGenderFlags.Child) ? "ep4PotionWearOff" : "ep4PotionWearOffChild";
-            WonderPowerManager.PlayPowerSting("sting_ghost_appear", Actor.ObjectId);
-            VisualEffect.FireOneShotEffect(name, Actor, Sim.FXJoints.Spine0, VisualEffect.TransitionType.SoftTransition);
-            Urnstone.SimToPlayableGhost(Actor);
+                Actor.SimDescription.mDeathStyle = (InteractionDefinition as Definition).mGhostType;
+                if (Actor.SimDescription.SupernaturalData is CASGhostData casghostData)
+                {
+                    casghostData.DeathStyle = Actor.SimDescription.mDeathStyle;
+                }
+                string name = (Actor.SimDescription.Age is not CASAgeGenderFlags.Child) ? "ep4PotionWearOff" : "ep4PotionWearOffChild";
+                WonderPowerManager.PlayPowerSting("sting_ghost_appear", Actor.ObjectId);
+                VisualEffect.FireOneShotEffect(name, Actor, Sim.FXJoints.Spine0, VisualEffect.TransitionType.SoftTransition);
+                Urnstone.SimToPlayableGhost(Actor);
 
-            string animName = Actor.SimDescription switch
-            {
-                { IsFoal: true }                        => "ch_trait_nervous_x",
-                { IsHorse: true }                       => "ah_trait_nervous_x",
-                { IsPuppy: true }                       => "cd_trait_adventurous_x",
-                { IsFullSizeDog: true }                 => "ad_trait_adventurous_x",
-                { IsLittleDog: true }                   => "al_trait_adventurous_x",
-                { IsKitten: true }                      => "cc_trait_hyper_x",
-                { IsCat: true }                         => "ac_trait_hyper_x",
-                { Child: true }                         => "c_cas_flavor_checkOutSelf_bottom_child_average_x",
-                { Elder: true }                         => "a_cas_flavor_checkOutSelf_bottom_elder_average_x",
-                { TeenOrAbove: true, IsMale: true }     => "a_cas_flavor_checkOutSelf_bottom_male_average_x",
-                { TeenOrAbove: true, IsFemale: true }   => "a_cas_flavor_checkOutSelf_bottom_female_average_x",
-                _                                       => null
-            };
+                string animName = Actor.SimDescription switch
+                {
+                    { IsFoal: true }                       => "ch_trait_nervous_x",
+                    { IsHorse: true }                      => "ah_trait_nervous_x",
+                    { IsPuppy: true }                      => "cd_trait_adventurous_x",
+                    { IsFullSizeDog: true }                => "ad_trait_adventurous_x",
+                    { IsLittleDog: true }                  => "al_trait_adventurous_x",
+                    { IsKitten: true }                     => "cc_trait_hyper_x",
+                    { IsCat: true }                        => "ac_trait_hyper_x",
+                    { Child: true }                        => "c_cas_flavor_checkOutSelf_bottom_child_average_x",
+                    { Elder: true }                        => "a_cas_flavor_checkOutSelf_bottom_elder_average_x",
+                    { TeenOrAbove: true, IsMale: true }    => "a_cas_flavor_checkOutSelf_bottom_male_average_x",
+                    { TeenOrAbove: true, IsFemale: true }  => "a_cas_flavor_checkOutSelf_bottom_female_average_x",
+                    _                                      => null
+                };
 
-            string animName2 = Actor.SimDescription switch
-            {
-                { IsPet: false, Child: true }        => "c_ghostify_x",
-                { IsPet: false, TeenOrAbove: true }  => "a_ghostify_x",
-                _                                    => null
-            };
+                string animName2 = Actor.SimDescription switch
+                {
+                    { IsPet: false, Child: true }        => "c_ghostify_x",
+                    { IsPet: false, TeenOrAbove: true }  => "a_ghostify_x",
+                    _                                    => null
+                };
 
-            if (!string.IsNullOrEmpty(animName))
-            {
-                Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                if (!string.IsNullOrEmpty(animName))
+                {
+                    Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                }
+                DoTimedLoop(0.1f);
+                if (!string.IsNullOrEmpty(animName2))
+                {
+                    Actor.PlaySoloAnimation(animName2, true, ProductVersion.BaseGame);
+                }
+                return true;
             }
-            DoTimedLoop(0.1f);
-            if (!string.IsNullOrEmpty(animName2))
+            catch (ResetException)
             {
-                Actor.PlaySoloAnimation(animName2, true, ProductVersion.BaseGame);
+                throw;
             }
-            return true;            
+            catch (Exception ex)
+            {
+                ExceptionLogger.sInstance.Log(ex);
+            }
+            return false;
         }
 
         public override void Cleanup()
         {
             try
             {
+                if (!Actor.IsGhostOrHasGhostBuff)
+                {
+                    Actor.SimDescription.mDeathStyle = (InteractionDefinition as Definition).mGhostType;
+                    if (Actor.SimDescription.SupernaturalData is CASGhostData casghostData)
+                    {
+                        casghostData.DeathStyle = Actor.SimDescription.mDeathStyle;
+                    }
+                    Urnstone.SimToPlayableGhost(Actor);
+                }
                 Actor.BuffManager.AddElement(HashString64("Gamefreak130_GhostifyBuff"), (Origin)HashString64("FromWonderPower"));
                 StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "GhostifyTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
                 base.Cleanup();
@@ -410,37 +473,48 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            mEffect = VisualEffect.Create("ep4imaginaryfriendtransform");
-            mEffect.SetPosAndOrient(Actor.Position, Actor.ForwardVector, Actor.UpVector);
-            mEffect.Start();
-            foreach (BuffInstance bi in new List<BuffInstance>(Actor.BuffManager.Buffs
-                                                                                .Where(bi => bi is { Guid: not (BuffNames.Singed or BuffNames.HavingAMidlifeCrisis or BuffNames.HavingAMidlifeCrisisWithPromise or BuffNames.MalePregnancy), EffectValue: < 0 })))
+            try
             {
-                Actor.BuffManager.ForceRemoveBuff(bi.Guid);
-            }
+                mEffect = VisualEffect.Create("ep4imaginaryfriendtransform");
+                mEffect.SetPosAndOrient(Actor.Position, Actor.ForwardVector, Actor.UpVector);
+                mEffect.Start();
+                foreach (BuffInstance bi in new List<BuffInstance>(Actor.BuffManager.Buffs
+                                                                                    .Where(bi => bi is { Guid: not (BuffNames.Singed or BuffNames.HavingAMidlifeCrisis or BuffNames.HavingAMidlifeCrisisWithPromise or BuffNames.MalePregnancy), EffectValue: < 0 })))
+                {
+                    Actor.BuffManager.ForceRemoveBuff(bi.Guid);
+                }
 
-            string animName = Actor.SimDescription switch
-            {
-                { Baby: true }           => "b_idle_breathe_x",
-                { Toddler: true }        => "p_idle_sitting_chewHand_y",
-                { IsFoal: true }         => "ch_trait_playful_x",
-                { IsHorse: true }        => "ah_trait_playful_x",
-                { IsPuppy: true }        => "cd_trait_playful_x",
-                { IsFullSizeDog: true }  => "ad_trait_playful_x",
-                { IsLittleDog: true }    => "al_trait_playful_x",
-                { IsKitten: true }       => "cc_trait_playful_x",
-                { IsCat: true }          => "ac_trait_playful_x",
-                { Child: true }          => "c_trait_excitable_x",
-                { TeenOrAbove: true }    => "a_trait_excitable_x",
-                _                        => null
-            };
+                string animName = Actor.SimDescription switch
+                {
+                    { Baby: true }           => "b_idle_breathe_x",
+                    { Toddler: true }        => "p_idle_sitting_chewHand_y",
+                    { IsFoal: true }         => "ch_trait_playful_x",
+                    { IsHorse: true }        => "ah_trait_playful_x",
+                    { IsPuppy: true }        => "cd_trait_playful_x",
+                    { IsFullSizeDog: true }  => "ad_trait_playful_x",
+                    { IsLittleDog: true }    => "al_trait_playful_x",
+                    { IsKitten: true }       => "cc_trait_playful_x",
+                    { IsCat: true }          => "ac_trait_playful_x",
+                    { Child: true }          => "c_trait_excitable_x",
+                    { TeenOrAbove: true }    => "a_trait_excitable_x",
+                    _                        => null
+                };
 
-            if (!string.IsNullOrEmpty(animName))
-            {
-                Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                if (!string.IsNullOrEmpty(animName))
+                {
+                    Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                }
+                return true;
             }
-            Actor.BuffManager.AddElement(HashString64("Gamefreak130_GoodMoodBuff"), (Origin)HashString64("FromWonderPower"));
-            return true;
+            catch (ResetException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.sInstance.Log(ex);
+            }
+            return false;
         }
 
         public override void Cleanup()
@@ -451,6 +525,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 mEffect.Dispose();
                 mEffect = null;
             }
+            Actor.BuffManager.AddElement(HashString64("Gamefreak130_GoodMoodBuff"), (Origin)HashString64("FromWonderPower"));
             base.Cleanup();
         }
     }
@@ -468,53 +543,65 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            if (WonderPowers.IsMasterControllerIntegrationInstalled)
+            try
             {
-                HelperMethods.IntegrateMasterControllerCAS(Actor.SimDescription);
-            }
-            else
-            {
-                CASLogic singleton = CASLogic.GetSingleton();
-                singleton.LoadSim(Actor.SimDescription, Actor.CurrentOutfitCategory, 0);
-                singleton.UseTempSimDesc = true;
-            }
-            GameStates.sSingleton.mInWorldState.GotoCASMode((InWorldState.SubState)HashString32("CASInstantBeautyState"));
-            while (GameStates.NextInWorldStateId is not InWorldState.SubState.LiveMode)
-            {
-                Simulator.Sleep(0U);
-            }
-            mEffect = VisualEffect.Create("ep4imaginaryfriendtransformthrow");
-            mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Neck);
-            mEffect.Start();
-            Camera.FocusOnSim(Actor);
-            if (Actor.IsSelectable)
-            {
-                PlumbBob.SelectActor(Actor);
-            }
-            WonderPowerManager.PlayPowerSting("sting_instantbeauty");
+                if (WonderPowers.IsMasterControllerIntegrationInstalled)
+                {
+                    HelperMethods.IntegrateMasterControllerCAS(Actor.SimDescription);
+                }
+                else
+                {
+                    CASLogic singleton = CASLogic.GetSingleton();
+                    singleton.LoadSim(Actor.SimDescription, Actor.CurrentOutfitCategory, 0);
+                    singleton.UseTempSimDesc = true;
+                }
+                GameStates.sSingleton.mInWorldState.GotoCASMode((InWorldState.SubState)HashString32("CASInstantBeautyState"));
+                while (GameStates.NextInWorldStateId is not InWorldState.SubState.LiveMode)
+                {
+                    Simulator.Sleep(0U);
+                }
+                mEffect = VisualEffect.Create("ep4imaginaryfriendtransformthrow");
+                mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Neck);
+                mEffect.Start();
+                Camera.FocusOnSim(Actor);
+                if (Actor.IsSelectable)
+                {
+                    PlumbBob.SelectActor(Actor);
+                }
+                WonderPowerManager.PlayPowerSting("sting_instantbeauty");
 
-            string animName = Actor.SimDescription switch
-            {
-                { Toddler: true }                      => "p_idle_sitting_pickNose_y",
-                { IsFoal: true }                       => "ch_trait_nervous_x",
-                { IsHorse: true }                      => "ah_trait_nervous_x",
-                { IsPuppy: true }                      => "cd_trait_adventurous_x",
-                { IsFullSizeDog: true }                => "ad_trait_adventurous_x",
-                { IsLittleDog: true }                  => "al_trait_adventurous_x",
-                { IsKitten: true }                     => "cc_trait_hyper_x",
-                { IsCat: true }                        => "ac_trait_hyper_x",
-                { Child: true }                        => "c_cas_flavor_checkOutSelf_top_child_average_x",
-                { Elder: true }                        => "a_cas_flavor_checkOutSelf_top_elder_average_x",
-                { TeenOrAbove: true, IsMale: true }    => "a_cas_flavor_checkOutSelf_top_male_average_x",
-                { TeenOrAbove: true, IsFemale: true }  => "a_cas_flavor_checkOutSelf_top_female_average_x",
-                _                                      => null
-            };
+                string animName = Actor.SimDescription switch
+                {
+                    { Toddler: true }                      => "p_idle_sitting_pickNose_y",
+                    { IsFoal: true }                       => "ch_trait_nervous_x",
+                    { IsHorse: true }                      => "ah_trait_nervous_x",
+                    { IsPuppy: true }                      => "cd_trait_adventurous_x",
+                    { IsFullSizeDog: true }                => "ad_trait_adventurous_x",
+                    { IsLittleDog: true }                  => "al_trait_adventurous_x",
+                    { IsKitten: true }                     => "cc_trait_hyper_x",
+                    { IsCat: true }                        => "ac_trait_hyper_x",
+                    { Child: true }                        => "c_cas_flavor_checkOutSelf_top_child_average_x",
+                    { Elder: true }                        => "a_cas_flavor_checkOutSelf_top_elder_average_x",
+                    { TeenOrAbove: true, IsMale: true }    => "a_cas_flavor_checkOutSelf_top_male_average_x",
+                    { TeenOrAbove: true, IsFemale: true }  => "a_cas_flavor_checkOutSelf_top_female_average_x",
+                    _                                      => null
+                };
 
-            if (!string.IsNullOrEmpty(animName))
-            {
-                Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                if (!string.IsNullOrEmpty(animName))
+                {
+                    Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                }
+                return true;
             }
-            return true;
+            catch (ResetException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.sInstance.Log(ex);
+            }
+            return false;
         }
 
         public override void Cleanup()
@@ -551,42 +638,54 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            mEffect = VisualEffect.Create("ep7moodlampimpactgreen_main");
-            mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Pelvis);
-            mEffect.Start();
-            WonderPowerManager.PlayPowerSting("sting_luckybreak");
-            Camera.FocusOnSim(Actor);
-            if (Actor.IsSelectable)
+            try
             {
-                PlumbBob.SelectActor(Actor);
-            }
+                mEffect = VisualEffect.Create("ep7moodlampimpactgreen_main");
+                mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Pelvis);
+                mEffect.Start();
+                WonderPowerManager.PlayPowerSting("sting_luckybreak");
+                Camera.FocusOnSim(Actor);
+                if (Actor.IsSelectable)
+                {
+                    PlumbBob.SelectActor(Actor);
+                }
 
-            string animName = Actor.SimDescription switch
-            {
-                { IsFoal: true }         => "ch_trait_brave_x",
-                { IsHorse: true }        => "ah_trait_brave_x",
-                { IsPuppy: true }        => "cd_trait_proud_x",
-                { IsFullSizeDog: true }  => "ad_trait_proud_x",
-                { IsLittleDog: true }    => "al_trait_proud_x",
-                { IsKitten: true }       => "cc_trait_proud_x",
-                { IsCat: true }          => "ac_trait_proud_x",
-                _                        => null
-            };
+                string animName = Actor.SimDescription switch
+                {
+                    { IsFoal: true }         => "ch_trait_brave_x",
+                    { IsHorse: true }        => "ah_trait_brave_x",
+                    { IsPuppy: true }        => "cd_trait_proud_x",
+                    { IsFullSizeDog: true }  => "ad_trait_proud_x",
+                    { IsLittleDog: true }    => "al_trait_proud_x",
+                    { IsKitten: true }       => "cc_trait_proud_x",
+                    { IsCat: true }          => "ac_trait_proud_x",
+                    _                        => null
+                };
 
-            if (animName is null)
-            {
-                Sim.CustomIdle customIdle = Sim.CustomIdle.Singleton.CreateInstance(Actor, Actor, GetPriority(), true, true) as Sim.CustomIdle;
-                customIdle.Hidden = true;
-                customIdle.JazzGraphName = "Trait_Lucky";
-                customIdle.LoopTimes = 1;
-                customIdle.ExtraWaitTime = 180;
-                customIdle.RunInteraction();
+                if (animName is null)
+                {
+                    Sim.CustomIdle customIdle = Sim.CustomIdle.Singleton.CreateInstance(Actor, Actor, GetPriority(), true, true) as Sim.CustomIdle;
+                    customIdle.Hidden = true;
+                    customIdle.JazzGraphName = "Trait_Lucky";
+                    customIdle.LoopTimes = 1;
+                    customIdle.ExtraWaitTime = 180;
+                    customIdle.RunInteraction();
+                }
+                else
+                {
+                    Actor.PlaySoloAnimation(animName, true, ProductVersion.EP5);
+                }
+                return true;
             }
-            else
+            catch (ResetException)
             {
-                Actor.PlaySoloAnimation(animName, true, ProductVersion.EP5);
+                throw;
             }
-            return true;
+            catch (Exception ex)
+            {
+                ExceptionLogger.sInstance.Log(ex);
+            }
+            return false;
         }
 
         public override void Cleanup()
@@ -628,37 +727,49 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            mEffect = VisualEffect.Create("ep7ghostgoldmed_ghost");
-            mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Neck);
-            mEffect.Start();
-            WonderPowerManager.PlayPowerSting("sting_luckyfind");
-            Camera.FocusOnSim(Actor);
-            if (Actor.IsSelectable)
+            try
             {
-                PlumbBob.SelectActor(Actor);
-            }
+                mEffect = VisualEffect.Create("ep7ghostgoldmed_ghost");
+                mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Neck);
+                mEffect.Start();
+                WonderPowerManager.PlayPowerSting("sting_luckyfind");
+                Camera.FocusOnSim(Actor);
+                if (Actor.IsSelectable)
+                {
+                    PlumbBob.SelectActor(Actor);
+                }
 
-            string animName = Actor.SimDescription switch
-            {
-                { IsFullSizeDog: true }  => "ad_trait_hunter_x",
-                { IsLittleDog: true }    => "al_trait_hunter_x",
-                { IsCat: true }          => "ac_trait_hunter_x",
-                _                        => null
-            };
+                string animName = Actor.SimDescription switch
+                {
+                    { IsFullSizeDog: true }  => "ad_trait_hunter_x",
+                    { IsLittleDog: true }    => "al_trait_hunter_x",
+                    { IsCat: true }          => "ac_trait_hunter_x",
+                    _                        => null
+                };
 
-            if (animName is null)
-            {
-                Sim.CustomIdle customIdle = Sim.CustomIdle.Singleton.CreateInstance(Actor, Actor, GetPriority(), true, true) as Sim.CustomIdle;
-                customIdle.Hidden = true;
-                customIdle.JazzGraphName = "TraitGatherer";
-                customIdle.LoopTimes = 1;
-                customIdle.RunInteraction();
+                if (animName is null)
+                {
+                    Sim.CustomIdle customIdle = Sim.CustomIdle.Singleton.CreateInstance(Actor, Actor, GetPriority(), true, true) as Sim.CustomIdle;
+                    customIdle.Hidden = true;
+                    customIdle.JazzGraphName = "TraitGatherer";
+                    customIdle.LoopTimes = 1;
+                    customIdle.RunInteraction();
+                }
+                else
+                {
+                    Actor.PlaySoloAnimation(animName, true, ProductVersion.EP5);
+                }
+                return true;
             }
-            else
+            catch (ResetException)
             {
-                Actor.PlaySoloAnimation(animName, true, ProductVersion.EP5);
+                throw;
             }
-            return true;
+            catch (Exception ex)
+            {
+                ExceptionLogger.sInstance.Log(ex);
+            }
+            return false;
         }
 
         public override void Cleanup()
@@ -698,36 +809,48 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            mEffect = VisualEffect.Create("ep11robotsunrays_main");
-            mEffect.ParentTo(Actor, Sim.FXJoints.Head);
-            mEffect.Start();
-            Camera.FocusOnSim(Actor);
-            if (Actor.IsSelectable)
+            try
             {
-                PlumbBob.SelectActor(Actor);
-            }
-            WonderPowerManager.PlayPowerSting("sting_rayofsunshine");
-            string animName = Actor.SimDescription switch
-            {
-                { Baby: true }           => "b_idle_breathe_x",
-                { Toddler: true }        => "p_idle_sitting_grabFeet_y",
-                { IsFoal: true }         => "ch_trait_playful_x",
-                { IsHorse: true }        => "ah_trait_playful_x",
-                { IsPuppy: true }        => "cd_trait_playful_x",
-                { IsFullSizeDog: true }  => "ad_trait_playful_x",
-                { IsLittleDog: true }    => "al_trait_playful_x",
-                { IsKitten: true }       => "cc_trait_playful_x",
-                { IsCat: true }          => "ac_trait_playful_x",
-                { Child: true }          => "c_rayofsunshine_x",
-                { TeenOrAbove: true }    => "a_rayofsunshine_x",
-                _                        => null
-            };
+                mEffect = VisualEffect.Create("ep11robotsunrays_main");
+                mEffect.ParentTo(Actor, Sim.FXJoints.Head);
+                mEffect.Start();
+                Camera.FocusOnSim(Actor);
+                if (Actor.IsSelectable)
+                {
+                    PlumbBob.SelectActor(Actor);
+                }
+                WonderPowerManager.PlayPowerSting("sting_rayofsunshine");
+                string animName = Actor.SimDescription switch
+                {
+                    { Baby: true }           => "b_idle_breathe_x",
+                    { Toddler: true }        => "p_idle_sitting_grabFeet_y",
+                    { IsFoal: true }         => "ch_trait_playful_x",
+                    { IsHorse: true }        => "ah_trait_playful_x",
+                    { IsPuppy: true }        => "cd_trait_playful_x",
+                    { IsFullSizeDog: true }  => "ad_trait_playful_x",
+                    { IsLittleDog: true }    => "al_trait_playful_x",
+                    { IsKitten: true }       => "cc_trait_playful_x",
+                    { IsCat: true }          => "ac_trait_playful_x",
+                    { Child: true }          => "c_rayofsunshine_x",
+                    { TeenOrAbove: true }    => "a_rayofsunshine_x",
+                    _                        => null
+                };
 
-            if (animName is not null)
-            {
-                Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                if (animName is not null)
+                {
+                    Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                }
+                return true;
             }
-            return true;
+            catch (ResetException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.sInstance.Log(ex);
+            }
+            return false;
         }
 
         public override void Cleanup()
@@ -779,37 +902,49 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            mEffect = VisualEffect.Create("ep7moodlampimpactyellow_main");
-            mEffect.ParentTo(Actor, Actor.IsPet || Actor.SimDescription.Baby ? Sim.FXJoints.Head : Sim.FXJoints.Pelvis);
-            mEffect.Start();
-            Camera.FocusOnSim(Actor);
-            if (Actor.IsSelectable)
+            try
             {
-                PlumbBob.SelectActor(Actor);
-            }
-            // This sting typo physically pains me
-            WonderPowerManager.PlayPowerSting("sting_dream_fullfill");
-            string animName = Actor.SimDescription switch
-            {
-                { Baby: true }           => "b_idle_breathe_x",
-                { Toddler: true }        => "p_react_laugh1_y",
-                { IsFoal: true }         => "ch_trait_playful_x",
-                { IsHorse: true }        => "ah_trait_playful_x",
-                { IsPuppy: true }        => "cd_trait_playful_x",
-                { IsFullSizeDog: true }  => "ad_trait_playful_x",
-                { IsLittleDog: true }    => "al_trait_playful_x",
-                { IsKitten: true }       => "cc_trait_playful_x",
-                { IsCat: true }          => "ac_trait_playful_x",
-                { Child: true }          => "c_standing_whew2",
-                { TeenOrAbove: true }    => "a_standing_whew2",
-                _                        => null
-            };
+                mEffect = VisualEffect.Create("ep7moodlampimpactyellow_main");
+                mEffect.ParentTo(Actor, Actor.IsPet || Actor.SimDescription.Baby ? Sim.FXJoints.Head : Sim.FXJoints.Pelvis);
+                mEffect.Start();
+                Camera.FocusOnSim(Actor);
+                if (Actor.IsSelectable)
+                {
+                    PlumbBob.SelectActor(Actor);
+                }
+                // This sting typo physically pains me
+                WonderPowerManager.PlayPowerSting("sting_dream_fullfill");
+                string animName = Actor.SimDescription switch
+                {
+                    { Baby: true }           => "b_idle_breathe_x",
+                    { Toddler: true }        => "p_react_laugh1_y",
+                    { IsFoal: true }         => "ch_trait_playful_x",
+                    { IsHorse: true }        => "ah_trait_playful_x",
+                    { IsPuppy: true }        => "cd_trait_playful_x",
+                    { IsFullSizeDog: true }  => "ad_trait_playful_x",
+                    { IsLittleDog: true }    => "al_trait_playful_x",
+                    { IsKitten: true }       => "cc_trait_playful_x",
+                    { IsCat: true }          => "ac_trait_playful_x",
+                    { Child: true }          => "c_standing_whew2",
+                    { TeenOrAbove: true }    => "a_standing_whew2",
+                    _                        => null
+                };
 
-            if (animName is not null)
-            {
-                Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                if (animName is not null)
+                {
+                    Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                }
+                return true;
             }
-            return true;
+            catch (ResetException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.sInstance.Log(ex);
+            }
+            return false;
         }
 
         public override void Cleanup()
@@ -858,34 +993,46 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            Camera.FocusOnSim(Actor);
-            if (Actor.IsSelectable)
+            try
             {
-                PlumbBob.SelectActor(Actor);
-            }
-            mEffect = VisualEffect.Create("ep2inventiondiscovery");
-            mEffect.ParentTo(Actor, Sim.FXJoints.Head);
-            mEffect.Start();
-            WonderPowerManager.PlayPowerSting("sting_strokeofgenius");
-            string animName = Actor.SimDescription switch
-            {
-                { IsFoal: true }         => "ch_trait_genius_x",
-                { IsHorse: true }        => "ah_trait_genius_x",
-                { IsPuppy: true }        => "cd_trait_genius_x",
-                { IsFullSizeDog: true }  => "ad_trait_genius_x",
-                { IsLittleDog: true }    => "al_trait_genius_x",
-                { IsKitten: true }       => "cc_trait_genius_x",
-                { IsCat: true }          => "ac_trait_genius_x",
-                { Child: true }          => "c_strokeofgenius_x",
-                { TeenOrAbove: true }    => "a_trait_genius_x",
-                _                        => null
-            };
+                Camera.FocusOnSim(Actor);
+                if (Actor.IsSelectable)
+                {
+                    PlumbBob.SelectActor(Actor);
+                }
+                mEffect = VisualEffect.Create("ep2inventiondiscovery");
+                mEffect.ParentTo(Actor, Sim.FXJoints.Head);
+                mEffect.Start();
+                WonderPowerManager.PlayPowerSting("sting_strokeofgenius");
+                string animName = Actor.SimDescription switch
+                {
+                    { IsFoal: true }         => "ch_trait_genius_x",
+                    { IsHorse: true }        => "ah_trait_genius_x",
+                    { IsPuppy: true }        => "cd_trait_genius_x",
+                    { IsFullSizeDog: true }  => "ad_trait_genius_x",
+                    { IsLittleDog: true }    => "al_trait_genius_x",
+                    { IsKitten: true }       => "cc_trait_genius_x",
+                    { IsCat: true }          => "ac_trait_genius_x",
+                    { Child: true }          => "c_strokeofgenius_x",
+                    { TeenOrAbove: true }    => "a_trait_genius_x",
+                    _                        => null
+                };
 
-            if (animName is not null)
-            {
-                Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                if (animName is not null)
+                {
+                    Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                }
+                return true;
             }
-            return true;
+            catch (ResetException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.sInstance.Log(ex);
+            }
+            return false;
         }
 
         public override void Cleanup()
@@ -922,35 +1069,47 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            Camera.FocusOnSim(Actor);
-            if (Actor.IsSelectable)
+            try
             {
-                PlumbBob.SelectActor(Actor);
-            }
-            mEffect = VisualEffect.Create("ep7wandspellluck_main");
-            mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Pelvis);
-            mEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
-            AlarmManager.Global.AddAlarm(1f, TimeUnit.Minutes, () => WonderPowerManager.PlayPowerSting("sting_superlucky"), "Gamefreak130 wuz here -- Super Lucky sting alarm", AlarmType.NeverPersisted, null);
+                Camera.FocusOnSim(Actor);
+                if (Actor.IsSelectable)
+                {
+                    PlumbBob.SelectActor(Actor);
+                }
+                mEffect = VisualEffect.Create("ep7wandspellluck_main");
+                mEffect.ParentTo(Actor, Actor.IsPet ? Sim.FXJoints.Head : Sim.FXJoints.Pelvis);
+                mEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
+                AlarmManager.Global.AddAlarm(1f, TimeUnit.Minutes, () => WonderPowerManager.PlayPowerSting("sting_superlucky"), "Gamefreak130 wuz here -- Super Lucky sting alarm", AlarmType.NeverPersisted, null);
 
-            string animName = Actor.SimDescription switch
-            {
-                { IsFoal: true }         => "ch_trait_friendly_x",
-                { IsHorse: true }        => "ah_trait_friendly_x",
-                { IsPuppy: true }        => "cd_trait_friendly_x",
-                { IsFullSizeDog: true }  => "ad_trait_friendly_x",
-                { IsLittleDog: true }    => "al_trait_friendly_x",
-                { IsKitten: true }       => "cc_trait_friendly_x",
-                { IsCat: true }          => "ac_trait_friendly_x",
-                { Child: true }          => "c_superlucky_x",
-                { TeenOrAbove: true}     => "a_superlucky_x",
-                _                        => null
-            };
+                string animName = Actor.SimDescription switch
+                {
+                    { IsFoal: true }         => "ch_trait_friendly_x",
+                    { IsHorse: true }        => "ah_trait_friendly_x",
+                    { IsPuppy: true }        => "cd_trait_friendly_x",
+                    { IsFullSizeDog: true }  => "ad_trait_friendly_x",
+                    { IsLittleDog: true }    => "al_trait_friendly_x",
+                    { IsKitten: true }       => "cc_trait_friendly_x",
+                    { IsCat: true }          => "ac_trait_friendly_x",
+                    { Child: true }          => "c_superlucky_x",
+                    { TeenOrAbove: true }    => "a_superlucky_x",
+                    _                        => null
+                };
 
-            if (animName is not null)
-            {
-                Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                if (animName is not null)
+                {
+                    Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                }
+                return true;
             }
-            return true;
+            catch (ResetException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.sInstance.Log(ex);
+            }
+            return false;
         }
 
         public override void Cleanup()
@@ -995,179 +1154,198 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            SimDescription oldDescription = Actor.SimDescription;
-            CASAgeGenderFlags newSpecies = (InteractionDefinition as Definition).mNewSpecies;
-            CASAgeGenderFlags newAge = oldDescription.Age switch
+            try
             {
-                CASAgeGenderFlags.Toddler or CASAgeGenderFlags.Child or CASAgeGenderFlags.Teen  => CASAgeGenderFlags.Child,
-                CASAgeGenderFlags.YoungAdult or CASAgeGenderFlags.Adult                         => CASAgeGenderFlags.Adult,
-                CASAgeGenderFlags.Elder                                                         => CASAgeGenderFlags.Elder,
-                _                                                                               => CASAgeGenderFlags.None
-            };
-            Camera.FocusOnSim(Actor);
-            if (Actor.IsSelectable)
-            {
-                PlumbBob.SelectActor(Actor);
-            }
-            WonderPowerManager.PlayPowerSting(newSpecies is CASAgeGenderFlags.Human ? "sting_transmogrifytohuman" : "sting_transmogrifytopet", Actor.Position);
-            VisualEffect effect = VisualEffect.Create("ep11portalspawn_main");
-            effect.SetPosAndOrient(Actor.Position, Actor.ForwardVector, Actor.UpVector);
-            effect.Start();
-
-            DoTimedLoop(0.5f, ExitReason.Default, 0);
-
-            string animName = oldDescription switch
-            {
-                { Toddler: true }        => "p_idle_sitting_grabFeet_y",
-                { IsFoal: true }         => "ch_whinny_x",
-                { IsHorse: true }        => "ah_whinny_x",
-                { IsPuppy: true }        => "cd_react_stand_whimper_x",
-                { IsFullSizeDog: true }  => "ad_react_stand_whimper_x",
-                { IsLittleDog: true }    => "al_react_stand_whimper_x",
-                { IsKitten: true }       => "cc_petNeeds_standing_hunger_whinyMeow_x",
-                { IsCat: true }          => "ac_petNeeds_standing_hunger_whinyMeow_x",
-                { Child: true }          => "c_buff_wallFlower_x",
-                { TeenOrAbove: true }    => "a_buff_wallFlower_x",
-                _                        => null
-            };
-
-            if (!string.IsNullOrEmpty(animName))
-            {
-                Actor.PlaySoloAnimation(animName, false, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
-            }
-
-            DoTimedLoop(2f, ExitReason.Default, 0);
-
-            bool turnIntoUnicorn = (oldDescription.IsGenie || oldDescription.IsWitch || oldDescription.IsFairy) && newSpecies is CASAgeGenderFlags.Horse;
-            SimDescription newDescription = newSpecies is CASAgeGenderFlags.Human
-                                          ? Genetics.MakeSim(newAge, oldDescription.Gender, oldDescription.HomeWorld, uint.MaxValue)
-                                          : turnIntoUnicorn
-                                          ? GeneticsPet.MakePet(newAge, oldDescription.Gender, newSpecies, OccultUnicorn.NPCOutfit(oldDescription.IsFemale, newAge))
-                                          : GeneticsPet.MakeRandomPet(newAge, oldDescription.Gender, newSpecies);
-
-            Relationship.sAllRelationships[newDescription] = new();
-            foreach (Relationship oldRelationship in Relationship.GetRelationships(oldDescription))
-            {
-                if (oldRelationship is not null)
+                SimDescription oldDescription = Actor.SimDescription;
+                CASAgeGenderFlags newSpecies = (InteractionDefinition as Definition).mNewSpecies;
+                CASAgeGenderFlags newAge = oldDescription.Age switch
                 {
-                    Sim otherSim = oldRelationship.GetOtherSim(Actor);
-                    if (otherSim is not null)
+                    CASAgeGenderFlags.Toddler or CASAgeGenderFlags.Child or CASAgeGenderFlags.Teen  => CASAgeGenderFlags.Child,
+                    CASAgeGenderFlags.YoungAdult or CASAgeGenderFlags.Adult                         => CASAgeGenderFlags.Adult,
+                    CASAgeGenderFlags.Elder                                                         => CASAgeGenderFlags.Elder,
+                    _                                                                               => CASAgeGenderFlags.None
+                };
+                Camera.FocusOnSim(Actor);
+                if (Actor.IsSelectable)
+                {
+                    PlumbBob.SelectActor(Actor);
+                }
+                WonderPowerManager.PlayPowerSting(newSpecies is CASAgeGenderFlags.Human ? "sting_transmogrifytohuman" : "sting_transmogrifytopet", Actor.Position);
+                VisualEffect effect = VisualEffect.Create("ep11portalspawn_main");
+                effect.SetPosAndOrient(Actor.Position, Actor.ForwardVector, Actor.UpVector);
+                effect.Start();
+
+                DoTimedLoop(0.5f, ExitReason.Default, 0);
+
+                string animName = oldDescription switch
+                {
+                    { Toddler: true }        => "p_idle_sitting_grabFeet_y",
+                    { IsFoal: true }         => "ch_whinny_x",
+                    { IsHorse: true }        => "ah_whinny_x",
+                    { IsPuppy: true }        => "cd_react_stand_whimper_x",
+                    { IsFullSizeDog: true }  => "ad_react_stand_whimper_x",
+                    { IsLittleDog: true }    => "al_react_stand_whimper_x",
+                    { IsKitten: true }       => "cc_petNeeds_standing_hunger_whinyMeow_x",
+                    { IsCat: true }          => "ac_petNeeds_standing_hunger_whinyMeow_x",
+                    { Child: true }          => "c_buff_wallFlower_x",
+                    { TeenOrAbove: true }    => "a_buff_wallFlower_x",
+                    _                        => null
+                };
+
+                if (!string.IsNullOrEmpty(animName))
+                {
+                    Actor.PlaySoloAnimation(animName, false, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                }
+
+                DoTimedLoop(2f, ExitReason.Default, 0);
+
+                bool turnIntoUnicorn = (oldDescription.IsGenie || oldDescription.IsWitch || oldDescription.IsFairy) && newSpecies is CASAgeGenderFlags.Horse;
+                SimDescription newDescription = newSpecies is CASAgeGenderFlags.Human
+                                              ? Genetics.MakeSim(newAge, oldDescription.Gender, oldDescription.HomeWorld, uint.MaxValue)
+                                              : turnIntoUnicorn
+                                              ? GeneticsPet.MakePet(newAge, oldDescription.Gender, newSpecies, OccultUnicorn.NPCOutfit(oldDescription.IsFemale, newAge))
+                                              : GeneticsPet.MakeRandomPet(newAge, oldDescription.Gender, newSpecies);
+
+                Relationship.sAllRelationships[newDescription] = new();
+                foreach (Relationship oldRelationship in Relationship.GetRelationships(oldDescription))
+                {
+                    if (oldRelationship is not null)
                     {
-                        Relationship newRelationship = new(newDescription, otherSim.SimDescription);
-                        Relationship.sAllRelationships[newDescription].Add(otherSim.SimDescription, newRelationship);
-                        // If game is using asymmetric relationships, copy each half of the pair
-                        // Otherwise, both Sims will share a common relationship
-                        Relationship oldRelationship2 = Relationship.Get(otherSim, Actor, false);
-                        if (oldRelationship != oldRelationship2)
+                        Sim otherSim = oldRelationship.GetOtherSim(Actor);
+                        if (otherSim is not null)
                         {
-                            Relationship newRelationship2 = new(otherSim.SimDescription, newDescription);
-                            Relationship.sAllRelationships[otherSim.SimDescription].Add(newDescription, newRelationship2);
-                            newRelationship2.LTR.CopyLtr(oldRelationship2.LTR);
-                            newRelationship2.LTR.UpdateLTR();
+                            Relationship newRelationship = new(newDescription, otherSim.SimDescription);
+                            Relationship.sAllRelationships[newDescription].Add(otherSim.SimDescription, newRelationship);
+                            // If game is using asymmetric relationships, copy each half of the pair
+                            // Otherwise, both Sims will share a common relationship
+                            Relationship oldRelationship2 = Relationship.Get(otherSim, Actor, false);
+                            if (oldRelationship != oldRelationship2)
+                            {
+                                Relationship newRelationship2 = new(otherSim.SimDescription, newDescription);
+                                Relationship.sAllRelationships[otherSim.SimDescription].Add(newDescription, newRelationship2);
+                                newRelationship2.LTR.CopyLtr(oldRelationship2.LTR);
+                                newRelationship2.LTR.UpdateLTR();
+                            }
+                            else
+                            {
+                                Relationship.sAllRelationships[otherSim.SimDescription].Add(newDescription, newRelationship);
+                            }
+                            newRelationship.LTR.CopyLtr(oldRelationship.LTR);
+                            newRelationship.LTR.UpdateLTR();
                         }
-                        else
-                        {
-                            Relationship.sAllRelationships[otherSim.SimDescription].Add(newDescription, newRelationship);
-                        }
-                        newRelationship.LTR.CopyLtr(oldRelationship.LTR);
-                        newRelationship.LTR.UpdateLTR();
                     }
                 }
-            }
-            newDescription.FirstName = oldDescription.FirstNameUnlocalized;
-            newDescription.LastName = oldDescription.LastNameUnlocalized;
-            newDescription.Bio = oldDescription.BioUnlocalized;
-            newDescription.VoicePitchModifier = oldDescription.VoicePitchModifier;
-            if (newSpecies is CASAgeGenderFlags.Human)
-            {
-                newDescription.VoiceVariation = (VoiceVariationType)RandomUtil.GetInt(2);
-            }
-            newDescription.mLifetimeHappiness = oldDescription.mLifetimeHappiness;
-            newDescription.mSpendableHappiness = oldDescription.mSpendableHappiness;
+                newDescription.FirstName = oldDescription.FirstNameUnlocalized;
+                newDescription.LastName = oldDescription.LastNameUnlocalized;
+                newDescription.Bio = oldDescription.BioUnlocalized;
+                newDescription.VoicePitchModifier = oldDescription.VoicePitchModifier;
+                if (newSpecies is CASAgeGenderFlags.Human)
+                {
+                    newDescription.VoiceVariation = (VoiceVariationType)RandomUtil.GetInt(2);
+                }
+                newDescription.mLifetimeHappiness = oldDescription.mLifetimeHappiness;
+                newDescription.mSpendableHappiness = oldDescription.mSpendableHappiness;
 
-            // Pick traits for new Sim based on old Sim's traits
-            IEnumerable<TraitNames> mappingTraits = oldDescription.TraitManager.List
-                                                                               .Where(trait => trait.IsVisible)
-                                                                               .SelectMany(trait => TransmogrifyTraitMapping.sInstance.GetMappedTraits(newDescription, trait.Guid));
-            List<TraitNames> traitsToAdd = mappingTraits.Distinct().ToList();
-            List<float> weightsToAdd = Enumerable.Repeat(0f, traitsToAdd.Count).ToList();
-            foreach (TraitNames mappingTrait in mappingTraits)
-            {
-                weightsToAdd[traitsToAdd.IndexOf(mappingTrait)]++;
-            }
+                // Pick traits for new Sim based on old Sim's traits
+                IEnumerable<TraitNames> mappingTraits = oldDescription.TraitManager.List
+                                                                                   .Where(trait => trait.IsVisible)
+                                                                                   .SelectMany(trait => TransmogrifyTraitMapping.sInstance.GetMappedTraits(newDescription, trait.Guid));
+                List<TraitNames> traitsToAdd = mappingTraits.Distinct().ToList();
+                List<float> weightsToAdd = Enumerable.Repeat(0f, traitsToAdd.Count).ToList();
+                foreach (TraitNames mappingTrait in mappingTraits)
+                {
+                    weightsToAdd[traitsToAdd.IndexOf(mappingTrait)]++;
+                }
 
-            // Manually tune the weight of the unstable trait, since it is mapped to every pet trait
-            int unstableIndex = traitsToAdd.IndexOf(TraitNames.Unstable);
-            if (unstableIndex > -1)
-            {
-                weightsToAdd[unstableIndex] = 0.75f;
-            }
+                // Manually tune the weight of the unstable trait, since it is mapped to every pet trait
+                int unstableIndex = traitsToAdd.IndexOf(TraitNames.Unstable);
+                if (unstableIndex > -1)
+                {
+                    weightsToAdd[unstableIndex] = 0.75f;
+                }
 
-            int numToAdd = newSpecies is CASAgeGenderFlags.Human ? newDescription.TraitManager.NumTraitsForAge() : 3;
-            while (traitsToAdd.Count > 0 && newDescription.CountVisibleTraits() < numToAdd)
-            {
-                TraitNames traitToAdd = RandomUtil.GetWeightedRandomObjectFromList(weightsToAdd, traitsToAdd);
-                newDescription.TraitManager.AddElement(traitToAdd);
-                int indexAdded = traitsToAdd.IndexOf(traitToAdd);
-                traitsToAdd.RemoveAt(indexAdded);
-                weightsToAdd.RemoveAt(indexAdded);
-            }
-            // If not all trait slots are filled out, fill the remaining slots out at random
-            newDescription.TraitManager.AddRandomTrait(numToAdd - newDescription.CountVisibleTraits());
+                int numToAdd = newSpecies is CASAgeGenderFlags.Human ? newDescription.TraitManager.NumTraitsForAge() : 3;
+                while (traitsToAdd.Count > 0 && newDescription.CountVisibleTraits() < numToAdd)
+                {
+                    TraitNames traitToAdd = RandomUtil.GetWeightedRandomObjectFromList(weightsToAdd, traitsToAdd);
+                    newDescription.TraitManager.AddElement(traitToAdd);
+                    int indexAdded = traitsToAdd.IndexOf(traitToAdd);
+                    traitsToAdd.RemoveAt(indexAdded);
+                    weightsToAdd.RemoveAt(indexAdded);
+                }
+                // If not all trait slots are filled out, fill the remaining slots out at random
+                newDescription.TraitManager.AddRandomTrait(numToAdd - newDescription.CountVisibleTraits());
 
-            // CONSIDER copy over stattrackers and/or VisaManager
-            LifeEventManager newManager = newDescription.LifeEventManager, oldManager = oldDescription.LifeEventManager;
-            newManager.ProcessPendingLifeEvents(true);
-            newManager.mActiveNodes = oldManager.mActiveNodes;
-            newManager.mCurrentNumberOfVisibleLifeEvents = oldManager.mCurrentNumberOfVisibleLifeEvents;
-            newManager.mHasShownWarningDialog = oldManager.mHasShownWarningDialog;
-            newManager.mLifeEvents = oldManager.mLifeEvents;
-            newManager.mTimeOfDeath = oldManager.mTimeOfDeath;
+                // CONSIDER copy over stattrackers and/or VisaManager
+                LifeEventManager newManager = newDescription.LifeEventManager, oldManager = oldDescription.LifeEventManager;
+                newManager.ProcessPendingLifeEvents(true);
+                newManager.mActiveNodes = oldManager.mActiveNodes;
+                newManager.mCurrentNumberOfVisibleLifeEvents = oldManager.mCurrentNumberOfVisibleLifeEvents;
+                newManager.mHasShownWarningDialog = oldManager.mHasShownWarningDialog;
+                newManager.mLifeEvents = oldManager.mLifeEvents;
+                newManager.mTimeOfDeath = oldManager.mTimeOfDeath;
 
-            if (turnIntoUnicorn)
-            {
-                newDescription.OccultManager.AddOccultType(OccultTypes.Unicorn, true, false, false);
-                SkillManager skillManager = newDescription.SkillManager;
-                Racing skill = skillManager.AddElement(SkillNames.Racing) as Racing;
-                skill.ForceSkillLevelUp(10);
-                Jumping skill2 = skillManager.AddElement(SkillNames.Jumping) as Jumping;
-                skill2.ForceSkillLevelUp(10);
-            }
-            if (oldDescription.IsUnicorn && newSpecies is CASAgeGenderFlags.Human)
-            {
-                newDescription.OccultManager.AddOccultType(RandomUtil.GetRandomObjectFromList(OccultTypes.Fairy, OccultTypes.Witch, OccultTypes.Genie), true, false, false);
-            }
-            if (oldDescription.IsGhost)
-            {
-                newDescription.IsGhost = true;
-                newDescription.mDeathStyle = oldDescription.mDeathStyle;
-            }
-            Actor.Household.Add(newDescription);
-            oldDescription.Genealogy.ClearAllGenealogyInformation();
+                if (turnIntoUnicorn)
+                {
+                    newDescription.OccultManager.AddOccultType(OccultTypes.Unicorn, true, false, false);
+                    SkillManager skillManager = newDescription.SkillManager;
+                    Racing skill = skillManager.AddElement(SkillNames.Racing) as Racing;
+                    skill.ForceSkillLevelUp(10);
+                    Jumping skill2 = skillManager.AddElement(SkillNames.Jumping) as Jumping;
+                    skill2.ForceSkillLevelUp(10);
+                }
+                if (oldDescription.IsUnicorn && newSpecies is CASAgeGenderFlags.Human)
+                {
+                    newDescription.OccultManager.AddOccultType(RandomUtil.GetRandomObjectFromList(OccultTypes.Fairy, OccultTypes.Witch, OccultTypes.Genie), true, false, false);
+                }
+                if (oldDescription.IsGhost)
+                {
+                    newDescription.IsGhost = true;
+                    newDescription.mDeathStyle = oldDescription.mDeathStyle;
+                }
+                Actor.Household.Add(newDescription);
+                oldDescription.Genealogy.ClearAllGenealogyInformation();
 
-            if (Actor.IsActiveSim)
-            {
-                UserToolUtils.OnClose();
-                LotManager.SelectNextSim();
-            }
-            mNewSim = newDescription.Instantiate(Actor.Position);
+                if (Actor.IsActiveSim)
+                {
+                    UserToolUtils.OnClose();
+                    LotManager.SelectNextSim();
+                }
+                mNewSim = newDescription.Instantiate(Actor.Position);
 
-            // Stop the effect before we go into CAS
-            // Otherwise it'll restart from the beginning
-            if (!(newDescription.IsPet && newDescription.Child))
-            {
-                effect.Stop();
-                effect.Dispose();
+                // Stop the effect before we go into CAS
+                // Otherwise it'll restart from the beginning
+                if (!(newDescription.IsPet && newDescription.Child))
+                {
+                    effect.Stop();
+                    effect.Dispose();
+                }
+                return true;
             }
-            return true;
+            catch (ResetException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.sInstance.Log(ex);
+            }
+            return false;
         }
 
         public override void Cleanup()
         {
             try
             {
-                FinishTransmogrify finishTransmogrify = new FinishTransmogrify.Definition(Actor).CreateInstance(mNewSim, mNewSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as FinishTransmogrify;
-                mNewSim.InteractionQueue.AddNext(finishTransmogrify);
+                if (mNewSim is not null)
+                {
+                    FinishTransmogrify finishTransmogrify = new FinishTransmogrify.Definition(Actor).CreateInstance(mNewSim, mNewSim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as FinishTransmogrify;
+                    mNewSim.InteractionQueue.AddNext(finishTransmogrify);
+                }
+                else
+                {
+                    WonderPowerManager.TogglePowerRunning();
+                }
             }
             catch
             {
@@ -1197,134 +1375,145 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            Sim oldSim = (InteractionDefinition as Definition).mOldSim;
-            oldSim.Destroy();
-            oldSim.SimDescription.Dispose();
-
-            if (Actor.IsInActiveHousehold)
+            try
             {
-                foreach (INotTransferableOnDeath notTransferableOnDeath in oldSim.Inventory.FindAll<INotTransferableOnDeath>(false))
+                Sim oldSim = (InteractionDefinition as Definition).mOldSim;
+                oldSim.Destroy();
+                oldSim.SimDescription.Dispose();
+
+                if (Actor.IsInActiveHousehold)
                 {
-                    notTransferableOnDeath.Destroy();
-                }
-                List<IGameObject> dolls = new();
-                if (GameUtils.IsInstalled(ProductVersion.EP4))
-                {
-                    ulong simDescriptionId = oldSim.SimDescription.SimDescriptionId;
-                    foreach (IImaginaryDoll imaginaryDoll in oldSim.Inventory.FindAll<IImaginaryDoll>(false))
+                    foreach (INotTransferableOnDeath notTransferableOnDeath in oldSim.Inventory.FindAll<INotTransferableOnDeath>(false))
                     {
-                        if (imaginaryDoll.GetOwnerSimDescriptionId() == simDescriptionId)
+                        notTransferableOnDeath.Destroy();
+                    }
+                    List<IGameObject> dolls = new();
+                    if (GameUtils.IsInstalled(ProductVersion.EP4))
+                    {
+                        ulong simDescriptionId = oldSim.SimDescription.SimDescriptionId;
+                        foreach (IImaginaryDoll imaginaryDoll in oldSim.Inventory.FindAll<IImaginaryDoll>(false))
                         {
-                            if (oldSim.Inventory.TryToRemove(imaginaryDoll))
+                            if (imaginaryDoll.GetOwnerSimDescriptionId() == simDescriptionId)
                             {
-                                dolls.Add(imaginaryDoll);
-                            }
-                            else
-                            {
-                                imaginaryDoll.Destroy();
+                                if (oldSim.Inventory.TryToRemove(imaginaryDoll))
+                                {
+                                    dolls.Add(imaginaryDoll);
+                                }
+                                else
+                                {
+                                    imaginaryDoll.Destroy();
+                                }
                             }
                         }
                     }
-                }
-                if (!oldSim.Inventory.IsEmpty)
-                {
-                    oldSim.Inventory.MoveObjectsTo(Actor.Inventory);
-                }
-                foreach (IGameObject gameObject in dolls)
-                {
-                    if (!oldSim.Inventory.TryToAdd(gameObject))
+                    if (!oldSim.Inventory.IsEmpty)
                     {
-                        gameObject.Destroy();
+                        oldSim.Inventory.MoveObjectsTo(Actor.Inventory);
+                    }
+                    foreach (IGameObject gameObject in dolls)
+                    {
+                        if (!oldSim.Inventory.TryToAdd(gameObject))
+                        {
+                            gameObject.Destroy();
+                        }
                     }
                 }
-            }
-            oldSim.Dispose();
-            foreach (LifeEventManager.LifeEventActiveNode node in Actor.LifeEventManager.mActiveNodes.SelectMany(kvp => kvp.Value))
-            {
-                node.mOwner = Actor;
-            }
-
-            if (Actor.SimDescription.IsGhost)
-            {
-                Urnstone.SimToPlayableGhost(Actor);
-            }
-
-            if (CauseEffectService.GetInstance() is CauseEffectService service && service.GetTimeAlmanacTimeStatueData() is List<ITimeStatueUiData> timeAlmanacTimeStatueData)
-            {
-                foreach (ITimeStatueUiData timeStatueUiData in timeAlmanacTimeStatueData)
+                oldSim.Dispose();
+                foreach (LifeEventManager.LifeEventActiveNode node in Actor.LifeEventManager.mActiveNodes.SelectMany(kvp => kvp.Value))
                 {
-                    if (timeStatueUiData is TimeStatueRecordData timeStatueRecordData && timeStatueRecordData.mRecordHolderId == oldSim.SimDescription.SimDescriptionId)
+                    node.mOwner = Actor;
+                }
+
+                if (Actor.SimDescription.IsGhost)
+                {
+                    Urnstone.SimToPlayableGhost(Actor);
+                }
+
+                if (CauseEffectService.GetInstance() is CauseEffectService service && service.GetTimeAlmanacTimeStatueData() is List<ITimeStatueUiData> timeAlmanacTimeStatueData)
+                {
+                    foreach (ITimeStatueUiData timeStatueUiData in timeAlmanacTimeStatueData)
                     {
-                        timeStatueRecordData.mRecordHolderId = 0UL;
+                        if (timeStatueUiData is TimeStatueRecordData timeStatueRecordData && timeStatueRecordData.mRecordHolderId == oldSim.SimDescription.SimDescriptionId)
+                        {
+                            timeStatueRecordData.mRecordHolderId = 0UL;
+                        }
                     }
                 }
-            }
 
-            if (!(Actor.IsPet && Actor.SimDescription.Child))
-            {
-                if (WonderPowers.IsMasterControllerIntegrationInstalled)
+                if (!(Actor.IsPet && Actor.SimDescription.Child))
                 {
-                    HelperMethods.IntegrateMasterControllerCAS(Actor.SimDescription);
+                    if (WonderPowers.IsMasterControllerIntegrationInstalled)
+                    {
+                        HelperMethods.IntegrateMasterControllerCAS(Actor.SimDescription);
+                    }
+                    else
+                    {
+                        CASLogic singleton = CASLogic.GetSingleton();
+                        singleton.LoadSim(Actor.SimDescription, Actor.CurrentOutfitCategory, 0);
+                        singleton.UseTempSimDesc = true;
+                    }
+                    GameStates.sSingleton.mInWorldState.GotoCASMode((InWorldState.SubState)HashString32("CASTransmogrifyState"));
+                    while (GameStates.NextInWorldStateId is not InWorldState.SubState.LiveMode)
+                    {
+                        Simulator.Sleep(0U);
+                    }
                 }
-                else
+
+                Camera.FocusOnSim(Actor);
+                if (Actor.IsSelectable)
                 {
-                    CASLogic singleton = CASLogic.GetSingleton();
-                    singleton.LoadSim(Actor.SimDescription, Actor.CurrentOutfitCategory, 0);
-                    singleton.UseTempSimDesc = true;
+                    PlumbBob.SelectActor(Actor);
                 }
-                GameStates.sSingleton.mInWorldState.GotoCASMode((InWorldState.SubState)HashString32("CASTransmogrifyState"));
-                while (GameStates.NextInWorldStateId is not InWorldState.SubState.LiveMode)
+
+                string animName = Actor.SimDescription switch
                 {
-                    Simulator.Sleep(0U);
-                }
-            }
-
-            Camera.FocusOnSim(Actor);
-            if (Actor.IsSelectable)
-            {
-                PlumbBob.SelectActor(Actor);
-            }
-
-            string animName = Actor.SimDescription switch
-            {
-                { IsFoal: true }                       => "ch_trait_nervous_x",
-                { IsHorse: true }                      => "ah_trait_nervous_x",
-                { IsPuppy: true }                      => "cd_trait_adventurous_x",
-                { IsFullSizeDog: true }                => "ad_trait_adventurous_x",
-                { IsLittleDog: true }                  => "al_trait_adventurous_x",
-                { IsKitten: true }                     => "cc_trait_hyper_x",
-                { IsCat: true }                        => "ac_trait_hyper_x",
-                { Child: true }                        => "c_cas_flavor_checkOutSelf_top_child_average_x",
-                { Elder: true }                        => "a_cas_flavor_checkOutSelf_top_elder_average_x",
-                { TeenOrAbove: true, IsMale: true }    => "a_cas_flavor_checkOutSelf_top_male_average_x",
-                { TeenOrAbove: true, IsFemale: true }  => "a_cas_flavor_checkOutSelf_top_female_average_x",
-                _                                      => null
-            };
-
-            if (animName is not null)
-            {
-                Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
-            }
-
-            if (Actor.BuffManager.AddElement((BuffNames)BuffTransmogrify.kBuffTransmogrifyGuid, (Origin)HashString64("FromWonderPower")))
-            {
-                BuffTransmogrify.BuffInstanceTransmogrify transmogrifyBuffInstance = Actor.BuffManager.GetElement(BuffTransmogrify.kBuffTransmogrifyGuid) as BuffTransmogrify.BuffInstanceTransmogrify;
-                BuffTransmogrify.TransmogType transmogType = Actor switch
-                {
-                    { IsADogSpecies: true }  => BuffTransmogrify.TransmogType.ToDog,
-                    { IsCat: true }          => BuffTransmogrify.TransmogType.ToCat,
-                    { IsHorse: true }        => BuffTransmogrify.TransmogType.ToHorse,
-                    _                        => BuffTransmogrify.TransmogType.ToHuman
+                    { IsFoal: true }                       => "ch_trait_nervous_x",
+                    { IsHorse: true }                      => "ah_trait_nervous_x",
+                    { IsPuppy: true }                      => "cd_trait_adventurous_x",
+                    { IsFullSizeDog: true }                => "ad_trait_adventurous_x",
+                    { IsLittleDog: true }                  => "al_trait_adventurous_x",
+                    { IsKitten: true }                     => "cc_trait_hyper_x",
+                    { IsCat: true }                        => "ac_trait_hyper_x",
+                    { Child: true }                        => "c_cas_flavor_checkOutSelf_top_child_average_x",
+                    { Elder: true }                        => "a_cas_flavor_checkOutSelf_top_elder_average_x",
+                    { TeenOrAbove: true, IsMale: true }    => "a_cas_flavor_checkOutSelf_top_male_average_x",
+                    { TeenOrAbove: true, IsFemale: true }  => "a_cas_flavor_checkOutSelf_top_female_average_x",
+                    _                                      => null
                 };
-                transmogrifyBuffInstance.SetTransmogType(transmogType, Actor);
+
+                if (animName is not null)
+                {
+                    Actor.PlaySoloAnimation(animName, true, Actor.IsPet ? ProductVersion.EP5 : ProductVersion.BaseGame);
+                }
+                return true;
             }
-            return true;
+            catch (ResetException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.sInstance.Log(ex);
+            }
+            return false;
         }
 
         public override void Cleanup()
         {
             try
             {
+                if (Actor.BuffManager.AddElement((BuffNames)BuffTransmogrify.kBuffTransmogrifyGuid, (Origin)HashString64("FromWonderPower")))
+                {
+                    BuffTransmogrify.BuffInstanceTransmogrify transmogrifyBuffInstance = Actor.BuffManager.GetElement(BuffTransmogrify.kBuffTransmogrifyGuid) as BuffTransmogrify.BuffInstanceTransmogrify;
+                    BuffTransmogrify.TransmogType transmogType = Actor switch
+                    {
+                        { IsADogSpecies: true }  => BuffTransmogrify.TransmogType.ToDog,
+                        { IsCat: true }          => BuffTransmogrify.TransmogType.ToCat,
+                        { IsHorse: true }        => BuffTransmogrify.TransmogType.ToHorse,
+                        _                        => BuffTransmogrify.TransmogType.ToHuman
+                    };
+                    transmogrifyBuffInstance.SetTransmogType(transmogType, Actor);
+                }
                 StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "TransmogrifyTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
                 base.Cleanup();
             }
@@ -1346,13 +1535,29 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
 
         public override bool Run()
         {
-            WonderPowerManager.PlayPowerSting("sting_wealth");
-            EnterStateMachine("ReceiveMagicalCheck", "WinLottoEnter", "x");
-            AnimateSim("PullOutCheck");
-            AnimateSim("VictoryDance");
-            AnimateSim("WinLottoExit");
-            Actor.BuffManager.AddElement((BuffNames)HashString64("Gamefreak130_WealthBuff"), (Origin)HashString64("FromWonderPower"));
-            return true;
+            try
+            {
+                Camera.FocusOnSim(Actor);
+                if (Actor.IsSelectable)
+                {
+                    PlumbBob.SelectActor(Actor);
+                }
+                WonderPowerManager.PlayPowerSting("sting_wealth");
+                EnterStateMachine("ReceiveMagicalCheck", "WinLottoEnter", "x");
+                AnimateSim("PullOutCheck");
+                AnimateSim("VictoryDance");
+                AnimateSim("WinLottoExit");
+                return true;
+            }
+            catch (ResetException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.sInstance.Log(ex);
+            }
+            return false;
         }
 
         public override void Cleanup()
@@ -1362,6 +1567,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 int amount = RandomUtil.GetInt(TunableSettings.kWealthMinAmount, TunableSettings.kWealthMaxAmount);
                 Actor.Household.ModifyFamilyFunds(amount);
                 StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "WealthTNS", Actor, amount), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
+                Actor.BuffManager.AddElement((BuffNames)HashString64("Gamefreak130_WealthBuff"), (Origin)HashString64("FromWonderPower"));
                 base.Cleanup();
             }
             finally

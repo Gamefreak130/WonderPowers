@@ -22,8 +22,7 @@ namespace Gamefreak130
     // TODO Command to set karma, reset cooldown
     // TODO Write STBLs
     // TODO Create tunable settings XML
-    // TODO Catch interaction exceptions and refund power cost if we cannot recover
-    // CONSIDER Common exception catching for event listeners
+    // TODO Common exception catching for event listeners
     public static class WonderPowers
     {
         [Tunable]
