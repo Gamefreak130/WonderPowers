@@ -135,6 +135,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
             {
 				try
 				{
+					WonderPowerManager.StopPowerSting();
 					Gameflow.SetGameSpeed(Normal, Gameflow.SetGameSpeedContext.Gameplay);
                     // Activation of any power will disable the karma menu
                     // Re-enabling is left to the powers' individual run methods when activation is complete
@@ -153,6 +154,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
                         {
 							StyledNotification.Show(new(WonderPowerManager.LocalizeString("PowerFailed"), StyledNotification.NotificationStyle.kSystemMessage));
 							WonderPowerManager.Karma += Cost;
+							HudExtender.StartSpendEffects();
 						}
 						WonderPowerManager.TogglePowerRunning();
 					}
@@ -165,7 +167,8 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
                     if (!backlash)
                     {
 						WonderPowerManager.Karma += Cost;
-                    }
+						HudExtender.StartSpendEffects();
+					}
 					WonderPowerManager.TogglePowerRunning();
 				}
             }
@@ -229,6 +232,15 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		public static void PlayPowerSting(string stingName, ObjectGuid sourceObject, bool loop = false) => sStingHandle = Audio.StartObjectSound(sourceObject, stingName, loop);
 
+		public static void StopPowerSting()
+        {
+			if (sStingHandle != 0)
+			{
+				Audio.StopSound(sStingHandle);
+				sStingHandle = 0;
+			}
+		}
+
         private static void TryStartBacklash()
         {
 			if (sIsBacklashRunning || Karma >= 0)
@@ -236,11 +248,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				sIsBacklashRunning = false;
 				return;
             }
-			if (sStingHandle != 0)
-			{
-				Audio.StopSound(sStingHandle);
-				sStingHandle = 0;
-			}
+			StopPowerSting();
 			WonderPower power = ChooseBacklashPower();
 			if (power is not null && RandomUtil.RandomChance(TunableSettings.kBacklashBaseChance - (Karma * TunableSettings.kBacklashChanceIncreasePerKarmaPoint)))
             {
@@ -443,7 +451,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 		/// <typeparam name="T">Should always be of type "NRaas.MasterControllerSpace.Sims.CASBase.EditType"</typeparam>
 		/// <returns>An invalid <see cref="CASMode"/>, allowing "NRaas.MasterControllerSpace.Sims.CASBase.Perform" to run without automatically transitioning to CAS</returns>
 		private static CASMode GetInvalidCASMode<T>(SimDescription _, ref OutfitCategories __, ref int ___, ref T ____) where T : Enum
-            => (CASMode)(-1);
+			=> (CASMode)(-1);
 
 #pragma warning restore IDE0060 // Remove unused parameter
 	}
