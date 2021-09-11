@@ -1,4 +1,5 @@
 ﻿using Gamefreak130.Common.Helpers;
+using Gamefreak130.Common.Situations;
 using Gamefreak130.WonderPowersSpace.Helpers;
 using Gamefreak130.WonderPowersSpace.Interactions;
 using Sims3.Gameplay;
@@ -13,6 +14,7 @@ using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.ObjectComponents;
+using Sims3.Gameplay.Objects;
 using Sims3.Gameplay.Services;
 using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
@@ -28,21 +30,112 @@ using Queries = Sims3.Gameplay.Queries;
 
 namespace Gamefreak130.WonderPowersSpace.Situations
 {
-    public class CryHavocSituation : RootSituation
+    public abstract class KarmaSituationBase : CommonRootSituation
+    {
+        private readonly List<GameObject> mFogEmitters = new();
+
+        protected readonly List<ObjectGuid> mSimulatorObjects = new();
+
+        protected readonly List<Sim> mParticipants = new();
+
+        protected AlarmHandle mExitHandle;
+
+        protected uint mSoundHandle;
+
+        private bool mInitialized;
+
+        public KarmaSituationBase()
+        {
+        }
+
+        public KarmaSituationBase(Lot lot) : base(lot)
+        {
+        }
+
+        protected override void Init()
+        {
+            try
+            {
+                mFogEmitters.AddRange(HelperMethods.CreateFogEmittersOnLot(Lot));
+                mInitialized = true;
+            }
+            catch
+            {
+                foreach (ObjectGuid guid in mSimulatorObjects)
+                {
+                    Simulator.DestroyObject(guid);
+                }
+                throw;
+            }
+        }
+
+        public override void CleanUp()
+        {
+            try
+            {
+                foreach (Sim sim in mParticipants.OfType<Sim>())
+                {
+                    sim.RemoveRole(this);
+                }
+                foreach (GameObject emitter in mFogEmitters.OfType<GameObject>())
+                {
+                    emitter.Destroy();
+                    emitter.Dispose();
+                }
+                if (mSoundHandle != 0U)
+                {
+                    Audio.StopSound(mSoundHandle);
+                    mSoundHandle = 0U;
+                }
+                AlarmManager.RemoveAlarm(mExitHandle);
+                mExitHandle = AlarmHandle.kInvalidHandle;
+                base.CleanUp();
+            }
+            finally
+            {
+                if (mInitialized)
+                {
+                    WonderPowerManager.TogglePowerRunning();
+                }
+            }
+        }
+
+        public override void OnReset(Sim sim)
+        {
+            mParticipants.Remove(sim);
+            sim.RemoveRole(this);
+            if (mParticipants.Count == 0)
+            {
+                Exit();
+            }
+        }
+
+        public override void OnParticipantDeleted(Sim participant)
+        {
+            mParticipants.Remove(participant);
+            participant.RemoveRole(this);
+            if (mParticipants.Count == 0)
+            {
+                Exit();
+            }
+        }
+    }
+
+    public class CryHavocSituation : KarmaSituationBase
     {
         public CryHavocSituation()
         {
         }
 
-        public CryHavocSituation(Lot lot) : base(lot) => SetState(new StartSituation(this));
+        public CryHavocSituation(Lot lot) : base(lot)
+        {
+        }
 
-        private List<Sim> mFighters;
-
-        private List<GameObject> mFogEmitters;
-
-        private AlarmHandle mExitHandle;
-
-        private uint mSoundHandle;
+        protected override void Init()
+        {
+            SetState(new StartSituation(this));
+            base.Init();
+        }
 
         private class StartSituation : ChildSituation<CryHavocSituation>
         {
@@ -57,25 +150,25 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             public override void Init(CryHavocSituation parent)
             {
                 // CONSIDER reaction broadcast?
-                Parent.mExitHandle = AlarmManager.AddAlarm(TunableSettings.kCryHavocLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- CryHavoc Situation Alarm", AlarmType.AlwaysPersisted, null);
+
                 // This sting is handled separately from the WonderPowerManager
                 // So that we can stop it once the situation is finished, even if there is no backlash
                 Parent.mSoundHandle = Audio.StartSound("sting_cryhavoc", Lot.Position);
+                Parent.mExitHandle = AlarmManager.AddAlarm(TunableSettings.kCryHavocLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- CryHavoc Situation Alarm", AlarmType.AlwaysPersisted, null);
                 Camera.FocusOnLot(Lot.LotId, 2f); //2f is standard lerpTime
-                Parent.mFighters = Lot.GetAllActors().FindAll(IsValidFighter);
-                Parent.mFogEmitters = HelperMethods.CreateFogEmittersOnLot(Lot);
+                Parent.mParticipants.AddRange(Lot.GetAllActors().FindAll(IsValidFighter));
 
-                if (Parent.mFighters.Count < TunableSettings.kCryHavocMinSims)
+                if (Parent.mParticipants.Count < TunableSettings.kCryHavocMinSims)
                 {
                     List<Sim> otherSims = Queries.GetObjects<Sim>()
-                                                 .Where(sim => !Parent.mFighters.Contains(sim) && IsValidFighter(sim))
+                                                 .Where(sim => !Parent.mParticipants.Contains(sim) && IsValidFighter(sim))
                                                  .ToList();
-                    while (Parent.mFighters.Count < TunableSettings.kCryHavocMinSims && otherSims.Count != 0)
+                    while (Parent.mParticipants.Count < TunableSettings.kCryHavocMinSims && otherSims.Count != 0)
                     {
                         Sim closestSim = GetClosestObject(otherSims, Lot);
                         if (closestSim is not null)
                         {
-                            Parent.mFighters.Add(closestSim);
+                            Parent.mParticipants.Add(closestSim);
                             otherSims.Remove(closestSim);
                         }
                         else
@@ -85,7 +178,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                     }
                 }
                 PruneFighters();
-                foreach (Sim sim in Parent.mFighters.OfType<Sim>())
+                foreach (Sim sim in Parent.mParticipants.OfType<Sim>())
                 {
                     sim.AssignRole(Parent);
                     GoToLotAndFight visitLot = new GoToLotAndFight.Definition().CreateInstance(Lot, sim, new(InteractionPriorityLevel.CriticalNPCBehavior), false, false) as GoToLotAndFight;
@@ -109,10 +202,10 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 
                 foreach (Predicate<Sim> predicate in predicates)
                 {
-                    int predicateCount = Parent.mFighters.FindAll(predicate).Count;
+                    int predicateCount = Parent.mParticipants.FindAll(predicate).Count;
                     if (predicateCount > 0 && predicateCount % 2 != 0)
                     {
-                        Parent.mFighters.RemoveAt(Parent.mFighters.FindIndex(predicate));
+                        Parent.mParticipants.RemoveAt(Parent.mParticipants.FindIndex(predicate));
                     }
                 }
             }
@@ -122,7 +215,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
         {
             try
             {
-                foreach (Sim sim in mFighters.OfType<Sim>())
+                foreach (Sim sim in mParticipants.OfType<Sim>())
                 {
                     sim.InteractionQueue.CancelAllInteractions();
                     sim.OverlayComponent.PlayReaction(ReactionTypes.MotiveFailEnergy, sim, false);
@@ -132,65 +225,37 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                         Sim.MakeSimGoHome(sim, false, new(InteractionPriorityLevel.CriticalNPCBehavior));
                     }
                 }
-                foreach (GameObject emitter in mFogEmitters)
-                {
-                    emitter.Destroy();
-                    emitter.Dispose();
-                }
-                if (mSoundHandle != 0U)
-                {
-                    Audio.StopSound(mSoundHandle);
-                    mSoundHandle = 0U;
-                }
-                AlarmManager.RemoveAlarm(mExitHandle);
-                mExitHandle = AlarmHandle.kInvalidHandle;
-                base.CleanUp();
             }
             finally
             {
-                WonderPowerManager.TogglePowerRunning();
+                base.CleanUp();
             }
         }
 
         public override void OnReset(Sim sim)
         {
             sim.BuffManager.RemoveElement(Buffs.BuffCryHavoc.kBuffCryHavocGuid);
-            mFighters.Remove(sim);
-            sim.RemoveRole(this);
-            if (mFighters.Count == 0)
-            {
-                Exit();
-            }
-        }
-
-        public override void OnParticipantDeleted(Sim participant)
-        {
-            mFighters.Remove(participant);
-            participant.RemoveRole(this);
-            if (mFighters.Count == 0)
-            {
-                Exit();
-            }
+            base.OnReset(sim);
         }
     }
 
-    public class FeralPossessionSituation : RootSituation
+    public class FeralPossessionSituation : KarmaSituationBase
     {
         public FeralPossessionSituation()
         {
         }
 
-        public FeralPossessionSituation(Lot lot) : base(lot) => SetState(new StartSituation(this));
+        public FeralPossessionSituation(Lot lot) : base(lot)
+        {
+        }
 
-        private List<Sim> mPossessed;
+        protected override void Init()
+        {
+            SetState(new StartSituation(this));
+            base.Init();
+        }
 
         private List<Sim> mCreatedPets;
-
-        private List<GameObject> mFogEmitters;
-
-        private AlarmHandle mExitHandle;
-
-        private uint mSoundHandle;
 
         private class StartSituation : ChildSituation<FeralPossessionSituation>
         {
@@ -205,30 +270,28 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             public override void Init(FeralPossessionSituation parent)
             {
                 // CONSIDER reaction broadcast?
-                Parent.mExitHandle = AlarmManager.AddAlarm(TunableSettings.kFeralPossessionLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- FeralPossession Situation Alarm", AlarmType.AlwaysPersisted, null);
+
                 // This sting is handled separately from the WonderPowerManager
                 // So that we can stop it once the situation is finished, even if there is no backlash
 
-                // TODO abstract base situation class?
-                // TODO greet cry havoc/possessed sims on lot
                 Parent.mSoundHandle = Audio.StartSound("sting_feralpossession", Lot.Position);
+                Parent.mExitHandle = AlarmManager.AddAlarm(TunableSettings.kFeralPossessionLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- FeralPossession Situation Alarm", AlarmType.AlwaysPersisted, null);
                 Camera.FocusOnLot(Lot.LotId, 2f); //2f is standard lerpTime
-                Parent.mPossessed = Lot.GetAnimalsOfType(CASAGSAvailabilityFlags.CatChild | CASAGSAvailabilityFlags.CatAdult | CASAGSAvailabilityFlags.CatElder | CASAGSAvailabilityFlags.DogChild | CASAGSAvailabilityFlags.DogAdult | CASAGSAvailabilityFlags.DogElder);
+                Parent.mParticipants.AddRange(Lot.GetAnimalsOfType(CASAGSAvailabilityFlags.CatChild | CASAGSAvailabilityFlags.CatAdult | CASAGSAvailabilityFlags.CatElder | CASAGSAvailabilityFlags.DogChild | CASAGSAvailabilityFlags.DogAdult | CASAGSAvailabilityFlags.DogElder));
                 Parent.mCreatedPets = new();
-                Parent.mFogEmitters = HelperMethods.CreateFogEmittersOnLot(Lot);
 
-                if (Parent.mPossessed.Count < TunableSettings.kFeralPossessionMinPets)
+                if (Parent.mParticipants.Count < TunableSettings.kFeralPossessionMinPets)
                 {
                     List<Sim> otherPets = Queries.GetObjects<Sim>()
-                                                 .Where(sim => !Parent.mPossessed.Contains(sim) && (sim.IsCat || sim.IsADogSpecies))
+                                                 .Where(sim => !Parent.mParticipants.Contains(sim) && (sim.IsCat || sim.IsADogSpecies))
                                                  .ToList();
 
-                    while (Parent.mPossessed.Count < TunableSettings.kFeralPossessionMinPets && otherPets.Count != 0)
+                    while (Parent.mParticipants.Count < TunableSettings.kFeralPossessionMinPets && otherPets.Count != 0)
                     {
                         Sim closestSim = GetClosestObject(otherPets, Lot);
                         if (closestSim is not null)
                         {
-                            Parent.mPossessed.Add(closestSim);
+                            Parent.mParticipants.Add(closestSim);
                             otherPets.Remove(closestSim);
                         }
                         else
@@ -237,15 +300,16 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                         }
                     }
 
-                    for (int i = 0; i < TunableSettings.kFeralPossessionMinPets - Parent.mPossessed.Count; i++)
+                    for (int i = 0; i < TunableSettings.kFeralPossessionMinPets - Parent.mParticipants.Count; i++)
                     {
-                        Simulator.AddObject(new OneShotFunction(CreatePossessedPet));
+                        Parent.mSimulatorObjects.Add(Simulator.AddObject(new OneShotFunction(CreatePossessedPet)));
                     }
                 }
 
-                foreach (Sim pet in Parent.mPossessed.OfType<Sim>())
+                foreach (Sim pet in Parent.mParticipants.OfType<Sim>())
                 {
                     pet.AssignRole(Parent);
+                    pet.GreetSimOnLot(Lot);
                     if (pet.LotCurrent != Lot)
                     {
                         ForceSituationSpecificInteraction(pet, pet.CreateTeleportInstanceToPositionOnLot(Lot, null, null));
@@ -268,8 +332,9 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 vfx.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
 
                 instantiatedPet.AssignRole(Parent);
+                instantiatedPet.GreetSimOnLot(Lot);
                 Parent.mCreatedPets.Add(instantiatedPet);
-                Parent.mPossessed.Add(instantiatedPet);
+                Parent.mParticipants.Add(instantiatedPet);
                 instantiatedPet.BuffManager.AddElement(Buffs.BuffKarmicPossession.kBuffKarmicPossessionGuid, (Origin)HashString64("FromWonderPower"));
             }
         }
@@ -279,9 +344,9 @@ namespace Gamefreak130.WonderPowersSpace.Situations
             try
             {
                 List<Sim> createdPets = mCreatedPets.OfType<Sim>().ToList();
-                List<Sim> possessed = mPossessed.OfType<Sim>().ToList();
+                List<Sim> possessed = mParticipants.OfType<Sim>().ToList();
                 mCreatedPets.Clear();
-                mPossessed.Clear();
+                mParticipants.Clear();
 
                 foreach (Sim pet in createdPets)
                 {
@@ -295,30 +360,19 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
                 foreach (Sim pet in possessed)
                 {
+                    pet.RemoveRole(this);
                     pet.InteractionQueue.CancelAllInteractions();
+                    pet.RemoveSimGreetedOnLot(Lot);
                     pet.BuffManager.RemoveElement(Buffs.BuffKarmicPossession.kBuffKarmicPossessionGuid);
                     if (!pet.IsAtHome)
                     {
                         Sim.MakeSimGoHome(pet, false, new(InteractionPriorityLevel.CriticalNPCBehavior));
                     }
                 }
-                foreach (GameObject emitter in mFogEmitters)
-                {
-                    emitter.Destroy();
-                    emitter.Dispose();
-                }
-                if (mSoundHandle != 0U)
-                {
-                    Audio.StopSound(mSoundHandle);
-                    mSoundHandle = 0U;
-                }
-                AlarmManager.RemoveAlarm(mExitHandle);
-                mExitHandle = AlarmHandle.kInvalidHandle;
-                base.CleanUp();
             }
             finally
             {
-                WonderPowerManager.TogglePowerRunning();
+                base.CleanUp();
             }
         }
 
@@ -330,15 +384,10 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 sim.FadeOut(false, true);
                 sim.SimDescription.Dispose();
             }
-            else if (mPossessed.Contains(sim))
+            else if (mParticipants.Contains(sim))
             {
                 sim.BuffManager.RemoveElement(Buffs.BuffKarmicPossession.kBuffKarmicPossessionGuid);
-                sim.RemoveRole(this);
-                mPossessed.Remove(sim);
-                if (mPossessed.Count == 0)
-                {
-                    Exit();
-                }
+                base.OnReset(sim);
             }
         }
 
@@ -346,29 +395,27 @@ namespace Gamefreak130.WonderPowersSpace.Situations
         {
             participant.RemoveRole(this);
             mCreatedPets.Remove(participant);
-            if (mPossessed.Contains(participant))
+            if (mParticipants.Contains(participant))
             {
-                mPossessed.Remove(participant);
-                if (mPossessed.Count == 0)
-                {
-                    Exit();
-                }
+                base.OnParticipantDeleted(participant);
             }
         }
     }
 
-    public class FireSituation : RootSituation
+    public class FireSituation : KarmaSituationBase
     {
         public FireSituation()
         {
         }
 
-        public FireSituation(Lot lot) : base(lot) => SetState(new StartSituation(this));
-
-        private AlarmHandle mExitHandle;
-
-        public override void OnParticipantDeleted(Sim participant)
+        public FireSituation(Lot lot) : base(lot)
         {
+        }
+
+        protected override void Init()
+        {
+            SetState(new StartSituation(this));
+            base.Init();
         }
 
         private class StartSituation : ChildSituation<FireSituation>
@@ -383,64 +430,52 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
             public override void Init(FireSituation parent)
             {
-                try
-                {
-                    WonderPowerManager.PlayPowerSting("sting_firestorm");
-                    Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted); //2f is standard lerptime
+                WonderPowerManager.PlayPowerSting("sting_firestorm");
+                Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted); //2f is standard lerptime
 
-                    // For each fire spawned, there is a 25% chance it will ignite a burnable object,
-                    // A 25% chance it will ignite a valid sim on the lot,
-                    // And a 50% chance it will spawn directly on the ground
-                    List<GameObject> burnableObjects = Lot.GetObjects<GameObject>(@object => @object is not Sim and not PlumbBob && @object.GetFireType() is not FireType.DoesNotBurn && !@object.Charred);
-                    List<Sim> burnableSims = Lot.GetSims(sim => sim.IsHuman && sim.SimDescription.ChildOrAbove);
-                    int numFires = RandomUtil.GetInt(TunableSettings.kFireMin, TunableSettings.kFireMax);
-                    for (int i = 0; i < numFires; i++)
-                    {
-                        if (RandomUtil.CoinFlip())
-                        {
-                            if (RandomUtil.CoinFlip() && burnableObjects.Count != 0)
-                            {
-                                GameObject @object = RandomUtil.GetRandomObjectFromList(burnableObjects);
-                                FireManager.AddFire(@object.PositionOnFloor, true);
-                                AlarmManager.AddAlarm(30f, TimeUnit.Seconds, delegate {
-                                    VisualEffect effect = VisualEffect.Create("ep2DetonateMedium");
-                                    effect.SetPosAndOrient(@object.Position, @object.ForwardVector, @object.UpVector);
-                                    effect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
-                                }, "Gamefreak130 wuz here -- visual effect alarm", AlarmType.NeverPersisted, null);
-                                burnableObjects.Remove(@object);
-                            }
-                            else if (burnableSims.Count != 0)
-                            {
-                                Sim sim = RandomUtil.GetRandomObjectFromList(burnableSims);
-                                sim.BuffManager.AddElement(BuffNames.OnFire, (Origin)HashString64("FromWonderPower"));
-                                burnableSims.Remove(sim);
-                            }
-                            continue;
-                        }
-                        Vector3 pos = Lot.GetRandomPosition(true, true);
-                        FireManager.AddFire(pos, true);
-                    }
-                    StyledNotification.Show(new(WonderPowerManager.LocalizeString("FireTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
-                }
-                finally
+                // For each fire spawned, there is a 25% chance it will ignite a burnable object,
+                // A 25% chance it will ignite a valid sim on the lot,
+                // And a 50% chance it will spawn directly on the ground
+                List<GameObject> burnableObjects = Lot.GetObjects<GameObject>(@object => @object is not Sim and not PlumbBob && @object.GetFireType() is not FireType.DoesNotBurn && !@object.Charred);
+                List<Sim> burnableSims = Lot.GetSims(sim => sim.IsHuman && sim.SimDescription.ChildOrAbove);
+                int numFires = RandomUtil.GetInt(TunableSettings.kFireMin, TunableSettings.kFireMax);
+                for (int i = 0; i < numFires; i++)
                 {
-                    Parent.CheckForExit();
+                    if (RandomUtil.CoinFlip())
+                    {
+                        if (RandomUtil.CoinFlip() && burnableObjects.Count != 0)
+                        {
+                            GameObject @object = RandomUtil.GetRandomObjectFromList(burnableObjects);
+                            FireManager.AddFire(@object.PositionOnFloor, true);
+                            AlarmManager.AddAlarm(30f, TimeUnit.Seconds, delegate {
+                                VisualEffect effect = VisualEffect.Create("ep2DetonateMedium");
+                                effect.SetPosAndOrient(@object.Position, @object.ForwardVector, @object.UpVector);
+                                effect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
+                            }, "Gamefreak130 wuz here -- visual effect alarm", AlarmType.NeverPersisted, null);
+                            burnableObjects.Remove(@object);
+                        }
+                        else if (burnableSims.Count != 0)
+                        {
+                            Sim sim = RandomUtil.GetRandomObjectFromList(burnableSims);
+                            sim.BuffManager.AddElement(BuffNames.OnFire, (Origin)HashString64("FromWonderPower"));
+                            burnableSims.Remove(sim);
+                        }
+                        continue;
+                    }
+                    Vector3 pos = Lot.GetRandomPosition(true, true);
+                    FireManager.AddFire(pos, true);
                 }
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString("FireTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
+                Parent.CheckForExit();
             }
         }
 
-        public override void CleanUp() 
+        public override void OnReset(Sim _)
         {
-            try
-            {
-                AlarmManager.RemoveAlarm(mExitHandle);
-                mExitHandle = AlarmHandle.kInvalidHandle;
-                base.CleanUp();
-            }
-            finally
-            {
-                WonderPowerManager.TogglePowerRunning();
-            }
+        }
+
+        public override void OnParticipantDeleted(Sim _)
+        {
         }
 
         private void CheckForExit()
@@ -456,25 +491,27 @@ namespace Gamefreak130.WonderPowersSpace.Situations
         }
     }
 
-    public class GhostsSituation : RootSituation
+    public class GhostsSituation : KarmaSituationBase
     {
         public GhostsSituation()
         {
         }
 
-        public GhostsSituation(Lot lot) : base(lot) => SetState(new StartSituation(this));
+        public GhostsSituation(Lot lot) : base(lot)
+        {
+        }
 
-        private readonly List<GameObject> mCreatedObjects = new();
+        protected override void Init()
+        {
+            SetState(new StartSituation(this));
+            base.Init();
+        }
 
-        private List<Sim> mGhosts = new();
+        private readonly List<GameObject> mUrnstones = new();
 
         private ReactionBroadcaster mPanicBroadcaster;
 
         private readonly Dictionary<LightGameObject, ColorInfo> mPrevColorInfo = new();
-
-        private AlarmHandle mExitHandle;
-
-        private uint mMusicHandle;
 
         private struct ColorInfo
         {
@@ -526,16 +563,15 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
             public override void Init(GhostsSituation parent)
             {
-                Parent.mExitHandle = AlarmManager.AddAlarm(TunableSettings.kGhostInvasionLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- GhostInvasion Situation Alarm", AlarmType.AlwaysPersisted, null);
                 // This sting is handled separately from the WonderPowerManager
                 // So that we can stop it once the situation is finished, even if there is no backlash
-                Parent.mMusicHandle = Audio.StartSound("sting_ghosts", Lot.Position);
+                Parent.mSoundHandle = Audio.StartSound("sting_ghosts", Lot.Position);
+                Parent.mExitHandle = AlarmManager.AddAlarm(TunableSettings.kGhostInvasionLength, TimeUnit.Minutes, Parent.Exit, "Gamefreak130 wuz here -- GhostInvasion Situation Alarm", AlarmType.AlwaysPersisted, null);
                 Lot.AddAlarm(30f, TimeUnit.Seconds, () => Camera.FocusOnLot(Lot.LotId, 2f), "Gamefreak130 wuz here -- Activation focus alarm", AlarmType.NeverPersisted);
                 foreach (Sim sim in Lot.GetSims(sim => sim.IsSleeping))
                 {
                     sim.InteractionQueue.CancelAllInteractions();
                 }
-                Parent.mCreatedObjects.AddRange(HelperMethods.CreateFogEmittersOnLot(Lot));
 
                 int @int = RandomUtil.GetInt(GhostHunter.kSpiritLightingRed.Length - 1);
                 float r = GhostHunter.kSpiritLightingRed[@int] / 255f;
@@ -552,7 +588,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
 
                 for (int i = 0; i < RandomUtil.GetInt(TunableSettings.kGhostsMin, TunableSettings.kGhostsMax); i++)
                 {
-                    Simulator.AddObject(new OneShotFunction(CreateAngryGhost));
+                    Parent.mSimulatorObjects.Add(Simulator.AddObject(new OneShotFunction(CreateAngryGhost)));
                 }
                 StyledNotification.Show(new(WonderPowerManager.LocalizeString("GhostsTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
             }
@@ -637,8 +673,8 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                         ghost.CreatedSim.SwitchToOutfitWithoutSpin(OutfitCategories.Everyday);
                     }
                 }
-                Parent.mGhosts.Add(ghost.CreatedSim);
-                Parent.mCreatedObjects.Add((GameObject)urnstone);
+                Parent.mParticipants.Add(ghost.CreatedSim);
+                Parent.mUrnstones.Add((GameObject)urnstone);
                 return;
             }
 
@@ -691,30 +727,22 @@ namespace Gamefreak130.WonderPowersSpace.Situations
         {
             try
             {
-                AlarmManager.RemoveAlarm(mExitHandle);
-                mExitHandle = AlarmHandle.kInvalidHandle;
-                if (mMusicHandle != 0)
-                {
-                    Audio.StopSound(mMusicHandle);
-                    mMusicHandle = 0;
-                }
                 if (mPanicBroadcaster is not null)
                 {
                     mPanicBroadcaster.Dispose();
                     mPanicBroadcaster = null;
                 }
-                Sim[] ghosts = new Sim[mGhosts.Count];
-                mGhosts.CopyTo(ghosts);
-                mGhosts = null;
-                for (int i = ghosts.Length - 1; i >= 0; i--)
+                List<Sim> ghosts = mParticipants.ToList();
+                mParticipants.Clear();
+                foreach (Sim sim in ghosts)
                 {
-                    Sim sim = ghosts[i];
+                    sim.RemoveRole(this);
                     VisualEffect visualEffect = VisualEffect.Create("ep6GenieTargetSimDisappear_main");
                     visualEffect.ParentTo(sim, Sim.FXJoints.Spine0);
                     visualEffect.SubmitOneShotEffect(VisualEffect.TransitionType.SoftTransition);
                     sim.FadeOut(false, true);
                 }
-                foreach (GameObject @object in mCreatedObjects)
+                foreach (GameObject @object in mUrnstones)
                 {
                     if (@object is IUrnstone urnstone)
                     {
@@ -734,42 +762,35 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                     World.LightSetColor(lightGameObject.Proxy.ObjectId, color.CustomColorVec.x, color.CustomColorVec.y, color.CustomColorVec.z);
                 }
                 mPrevColorInfo.Clear();
-                base.CleanUp();
             }
             finally
             {
-                WonderPowerManager.TogglePowerRunning();
+                base.CleanUp();
             }
         }
 
         public override void OnReset(Sim sim)
         {
-            if (mGhosts is not null)
+            if (mParticipants.Contains(sim))
             {
-                if (mGhosts.Contains(sim))
+                mParticipants.Remove(sim);
+                sim.RemoveRole(this);
+                sim.Destroy();
+                sim.Dispose();
+                if (Urnstone.FindGhostsGrave(sim) is Urnstone urnstone)
                 {
-                    mGhosts.Remove(sim);
-                    sim.RemoveRole(this);
-                    sim.Destroy();
-                    sim.Dispose();
-                }
-                if (mGhosts.Count == 0)
-                {
-                    Exit();
+                    urnstone.SetDeadSimDescription(null);
+                    urnstone.Destroy();
+                    urnstone.Dispose();
                 }
             }
         }
 
         public override void OnParticipantDeleted(Sim participant)
         {
-            if (mGhosts is not null)
+            if (mParticipants.Contains(participant))
             {
-                mGhosts.Remove(participant);
-                participant.RemoveRole(this);
-                if (mGhosts.Count == 0)
-                {
-                    Exit();
-                }
+                base.OnParticipantDeleted(participant);
             }
         }
     }
