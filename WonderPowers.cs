@@ -20,7 +20,6 @@ using System.Reflection;
 
 namespace Gamefreak130
 {
-    // TODO Command to set karma, reset cooldown
     // TODO Write STBLs
     // TODO Create tunable settings XML
     public static class WonderPowers
@@ -83,6 +82,8 @@ namespace Gamefreak130
 
         private static ListenerAction OnEnteredWorld(Event e)
         {
+            Commands.sGameCommands.Unregister("ToggleKarmaAvailability");
+            Commands.sGameCommands.Register("ToggleKarmaAvailability", "Re-enable the karma power selection button if it is currently disabled", Commands.CommandType.General, WonderPowerManager.OnToggleAvailabilityCommand);
             HudExtender.Init();
             GameStates.sSingleton.mInWorldState.mStateMachine.AddState(new CASInstantBeautyState());
             GameStates.sSingleton.mInWorldState.mStateMachine.AddState(new CASTransmogrifyState());

@@ -217,16 +217,27 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			}
 		}
 
-		public static void TogglePowerRunning()
+		public static void TogglePowerRunning() => TogglePowerRunning(true);
+
+		internal static int OnToggleAvailabilityCommand(object[] _)
 		{
-			IsPowerRunning = !IsPowerRunning;
-			if (!IsPowerRunning && GameStates.GetInWorldSubState() is LiveModeState && (GameStates.sSingleton.mInWorldState.mBaseCallFlag & StateMachineState.BaseCallFlag.kShutdown) == 0u)
-            {
-				Simulator.AddObject(new OneShotFunctionTask(TryStartBacklash));
-            }
+			if (IsPowerRunning)
+			{
+				TogglePowerRunning(false);
+			}
+			return 1;
 		}
 
-        public static void PlayPowerSting(string stingName) => sStingHandle = Audio.StartSound(stingName);
+		private static void TogglePowerRunning(bool tryStartBacklash)
+        {
+			IsPowerRunning = !IsPowerRunning;
+			if (tryStartBacklash && !IsPowerRunning && GameStates.GetInWorldSubState() is LiveModeState && (GameStates.sSingleton.mInWorldState.mBaseCallFlag & StateMachineState.BaseCallFlag.kShutdown) == 0u)
+			{
+				Simulator.AddObject(new OneShotFunctionTask(TryStartBacklash));
+			}
+		}
+
+		public static void PlayPowerSting(string stingName) => sStingHandle = Audio.StartSound(stingName);
 
 		public static void PlayPowerSting(string stingName, Vector3 sourcePosition) => sStingHandle = Audio.StartSound(stingName, sourcePosition);
 
