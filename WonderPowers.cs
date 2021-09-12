@@ -22,7 +22,7 @@ using System.Reflection;
 namespace Gamefreak130
 {
     // TODO Write STBLs
-    // TODO Create tunable settings XML
+    // TODO Assembly versioning
     public static class WonderPowers
     {
         [Tunable]

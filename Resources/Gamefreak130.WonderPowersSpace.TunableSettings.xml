@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<base>
+  <Current_Tuning>
+    <kInitialKarmaLevel value="0">
+      <!--Range -100-100: How many karma points the player starts with-->
+    </kInitialKarmaLevel>
+    <kKarmaBasicWishAmount value="5">
+      <!--Amount of karma gained when the user fulfills a basic wish-->
+    </kKarmaBasicWishAmount>
+    <kKarmaLifetimeWishAmount value="200">
+      <!--Amount of karma gained when the user fulfills a lifetime wish-->
+    </kKarmaLifetimeWishAmount>
+    <kKarmaCancelWishAmount value="1">
+      <!--Amount of karma lost when the user cancels a wish-->
+    </kKarmaCancelWishAmount>
+    <kGoodTraitKarmaDiscount value="0.8">
+      <!--Discount multiplier applied to the cost of good karma powers per Sim in the active household with the Good trait-->
+    </kGoodTraitKarmaDiscount>
+    <kEvilTraitKarmaDiscount value="0.8">
+      <!--Discount multiplier applied to the cost of bad karma powers per Sim in the active household with the Evil trait-->
+    </kEvilTraitKarmaDiscount>
+    <kBacklashBaseChance value="25">
+      <!--Range 0-100: The base percent chance of a karmic backlash when a power activation results in a negative karma balance-->
+    </kBacklashBaseChance>
+    <kBacklashChanceIncreasePerKarmaPoint value="0.5">
+      <!--Range 0-100: The increase in percent chance of a karmic backlash per point of negative karma-->
+    </kBacklashChanceIncreasePerKarmaPoint>
+    <kCurseMotiveAmount value="-95">
+      <!--Range -100-100: The value that a Sim's needs are set to when affected by the Curse karma power (except for the bladder need, which will always be fully emptied)-->
+    </kCurseMotiveAmount>
+    <kCryHavocLength value="180">
+      <!--The length of time in sim-minutes that the effects of the Cry Havoc karma power will last-->
+    </kCryHavocLength>
+    <kCryHavocMinSims value="8">
+      <!--The minimum number of Sims that will be affected by the Cry Havoc karma power-->
+    </kCryHavocMinSims>
+    <kCryHavocSimInteractions value="Force Fight!, Slap, Yell At">
+      <!--Action keys of the social interactions Sims are compelled to perform when affected by the Cry Havoc karma power-->
+    </kCryHavocSimInteractions>
+    <kCryHavocPetInteractions value="Fight Pet, Chase Mean">
+      <!--Action keys of the social interactions pets are compelled to perform when affected by the Cry Havoc karma power-->
+    </kCryHavocPetInteractions>
+    <kEarthquakeMinBroken value="10">
+      <!--The minimum number of objects to break during the Quake Maker karma power-->
+    </kEarthquakeMinBroken>
+    <kEarthquakeMaxBroken value="20">
+      <!--The maximum number of objects to break during the Quake Maker karma power-->
+    </kEarthquakeMaxBroken>
+    <kEarthquakeMinTrash value="10">
+      <!--The minimum number of trash spawned during the Quake Maker karma power-->
+    </kEarthquakeMinTrash>
+    <kEarthquakeMaxTrash value="20">
+      <!--The maximum number of trash spawned during the Quake Maker karma power-->
+    </kEarthquakeMaxTrash>
+    <kFeralPossessionLength value="180">
+      <!--The length of time in sim-minutes that the effects of the Feral Possession karma power will last-->
+    </kFeralPossessionLength>
+    <kFeralPossessionMinPets value="5">
+      <!--The minimum number of dogs and cats that will be affected by the Feral Possession karma power-->
+    </kFeralPossessionMinPets>
+    <kFireMin value="3">
+      <!--The minimum number of fires spawned during the Fire Storm karma power-->
+    </kFireMin>
+    <kFireMax value="7">
+      <!--The maximum number of fires spawned during the Fire Storm karma power-->
+    </kFireMax>
+    <kGhostInvasionLength value="180">
+      <!--The length of time in sim-minutes that the effects of the Ghost Invasion karma power will last-->
+    </kGhostInvasionLength>
+    <kGhostsMin value="3">
+      <!--The minimum number of ghosts spawned during the Ghost Invasion karma power-->
+    </kGhostsMin>
+    <kGhostsMax value="5">
+      <!--The maximum number of ghosts spawned during the Ghost Invasion karma power-->
+    </kGhostsMax>
+    <kRayOfSunshineBoostAmount value="20">
+      <!--The amount by which a Sim's needs are boosted when affected by the A Little Sunshine karma power-->
+    </kRayOfSunshineBoostAmount>
+    <kSicknessMotiveDecay value="2">
+      <!--The multiplier applied to a Sim's motive decay when affected by the Sickness karma power-->
+    </kSicknessMotiveDecay>
+    <kWealthMinAmount value="10000">
+      <!--The minimum amount added to a Sim's household funds when affected by the Wealth karma power-->
+    </kWealthMinAmount>
+    <kWealthMaxAmount value="30000">
+      <!--The maximum amount added to a Sim's household funds when affected by the Wealth karma power-->
+    </kWealthMaxAmount>
+  </Current_Tuning>
+</base>

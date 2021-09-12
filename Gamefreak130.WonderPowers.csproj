@@ -211,6 +211,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Gamefreak130.WonderPowers.xml" />
+    <Content Include="Resources\Gamefreak130.WonderPowersSpace.TunableSettings.xml" />
     <Content Include="Resources\Gamefreak130_KarmaPowers.xml" />
     <Content Include="Resources\MusicEntriesKarmaLoad.xml" />
     <Content Include="Resources\MusicEntriesKarmaLoadEP1.xml" />

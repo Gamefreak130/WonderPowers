@@ -3,7 +3,7 @@
     using Sims3.SimIFace;
     public static class TunableSettings
     {
-        [Tunable, TunableComment("How many karma points the player starts with")]
+        [Tunable, TunableComment("Range -100-100: How many karma points the player starts with")]
         public static int kInitialKarmaLevel = 0;
 
         [Tunable, TunableComment("Amount of karma gained when the user fulfills a basic wish")]
@@ -21,13 +21,13 @@
         [Tunable, TunableComment("Discount multiplier applied to the cost of bad karma powers per Sim in the active household with the Evil trait")]
         public static float kEvilTraitKarmaDiscount = 0.8f;
 
-        [Tunable, TunableComment("The base percent chance of a karmic backlash when a power activation results in a negative karma balance")]
+        [Tunable, TunableComment("Range 0-100: The base percent chance of a karmic backlash when a power activation results in a negative karma balance")]
         public static float kBacklashBaseChance = 25;
 
-        [Tunable, TunableComment("The increase in percent chance of a karmic backlash per point of negative karma")]
+        [Tunable, TunableComment("Range 0-100: The increase in percent chance of a karmic backlash per point of negative karma")]
         public static float kBacklashChanceIncreasePerKarmaPoint = 0.5f;
 
-        [Tunable, TunableComment("The value that a Sim's needs are set to when affected by the Curse karma power (except for the bladder need, which will always be fully emptied)")]
+        [Tunable, TunableComment("Range -100-100: The value that a Sim's needs are set to when affected by the Curse karma power (except for the bladder need, which will always be fully emptied)")]
         public static int kCurseMotiveAmount = -95;
 
         [Tunable, TunableComment("The length of time in sim-minutes that the effects of the Cry Havoc karma power will last")]
