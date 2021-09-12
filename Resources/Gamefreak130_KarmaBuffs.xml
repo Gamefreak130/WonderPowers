@@ -53,6 +53,15 @@
     <TimeoutLength>180</TimeoutLength>
   </BuffList>
   <BuffList>
+    <Hex>Gamefreak130_DivineInterventionBuff=0x44A27F6CEAF3CAF2</Hex>
+    <BuffName>Gamefreak130_DivineInterventionBuff</BuffName>
+    <BuffDescription>Gamefreak130_DivineInterventionBuffDescription</BuffDescription>
+    <ThumbFilename>divineintervention</ThumbFilename>
+    <EffectValue>50</EffectValue>
+    <AxisEffected>Happy</AxisEffected>
+    <TimeoutLength>720</TimeoutLength>
+  </BuffList>
+  <BuffList>
     <Hex>Gamefreak130_KarmicPossessionBuff=0xF23046B315CBFB49</Hex>
     <BuffName>Gamefreak130_KarmicPossessionBuff</BuffName>
     <BuffDescription>Gamefreak130_KarmicPossessionBuffDescription</BuffDescription>
@@ -77,7 +86,7 @@
     <ThumbFilename>goodmood</ThumbFilename>
     <EffectValue>50</EffectValue>
     <AxisEffected>Happy</AxisEffected>
-    <TimeoutLength>180</TimeoutLength>
+    <TimeoutLength>720</TimeoutLength>
   </BuffList>
   <BuffList>
     <Hex>Gamefreak130_InstantBeautyBuff=0x00A61BA27C377815</Hex>

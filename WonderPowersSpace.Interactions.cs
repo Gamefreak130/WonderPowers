@@ -156,7 +156,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
             }
             return flag;
         }
-        // TODO Divine intervention buff
+
         public override void Cleanup()
         {
             try
@@ -165,6 +165,7 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 {
                     urnstone.GhostToSim(Target, ResetAge, !Target.SimDescription.IsPlayableGhost);
                 }
+                Actor.BuffManager.AddElement(HashString64("Gamefreak130_DivineInterventionBuff"), (Origin)HashString64("FromWonderPower"));
                 StyledNotification.Show(new(WonderPowerManager.LocalizeString(Actor.IsFemale, "DivineInterventionTNS", Actor), Actor.ObjectId, StyledNotification.NotificationStyle.kGameMessagePositive));
                 base.Cleanup();
             }
