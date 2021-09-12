@@ -3,6 +3,7 @@ using Gamefreak130.Common.Helpers;
 using Gamefreak130.Common.Interactions;
 using Gamefreak130.Common.Listeners;
 using Gamefreak130.Common.Tasks;
+using Gamefreak130.WonderPowersSpace.Booters;
 using Gamefreak130.WonderPowersSpace.Helpers;
 using Gamefreak130.WonderPowersSpace.UI;
 using Sims3.Gameplay;

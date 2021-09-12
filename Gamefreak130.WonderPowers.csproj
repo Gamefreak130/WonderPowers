@@ -197,11 +197,13 @@
     <Compile Include="..\..\CommonUtils\System\Linq\Lookup.cs">
       <Link>System\Linq\Lookup.cs</Link>
     </Compile>
+    <Compile Include="WonderPowersSpace.Booters.cs" />
     <Compile Include="WonderPowersSpace.Buffs.cs" />
     <Compile Include="WonderPowersSpace.Helpers.ActivationMethods.cs" />
     <Compile Include="WonderPowersSpace.Helpers.cs" />
     <Compile Include="WonderPowers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WonderPowersSpace.Loggers.cs" />
     <Compile Include="WonderPowersSpace.UI.cs" />
     <Compile Include="WonderPowersSpace.Interactions.cs" />
     <Compile Include="WonderPowersSpace.Situations.cs" />

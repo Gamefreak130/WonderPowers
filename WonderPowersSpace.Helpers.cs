@@ -1,8 +1,7 @@
-﻿using Gamefreak130.Common.Booters;
-using Gamefreak130.Common.Helpers;
-using Gamefreak130.Common.Loggers;
+﻿using Gamefreak130.Common.Helpers;
 using Gamefreak130.Common.Structures;
 using Gamefreak130.Common.UI;
+using Gamefreak130.WonderPowersSpace.Loggers;
 using Gamefreak130.WonderPowersSpace.UI;
 using Sims3.Gameplay;
 using Sims3.Gameplay.Abstracts;
@@ -33,61 +32,11 @@ using Responder = Sims3.UI.Responder;
 
 namespace Gamefreak130.WonderPowersSpace.Helpers
 {
-    public abstract class PowerBooter : Booter
-    {
-		public PowerBooter(string xmlName) : base(xmlName)
-        {
-        }
-
-		protected string PowerData => GetResourceAt(0);
-
-		protected override void LoadData()
-        {
-			XmlDbData xmlDbData = XmlDbData.ReadData(PowerData);
-            xmlDbData.Tables.TryGetValue("Power", out XmlDbTable xmlDbTable);
-            foreach (XmlDbRow row in xmlDbTable.Rows)
-			{
-				string name = row["PowerName"];
-				if (row.TryGetEnum("ProductVersion", out ProductVersion version, ProductVersion.Undefined) && GameUtils.IsInstalled(version) && !string.IsNullOrEmpty(name))
-				{
-					string runMethod = row["EffectMethod"];
-					if (!string.IsNullOrEmpty(runMethod))
-					{
-						bool isBad = row.GetBool("IsBad");
-						int cost = row.GetInt("Cost");
-						MethodInfo methodInfo = FindMethod(runMethod, typeof(ActivationMethods));
-						WonderPowerManager.AddPower(new(name, isBad, cost, methodInfo));
-					}
-				}
-			}
-		}
-	}
-
-	public sealed class WonderPowerBooter : PowerBooter
-    {
-		public WonderPowerBooter() : base("Gamefreak130_KarmaPowers")
-        {
-        }
-    }
-
-	internal class PowerExceptionLogger : EventLogger<Exception>
-	{
-		private PowerExceptionLogger()
-        {
-        }
-
-		internal static readonly PowerExceptionLogger sInstance = new();
-
-        protected override string WriteNotification() => WonderPowerManager.LocalizeString("PowerError");
-	}
-
-	public class WonderPower : IWeightable
+    public class WonderPower : IWeightable
 	{
 		private readonly MethodInfo mRunMethod;
 
 		private readonly int mCost;
-
-		private delegate bool RunDelegate(bool isBacklash);
 
 		public string WonderPowerName { get; private set; }
 
@@ -143,7 +92,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 					int cost = backlash ? -Cost : Cost;
 					WonderPowerManager.Karma -= cost;
 					HudExtender.StartSpendEffects();
-					RunDelegate run = (RunDelegate)Delegate.CreateDelegate(typeof(RunDelegate), mRunMethod);
+					Func<bool, bool> run = (Func<bool, bool>)Delegate.CreateDelegate(typeof(Func<bool, bool>), mRunMethod);
                     if (!run(backlash))
                     {
 						if (backlash)
