@@ -78,7 +78,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 
 		internal static readonly PowerExceptionLogger sInstance = new();
 
-        protected override void Notify() => StyledNotification.Show(new(WonderPowerManager.LocalizeString("PowerError"), StyledNotification.NotificationStyle.kSystemMessage));
+        protected override string WriteNotification() => WonderPowerManager.LocalizeString("PowerError");
 	}
 
 	public class WonderPower : IWeightable
