@@ -1,4 +1,4 @@
-﻿using Gamefreak130.Common.Loggers;
+﻿using Gamefreak130.Common.Listeners;
 using Gamefreak130.Common.UI;
 using Gamefreak130.WonderPowersSpace.Helpers;
 using Sims3.Gameplay;
@@ -648,7 +648,7 @@ namespace Gamefreak130.WonderPowersSpace.UI
 		public static void Init()
         {
 			// CONSIDER Karma icon tooltip
-			EventTracker.AddListener(EventTypeId.kPromisedDreamCompleted, OnPromiseFulfilled);
+			EventHelper.AddDelegateListener(EventTypeId.kPromisedDreamCompleted, OnPromiseFulfilled, ListenerAction.Keep);
 			if (RewardTraitsPanel.Instance?.GetChildByID(799350305u, true) is Button button)
 			{
 				button.Click += (sender, eventArgs) => {
@@ -678,29 +678,22 @@ namespace Gamefreak130.WonderPowersSpace.UI
 		private static ListenerAction OnPromiseFulfilled(Event e)
 		{
 			// CONSIDER show notification on first ever wish fulfill
-			try
+			DreamEvent dreamEvent = e as DreamEvent;
+			if (dreamEvent.IsFullfilled && dreamEvent.ActiveDreamNode.Owner.IsInActiveHousehold && dreamEvent.ActiveDreamNode.IsVisible)
 			{
-				DreamEvent dreamEvent = e as DreamEvent;
-				if (dreamEvent.IsFullfilled && dreamEvent.ActiveDreamNode.Owner.IsInActiveHousehold && dreamEvent.ActiveDreamNode.IsVisible)
+				// CONSIDER multiply karma value by wish's LTH
+				int num = TunableSettings.kKarmaBasicWishAmount;
+				if (dreamEvent.ActiveDreamNode.IsMajorWish)
 				{
-					// CONSIDER multiply karma value by wish's LTH
-					int num = TunableSettings.kKarmaBasicWishAmount;
-					if (dreamEvent.ActiveDreamNode.IsMajorWish)
-					{
-						num = TunableSettings.kKarmaLifetimeWishAmount;
-					}
-					num = Math.Min(num, 100 - WonderPowerManager.Karma);
-					WonderPowerManager.Karma += num;
-					if (sEffectUpdateOneShot == ObjectGuid.InvalidObjectGuid)
-					{
-						sEffectUpdateOneShot = Simulator.AddObject(new OneShotFunctionWithParams(StartFulfillEffects, num, StopWatch.TickStyles.Seconds, SimDisplay.Instance.mFulfillPromiseGlowEffectDuration + (SimDisplay.Instance.mFulfillPromiseIconGrowEffectDuration / 2f)));
-					}
+					num = TunableSettings.kKarmaLifetimeWishAmount;
+				}
+				num = Math.Min(num, 100 - WonderPowerManager.Karma);
+				WonderPowerManager.Karma += num;
+				if (sEffectUpdateOneShot == ObjectGuid.InvalidObjectGuid)
+				{
+					sEffectUpdateOneShot = Simulator.AddObject(new OneShotFunctionWithParams(StartFulfillEffects, num, StopWatch.TickStyles.Seconds, SimDisplay.Instance.mFulfillPromiseGlowEffectDuration + (SimDisplay.Instance.mFulfillPromiseIconGrowEffectDuration / 2f)));
 				}
 			}
-			catch (Exception ex)
-            {
-				ExceptionLogger.sInstance.Log(ex);
-            }
 			return ListenerAction.Keep;
 		}
 

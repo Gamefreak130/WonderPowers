@@ -125,6 +125,12 @@
     <Compile Include="..\..\CommonUtils\Common\LinqBridge\OrderedEnumerable.cs">
       <Link>Common\LinqBridge\OrderedEnumerable.cs</Link>
     </Compile>
+    <Compile Include="..\..\CommonUtils\Common\Listeners\EventHelper.cs">
+      <Link>Common\Listeners\EventHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CommonUtils\Common\Listeners\SafeProcessEventDelegate.cs">
+      <Link>Common\Listeners\SafeProcessEventDelegate.cs</Link>
+    </Compile>
     <Compile Include="..\..\CommonUtils\Common\Loggers\EventLogger.cs">
       <Link>Common\Loggers\EventLogger.cs</Link>
     </Compile>

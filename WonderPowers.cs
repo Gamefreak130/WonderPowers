@@ -1,6 +1,7 @@
 ﻿using Gamefreak130.Common.Booters;
 using Gamefreak130.Common.Helpers;
 using Gamefreak130.Common.Interactions;
+using Gamefreak130.Common.Listeners;
 using Gamefreak130.Common.Tasks;
 using Gamefreak130.WonderPowersSpace.Helpers;
 using Gamefreak130.WonderPowersSpace.UI;
@@ -22,7 +23,6 @@ namespace Gamefreak130
     // TODO Command to set karma, reset cooldown
     // TODO Write STBLs
     // TODO Create tunable settings XML
-    // TODO Common exception catching for event listeners
     public static class WonderPowers
     {
         [Tunable]
@@ -79,7 +79,7 @@ namespace Gamefreak130
             Tunings.Inject(GhostHunter.ReactToAngryGhost.Singleton.GetType(), typeof(Sim), typeof(WonderPowersSpace.Interactions.ReactToGhost.Definition), typeof(Sim), true);
         }
 
-        private static void OnWorldLoadFinished(object sender, EventArgs e) => EventTracker.AddListener(EventTypeId.kEnterInWorldSubState, OnEnteredWorld);
+        private static void OnWorldLoadFinished(object sender, EventArgs e) => EventHelper.AddDelegateListener(EventTypeId.kEnterInWorldSubState, OnEnteredWorld);
 
         private static ListenerAction OnEnteredWorld(Event e)
         {
