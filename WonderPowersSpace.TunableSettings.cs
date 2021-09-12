@@ -43,16 +43,16 @@
         public static string[] kCryHavocPetInteractions = { "Fight Pet", "Chase Mean" };
 
         [Tunable, TunableComment("The minimum number of objects to break during the Quake Maker karma power")]
-        public static int kEarthquakeMinBroken = 5;
+        public static int kEarthquakeMinBroken = 10;
 
         [Tunable, TunableComment("The maximum number of objects to break during the Quake Maker karma power")]
-        public static int kEarthquakeMaxBroken = 10;
+        public static int kEarthquakeMaxBroken = 20;
 
         [Tunable, TunableComment("The minimum number of trash spawned during the Quake Maker karma power")]
-        public static int kEarthquakeMinTrash = 5;
+        public static int kEarthquakeMinTrash = 10;
 
         [Tunable, TunableComment("The maximum number of trash spawned during the Quake Maker karma power")]
-        public static int kEarthquakeMaxTrash = 10;
+        public static int kEarthquakeMaxTrash = 20;
 
         [Tunable, TunableComment("The length of time in sim-minutes that the effects of the Feral Possession karma power will last")]
         public static int kFeralPossessionLength = 180;
