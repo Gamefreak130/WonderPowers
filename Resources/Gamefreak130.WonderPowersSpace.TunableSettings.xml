@@ -26,7 +26,7 @@
       <!--Range 0-100: The increase in percent chance of a karmic backlash per point of negative karma-->
     </kBacklashChanceIncreasePerKarmaPoint>
     <kCurseMotiveAmount value="-95">
-      <!--Range -100-100: The value that a Sim's needs are set to when affected by the Curse karma power (except for the bladder need, which will always be fully emptied)-->
+      <!--Range -100-100: The value that a Sim's needs are set to when affected by the Cosmic Curse karma power (except for the bladder need, which will always be fully emptied)-->
     </kCurseMotiveAmount>
     <kCryHavocLength value="180">
       <!--The length of time in sim-minutes that the effects of the Cry Havoc karma power will last-->
@@ -80,10 +80,10 @@
       <!--The multiplier applied to a Sim's motive decay when affected by the Sickness karma power-->
     </kSicknessMotiveDecay>
     <kWealthMinAmount value="10000">
-      <!--The minimum amount added to a Sim's household funds when affected by the Wealth karma power-->
+      <!--The minimum amount added to a Sim's household funds when affected by the Giant Jackpot karma power-->
     </kWealthMinAmount>
     <kWealthMaxAmount value="30000">
-      <!--The maximum amount added to a Sim's household funds when affected by the Wealth karma power-->
+      <!--The maximum amount added to a Sim's household funds when affected by the Giant Jackpot karma power-->
     </kWealthMaxAmount>
   </Current_Tuning>
 </base>

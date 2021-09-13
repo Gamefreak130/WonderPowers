@@ -27,7 +27,7 @@
         [Tunable, TunableComment("Range 0-100: The increase in percent chance of a karmic backlash per point of negative karma")]
         public static float kBacklashChanceIncreasePerKarmaPoint = 0.5f;
 
-        [Tunable, TunableComment("Range -100-100: The value that a Sim's needs are set to when affected by the Curse karma power (except for the bladder need, which will always be fully emptied)")]
+        [Tunable, TunableComment("Range -100-100: The value that a Sim's needs are set to when affected by the Cosmic Curse karma power (except for the bladder need, which will always be fully emptied)")]
         public static int kCurseMotiveAmount = -95;
 
         [Tunable, TunableComment("The length of time in sim-minutes that the effects of the Cry Havoc karma power will last")]
@@ -81,10 +81,10 @@
         [Tunable, TunableComment("The multiplier applied to a Sim's motive decay when affected by the Sickness karma power")]
         public static float kSicknessMotiveDecay = 2;
 
-        [Tunable, TunableComment("The minimum amount added to a Sim's household funds when affected by the Wealth karma power")]
+        [Tunable, TunableComment("The minimum amount added to a Sim's household funds when affected by the Giant Jackpot karma power")]
         public static int kWealthMinAmount = 10000;
 
-        [Tunable, TunableComment("The maximum amount added to a Sim's household funds when affected by the Wealth karma power")]
+        [Tunable, TunableComment("The maximum amount added to a Sim's household funds when affected by the Giant Jackpot karma power")]
         public static int kWealthMaxAmount = 30000;
     }
 }
