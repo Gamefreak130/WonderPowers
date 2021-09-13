@@ -765,7 +765,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 			while ((newSpecies & CASAgeGenderFlags.SpeciesMask) is CASAgeGenderFlags.None)
 			{
 				List<ObjectPicker.RowInfo> selection = ObjectPickerDialog.Show(true, ModalDialog.PauseMode.PauseSimulator, WonderPowerManager.LocalizeString("TransmogrifyDialogTitle"), Localization.LocalizeString("Ui/Caption/ObjectPicker:OK"),
-																				Localization.LocalizeString("Ui/Caption/ObjectPicker:Cancel"), list3, list, 1, false);
+																				Localization.LocalizeString("Ui/Caption/ObjectPicker:Cancel"), list3, list, 1);
 				newSpecies = selection is not null ? (CASAgeGenderFlags)selection[0].Item : CASAgeGenderFlags.None;
 			}
 
