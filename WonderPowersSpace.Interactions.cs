@@ -1382,6 +1382,13 @@ namespace Gamefreak130.WonderPowersSpace.Interactions
                 oldSim.Destroy();
                 oldSim.SimDescription.Dispose();
 
+                if (Urnstone.FindGhostsGrave(oldSim) is Urnstone urnstone)
+                {
+                    urnstone.SetDeadSimDescription(null);
+                    urnstone.Destroy();
+                    urnstone.Dispose();
+                }
+
                 if (Actor.IsInActiveHousehold)
                 {
                     foreach (INotTransferableOnDeath notTransferableOnDeath in oldSim.Inventory.FindAll<INotTransferableOnDeath>(false))
