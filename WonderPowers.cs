@@ -21,7 +21,6 @@ using System.Reflection;
 
 namespace Gamefreak130
 {
-    // TODO Assembly versioning
     public static class WonderPowers
     {
         [Tunable]
