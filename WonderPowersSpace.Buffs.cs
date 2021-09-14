@@ -41,7 +41,6 @@ namespace Gamefreak130.WonderPowersSpace.Buffs
             Sim actor = arg as Sim;
             if (actor.BuffManager.HasElement(kBuffCryHavocGuid))
             {
-                string[] validActionKeys = actor.IsPet ? TunableSettings.kCryHavocPetInteractions : TunableSettings.kCryHavocSimInteractions;
                 if (actor.InteractionQueue.Count < kMaxInteractions)
                 {
                     Sim target = RandomUtil.GetRandomObjectFromList(actor.LotCurrent.GetAllActors());
