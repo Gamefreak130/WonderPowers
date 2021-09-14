@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gamefreak130.WonderPowers", "Gamefreak130.WonderPowers\Gamefreak130.WonderPowers.csproj", "{7B367073-54CD-44C5-8053-A0C157026A13}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gamefreak130.SampleLightningPower", "Gamefreak130.SampleLightningPower\Gamefreak130.SampleLightningPower.csproj", "{A9B43381-5678-4E1A-A561-C8E21A7D396C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,12 @@ Global
 		{7B367073-54CD-44C5-8053-A0C157026A13}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7B367073-54CD-44C5-8053-A0C157026A13}.Release|x86.ActiveCfg = Release|x86
 		{7B367073-54CD-44C5-8053-A0C157026A13}.Release|x86.Build.0 = Release|x86
+		{A9B43381-5678-4E1A-A561-C8E21A7D396C}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{A9B43381-5678-4E1A-A561-C8E21A7D396C}.Debug|x86.ActiveCfg = Debug|x86
+		{A9B43381-5678-4E1A-A561-C8E21A7D396C}.Debug|x86.Build.0 = Debug|x86
+		{A9B43381-5678-4E1A-A561-C8E21A7D396C}.Release|Any CPU.ActiveCfg = Release|x86
+		{A9B43381-5678-4E1A-A561-C8E21A7D396C}.Release|x86.ActiveCfg = Release|x86
+		{A9B43381-5678-4E1A-A561-C8E21A7D396C}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
