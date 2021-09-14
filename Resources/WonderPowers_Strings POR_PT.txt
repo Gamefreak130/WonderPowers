@@ -1,0 +1,302 @@
+﻿<KEY>UI/Caption/HUD/RewardTraitsPanel:Karma</KEY>
+<STR>Karma Powers</STR>
+<KEY>UI/Caption/HUD/WonderMode:SelectKarmaPower</KEY>
+<STR>Select Karma Power</STR>
+<KEY>UI/WonderMode/KarmaMenu:Points</KEY>
+<STR>Points</STR>
+<KEY>UI/WonderMode/KarmaMenu:NotEnoughKarma</KEY>
+<STR>You do not have enough karma to select this power.</STR>
+<KEY>UI/WonderMode/KarmaMenu:CryHavoc</KEY>
+<STR>Cry Havoc</STR>
+<KEY>UI/WonderMode/KarmaMenu:CryHavocDescription</KEY>
+<STR>Sims in the area will start an all-out brawl! It's a riot!</STR>
+<KEY>UI/WonderMode/KarmaMenu:Curse</KEY>
+<STR>Cosmic Curse</STR>
+<KEY>UI/WonderMode/KarmaMenu:CurseDescription</KEY>
+<STR>Lower any Sim's needs to rock bottom instantly!</STR>
+<KEY>UI/WonderMode/KarmaMenu:DivineIntervention</KEY>
+<STR>Divine Intervention</STR>
+<KEY>UI/WonderMode/KarmaMenu:DivineInterventionDescription</KEY>
+<STR>Divine Intervention can bring any ghost back to life!</STR>
+<KEY>UI/WonderMode/KarmaMenu:Doom</KEY>
+<STR>Epic Fail</STR>
+<KEY>UI/WonderMode/KarmaMenu:DoomDescription</KEY>
+<STR>Make any Sim an epic failure in love, career, and even simple household tasks for a few hours!</STR>
+<KEY>UI/WonderMode/KarmaMenu:Earthquake</KEY>
+<STR>Quake Maker</STR>
+<KEY>UI/WonderMode/KarmaMenu:EarthquakeDescription</KEY>
+<STR>Shake the world and watch things break!</STR>
+<KEY>UI/WonderMode/KarmaMenu:FeralPossession</KEY>
+<STR>Feral Possession</STR>
+<KEY>UI/WonderMode/KarmaMenu:FeralPossessionDescription</KEY>
+<STR>Cats and Dogs will become temporarily possessed with feral instincts! Possessed pets from all over the neighborhood will be drawn to the area, wreaking havoc on any couch, carpet, or Sim unfortunate enough to be in their way!</STR>
+<KEY>UI/WonderMode/KarmaMenu:Fire</KEY>
+<STR>Fire Storm</STR>
+<KEY>UI/WonderMode/KarmaMenu:FireDescription</KEY>
+<STR>Rain fire and brimstone down on the world!</STR>
+<KEY>UI/WonderMode/KarmaMenu:Ghostify</KEY>
+<STR>Ghostify</STR>
+<KEY>UI/WonderMode/KarmaMenu:GhostifyDescription</KEY>
+<STR>Wouldn't it be cool to be a ghost? Sims can be Ghostified to receive all of the benefits of those lucky incorporeal beings!</STR>
+<KEY>UI/WonderMode/KarmaMenu:Ghosts</KEY>
+<STR>Ghost Invasion</STR>
+<KEY>UI/WonderMode/KarmaMenu:GhostsDescription</KEY>
+<STR>They're in your house! Scaring your Sims! They're angry ghosts and it don't look good!</STR>
+<KEY>UI/WonderMode/KarmaMenu:GoodMood</KEY>
+<STR>Good Times</STR>
+<KEY>UI/WonderMode/KarmaMenu:GoodMoodDescription</KEY>
+<STR>Good Times are sure to be had when you remove everyone's bad moodlets! It's a great way to guarantee your party is a great success, or to help overworked Sims recover for some weekend fun!</STR>
+<KEY>UI/WonderMode/KarmaMenu:InstantBeauty</KEY>
+<STR>Instant Beauty</STR>
+<KEY>UI/WonderMode/KarmaMenu:InstantBeautyDescription</KEY>
+<STR>Give one of your Sims a makeover in Create a Sim or Create a Pet!</STR>
+<KEY>UI/WonderMode/KarmaMenu:LuckyBreak</KEY>
+<STR>Lucky Break</STR>
+<KEY>UI/WonderMode/KarmaMenu:LuckyBreakDescription</KEY>
+<STR>Sims blessed with this power will experience a Lucky Break at every chance they get. Send them to work or school and they are bound to have things go their way.</STR>
+<KEY>UI/WonderMode/KarmaMenu:LuckyFind</KEY>
+<STR>Lucky Find</STR>
+<KEY>UI/WonderMode/KarmaMenu:LuckyFindDescription</KEY>
+<STR>Sims who look will often find, but Sims blessed with this power will find even better! Try looking for your favorite collectibles or digging!</STR>
+<KEY>UI/WonderMode/KarmaMenu:MeteorStrike</KEY>
+<STR>Meteor Strike</STR>
+<KEY>UI/WonderMode/KarmaMenu:MeteorStrikeDescription</KEY>
+<STR>Sometimes it rains rocks... big ones... from space. You don't want to be under one.</STR>
+<KEY>UI/WonderMode/KarmaMenu:RayOfSunshine</KEY>
+<STR>A Little Sunshine</STR>
+<KEY>UI/WonderMode/KarmaMenu:RayOfSunshineDescription</KEY>
+<STR>Fill all of a Sim's needs bars a small amount. They can keep doing what they're doing a little longer!</STR>
+<KEY>UI/WonderMode/KarmaMenu:Repair</KEY>
+<STR>Bless the Mess</STR>
+<KEY>UI/WonderMode/KarmaMenu:RepairDescription</KEY>
+<STR>Instantly repair and clean anything broken, dirty, or messy!</STR>
+<KEY>UI/WonderMode/KarmaMenu:Satisfaction</KEY>
+<STR>Super Satisfy</STR>
+<KEY>UI/WonderMode/KarmaMenu:SatisfactionDescription</KEY>
+<STR>Satisfy any Sim by maximizing all of his or her needs at once!</STR>
+<KEY>UI/WonderMode/KarmaMenu:Sickness</KEY>
+<STR>The Sickness</STR>
+<KEY>UI/WonderMode/KarmaMenu:SicknessDescription</KEY>
+<STR>Sims in the area will come down with The Sickness, an an incredibly contagious airborne illness! Symptoms may include soreness, nausea, coughing fits, and projectile vomit.</STR>
+<KEY>UI/WonderMode/KarmaMenu:StrokeOfGenius</KEY>
+<STR>Stroke of Genius</STR>
+<KEY>UI/WonderMode/KarmaMenu:StrokeOfGeniusDescription</KEY>
+<STR>Give a Sim a Stroke of Genius to greatly increase their learning speed. Not only will Sims learn skills faster, pets will learn from praise and scolding exceptionally fast!</STR>
+<KEY>UI/WonderMode/KarmaMenu:SuperLucky</KEY>
+<STR>Get Lucky</STR>
+<KEY>UI/WonderMode/KarmaMenu:SuperLuckyDescription</KEY>
+<STR>Make any Sim Get Lucky in love! Any social stuation a lucky Sim finds him or herself in will lend itself to instant attraction or friendship.</STR>
+<KEY>UI/WonderMode/KarmaMenu:Transmogrify</KEY>
+<STR>Transmogrify</STR>
+<KEY>UI/WonderMode/KarmaMenu:TransmogrifyDescription</KEY>
+<STR>Transmogrify a Sim into a dog, or a dog into a cat, or a cat into a Sim! The possibilities are endlessly entertaining!</STR>
+<KEY>UI/WonderMode/KarmaMenu:Wealth</KEY>
+<STR>Giant Jackpot</STR>
+<KEY>UI/WonderMode/KarmaMenu:WealthDescription</KEY>
+<STR>Give your Sims a Giant Jackpot of Simoleons!</STR>
+<KEY>UI/WonderMode/BacklashDialog:Title</KEY>
+<STR>Karmic Backlash</STR>
+<KEY>UI/WonderMode/BacklashDialog:BacklashDeciding</KEY>
+<STR>The almighty Plumbob is considering your Sim's fate...</STR>
+<KEY>UI/WonderMode/BacklashDialog:BacklashCast</KEY>
+<STR>Prepare to feel the wrath of the almighty Plumbob! A backlash is upon your Sims and they will suffer terribly!</STR>
+<KEY>UI/WonderMode/BacklashDialog:BacklashSpared</KEY>
+<STR>The almighty Plumbob has chosen to restrain its wrath. Consider your Sims lucky this time.</STR>
+<KEY>Ui/Caption/ObjectPicker:Ghost</KEY>
+<STR>Ghost Type</STR>
+<KEY>Ui/Caption/Options:KarmaMenu</KEY>
+<STR>Karma Menu</STR>
+<KEY>Ui/Caption/Options:Load</KEY>
+<STR>Loading</STR>
+<KEY>Gameplay/WonderMode:PowerIsDeploying</KEY>
+<STR>There is already a karma power in use!</STR>
+<KEY>Gameplay/WonderMode:PowerError</KEY>
+<STR>An error occured while activating the selected power, and any spent karma points have been refunded.\n\nAn error log has been created in your user directory. Please send it to Gamefreak130 for further review.</STR>
+<KEY>Gameplay/WonderMode:PowerFailure</KEY>
+<STR>The selected power could not be activated, and the spent karma points have been refunded. Try activating the power on a different Sim or lot.</STR>
+<KEY>Gameplay/WonderMode:BacklashFailure</KEY>
+<STR>It appears the almighty Plumbob was unable to successfully activate the backlash it had planned to inflict. Consider your Sims lucky!</STR>
+<KEY>Gameplay/WonderMode:BeCursed</KEY>
+<STR>Be Cursed</STR>
+<KEY>Gameplay/WonderMode:BeDoomed</KEY>
+<STR>Be Doomed</STR>
+<KEY>Gameplay/WonderMode:PanicReact</KEY>
+<STR>React to Earthquake</STR>
+<KEY>Gameplay/WonderMode:ActivateGoodMood</KEY>
+<STR>Activate Good Mood</STR>
+<KEY>Gameplay/WonderMode:ReceiveMagicalCheck</KEY>
+<STR>Receive Magical Check</STR>
+<KEY>Gameplay/WonderMode:MeteorDestinationTitle</KEY>
+<STR>Select Meteor Strike Destination</STR>
+<KEY>Gameplay/WonderMode:MeteorDestinationConfirm</KEY>
+<STR>Are you sure you want to activate Meteor Strike here?</STR>
+<KEY>Gameplay/WonderMode:FireDestinationTitle</KEY>
+<STR>Select Fire Storm Destination</STR>
+<KEY>Gameplay/WonderMode:FireDestinationConfirm</KEY>
+<STR>Are you sure you want to activate Fire Storm here?</STR>
+<KEY>Gameplay/WonderMode:GhostsDestinationTitle</KEY>
+<STR>Select Ghost Invasion Destination</STR>
+<KEY>Gameplay/WonderMode:GhostsDestinationConfirm</KEY>
+<STR>Are you sure you want to activate Ghost Invasion here?</STR>
+<KEY>Gameplay/WonderMode:CurseDialogTitle</KEY>
+<STR>Cosmic Curse</STR>
+<KEY>Gameplay/WonderMode:DivineInterventionDialogTitle</KEY>
+<STR>Divine Intervention</STR>
+<KEY>Gameplay/WonderMode:DoomDialogTitle</KEY>
+<STR>Epic Fail</STR>
+<KEY>Gameplay/WonderMode:GhostifyDialogTitle</KEY>
+<STR>Ghostify</STR>
+<KEY>Gameplay/WonderMode:InstantBeautyDialogTitle</KEY>
+<STR>Instant Beauty</STR>
+<KEY>Gameplay/WonderMode:LuckyBreakDialogTitle</KEY>
+<STR>Lucky Break</STR>
+<KEY>Gameplay/WonderMode:LuckyFindDialogTitle</KEY>
+<STR>Lucky Find</STR>
+<KEY>Gameplay/WonderMode:RayOfSunshineDialogTitle</KEY>
+<STR>A Little Sunshine</STR>
+<KEY>Gameplay/WonderMode:SatisfactionDialogTitle</KEY>
+<STR>Super Satisfy</STR>
+<KEY>Gameplay/WonderMode:SicknessDialogTitle</KEY>
+<STR>The Sickness</STR>
+<KEY>Gameplay/WonderMode:StrokeOfGeniusDialogTitle</KEY>
+<STR>Stroke Of Genius</STR>
+<KEY>Gameplay/WonderMode:SuperLuckyDialogTitle</KEY>
+<STR>Get Lucky</STR>
+<KEY>Gameplay/WonderMode:TransmogrifyDialogTitle</KEY>
+<STR>Transmogrify</STR>
+<KEY>Gameplay/WonderMode:WealthDialogTitle</KEY>
+<STR>Giant Jackpot</STR>
+<KEY>Gameplay/WonderMode:SelectGhost</KEY>
+<STR>Select a Ghost Type!</STR>
+<KEY>Gameplay/WonderMode:SelectSpecies</KEY>
+<STR>Select a Species!</STR>
+<KEY>Gameplay/WonderMode:LargeDogMenuItem</KEY>
+<STR>Large Dog</STR>
+<KEY>Gameplay/WonderMode:CryHavocTNS</KEY>
+<STR>Graaargh! {0.SimName} suddenly feels like fighting anyone and everyone in {MA.his}{FA.her} path, and it looks like some other Sims around {MA.him}{FA.her} might feel the same way...</STR>
+<KEY>Gameplay/WonderMode:CurseTNS</KEY>
+<STR>A Cosmic Curse has sapped {0.SimName}'s needs and emptied {MA.his}{FA.her} bladder! It might take a while for {MA.him}{FA.her} to recover...</STR>
+<KEY>Gameplay/WonderMode:DivineInterventionTNS</KEY>
+<STR>{0.SimName} has been returned to {MA.his}{FA.her} corporeal form! {MA.He's}{FA.She's} positively ecstatic to have a new lease on life!</STR>
+<KEY>Gameplay/WonderMode:DoomTNS</KEY>
+<STR>{0.SimName} feels like the world is against {MA.him}{FA.her} today. Hopefully {MA.he}{FA.she} doesn't have to rely on luck any time soon...</STR>
+<KEY>Gameplay/WonderMode:EarthquakeTNS</KEY>
+<STR>A massive earthquake is tearing {0.String} apart! Objects are breaking and trash is spilling out everywhere!</STR>
+<KEY>Gameplay/WonderMode:FeralPossessionTNS</KEY>
+<STR>{0.SimName} has noticed several pets materializing around {MA.him}{FA.her}, and they don't look very friendly...</STR>
+<KEY>Gameplay/WonderMode:FireTNS</KEY>
+<STR>Watch out! Everything at {0.String} is exploding into flames!</STR>
+<KEY>Gameplay/WonderMode:GhostifyTNS</KEY>
+<STR>How spooky! {0.SimName}'s skin and bones have dissolved away, leaving behind a ghost that can walk through walls!</STR>
+<KEY>Gameplay/WonderMode:GhostsTNS</KEY>
+<STR>G-G-G-Ghosts! Angry spirits have taken over {0.String} and are wreaking havoc!</STR>
+<KEY>Gameplay/WonderMode:GoodMoodTNS</KEY>
+<STR>{0.SimName}'s household is ready to let the good times roll! All of their negative thoughts and feelings have somehow melted away.</STR>
+<KEY>Gameplay/WonderMode:InstantBeautyTNS</KEY>
+<STR>{0.SimName} has just received a magical makeover! Hopefully it made {MA.him}{FA.her} look better and not worse...</STR>
+<KEY>Gameplay/WonderMode:LuckyBreakTNS</KEY>
+<STR>Luck is on {0.SimName}'s side today. Time for {MA.him}{FA.her} to go out and make the most of it!</STR>
+<KEY>Gameplay/WonderMode:LuckyFindTNS</KEY>
+<STR>{0.SimName} has been given a Hunter's Eye, and will have great luck in finding and working with harvestables and collectibles.</STR>
+<KEY>Gameplay/WonderMode:RayOfSunshineTNS</KEY>
+<STR>After being bathed in warm sunlight, {0.SimName} feels a little less stressed by {MA.his}{FA.her} needs.</STR>
+<KEY>Gameplay/WonderMode:RepairTNS</KEY>
+<STR>All of {0.SimName}'s household chores have magically taken care of themselves! With nothing to clean or repair, {MA.he}{FA.she} finally has some time to relax for a bit.</STR>
+<KEY>Gameplay/WonderMode:SatisfactionTNS</KEY>
+<STR>{0.SimName}'s needs have been completely maximized, leaving {MA.him}{FA.her} feeling Supremely Satisfied!</STR>
+<KEY>Gameplay/WonderMode:SicknessTNS</KEY>
+<STR>Uh oh, it looks like {0.SimName} has contracted a mysterious illness. {MA.He}{FA.She} had better quarantine so it doesn't spread!</STR>
+<KEY>Gameplay/WonderMode:StrokeOfGeniusTNS</KEY>
+<STR>A flash of inspiration has struck {0.SimName}. Dizzyingly complex skills now seem trivial!</STR>
+<KEY>Gameplay/WonderMode:SuperLuckyTNS</KEY>
+<STR>Lady Luck has given {0.SimName}'s charisma a bit of a boost. Other Sims might pick up on {MA.his}{FA.her} newfound confidence and be more receptive to socialization.</STR>
+<KEY>Gameplay/WonderMode:TransmogrifyTNS</KEY>
+<STR>In a flash of light, {0.SimName} has transmogrified into a completely different species! What will this new anatomy have in store for {MA.him}{FA.her}?</STR>
+<KEY>Gameplay/WonderMode:WealthTNS</KEY>
+<STR>Jumping jackpots! A giant check just materialized in {0.SimName}'s hands! Don't spend it all in one place!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffOrigins:D30E840A88FBA523</KEY>
+<STR>(From Karma Power)</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuff</KEY>
+<STR>Wreaking Havoc</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CryHavocBuffDescription</KEY>
+<STR>Can't... think... must... FIGHT!!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CursedBuff</KEY>
+<STR>Cosmically Cursed</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_CursedBuffDescription</KEY>
+<STR>{0.SimFirstName} REALLY isn't feeling too good right now...</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DivineInterventionBuff</KEY>
+<STR>New Lease On Life</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DivineInterventionBuffDescription</KEY>
+<STR>{0.SimFirstName} is absolutely overjoyed to have a second chance in the land of the living!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuff</KEY>
+<STR>Epic Failure</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DoomBuffDescription</KEY>
+<STR>Things just aren't going {0.SimFirstName}'s way today. It's as if everything {MA.he}{FA.she} touches is cursed!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_KarmicPossessionBuff</KEY>
+<STR>Possessed</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_KarmicPossessionBuffDescription</KEY>
+<STR>Watch out! Under the control of the almighty Plumbob, {0.SimFirstName} knows only destruction.</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GhostifyBuff</KEY>
+<STR>Ghostified!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GhostifyBuffDescription</KEY>
+<STR>It's nice to be able to lose one's corporeal form without the hassle of having to die first.</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GoodMoodBuff</KEY>
+<STR>Good Times</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_GoodMoodBuffDescription</KEY>
+<STR>All of {0.SimFirstName}'s worries have melted away into euphoria!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_InstantBeautyBuff</KEY>
+<STR>Fresh Look</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_InstantBeautyBuffDescription</KEY>
+<STR>In a flash, {0.SimFirstName}'s appearance has changed completely! Is {MA.his}{FA.her} new look a blessing or a curse?</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuff</KEY>
+<STR>Good Karma</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyBreakBuffDescription</KEY>
+<STR>{0.SimFirstName} is feeling extraordinarily lucky! Time to go out and make the most of it!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyFindBuff</KEY>
+<STR>Hunter's Eye</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_LuckyFindBuffDescription</KEY>
+<STR>All of a sudden, {0.SimFirstName} feels like sniffing out some treasure. Time to go collecting!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_BoostedBuff</KEY>
+<STR>Walkin' on Sunshine</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_BoostedBuffDescription</KEY>
+<STR>And don't it feel good!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_SatisfiedBuff</KEY>
+<STR>Supremely Satisfied</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_SatisfiedBuffDescription</KEY>
+<STR>Without a care in the world, {0.SimFirstName} is feeling pure euphoria.</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_KarmicSicknessBuff</KEY>
+<STR>Down With The Sickness</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_KarmicSicknessBuffDescription</KEY>
+<STR>Madness is the gift that has been given to {0.SimFirstName}. Don't try to deny what {MA.he}{FA.she} feels!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuff</KEY>
+<STR>Feeling Drained</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_DrainedBuffDescription</KEY>
+<STR>Oof, {0.SimFirstName}'s needs might drain faster than usual for a while. It might be best for {MA.him}{FA.her} to stay home until this passes.</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_StrokeOfGeniusBuff</KEY>
+<STR>Stroke of Genius</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_StrokeOfGeniusBuffDescription</KEY>
+<STR>Eureka! {0.SimFirstName} can practically feel {MA.his}{FA.her} IQ rising!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_SuperLuckyBuff</KEY>
+<STR>Luck Be a Lady</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_SuperLuckyBuffDescription</KEY>
+<STR>{0.SimFirstName} is feeling lucky when it comes to schmoozing. Other Sims might be a bit more receptive to {MA.his}{FA.her} socializing talent!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_TransmoggedToHuman</KEY>
+<STR>I'm a Human!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_TransmoggedToHumanDescription</KEY>
+<STR>It's so liberating to be able to walk on two legs instead of four!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_TransmoggedToDog</KEY>
+<STR>I'm a Dog!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_TransmoggedToDogDescription</KEY>
+<STR>Who knew being Man's Best Friend could be such an easy gig?</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_TransmoggedToCat</KEY>
+<STR>I'm a Cat!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_TransmoggedToCatDescription</KEY>
+<STR>{0.SimFirstName} feels the hunter's instinct... or maybe {MA.he}{FA.she} just wants to hop on a cat condo for a while. It's hard to tell.</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_TransmoggedToHorse</KEY>
+<STR>I'm a Horse!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_TransmoggedToHorseDescription</KEY>
+<STR>{0.SimFirstName} can now jump higher and run faster than {MA.he}{FA.she} ever thought possible!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_WealthBuff</KEY>
+<STR>Jackpot!</STR>
+<KEY>Gameplay/Excel/Buffs/BuffList:Gamefreak130_WealthBuffDescription</KEY>
+<STR>Hooray, free money! {0.SimFirstName} knows better than to ask questions when Simoleons are falling from the sky.</STR>
