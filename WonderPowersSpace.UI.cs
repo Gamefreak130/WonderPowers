@@ -176,6 +176,8 @@ namespace Gamefreak130.WonderPowersSpace.UI
 			mPowerName.Caption = LocalizeString(power.WonderPowerName);
 			mPowerPoints.Caption = power.Cost + " " + LocalizeString("Points");
 			mPowerDesc.Caption = LocalizeString(power.WonderPowerName + "Description");
+			mPowerDesc.AnchorIndex = 0U;
+			mPowerDesc.CursorIndex = 0U;
 			mPowerPreview.Invalidate();
 		}
 
