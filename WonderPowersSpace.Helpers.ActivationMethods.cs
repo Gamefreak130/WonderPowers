@@ -224,7 +224,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 				}
 				throw;
 			}
-			PlumbBob.SelectedActor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString(PlumbBob.SelectedActor.IsFemale, "EarthquakeTNS", PlumbBob.SelectedActor), StyledNotification.NotificationStyle.kGameMessageNegative);
+			PlumbBob.SelectedActor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("EarthquakeTNS", lot.Name), StyledNotification.NotificationStyle.kGameMessageNegative);
 			return true;
 		}
 

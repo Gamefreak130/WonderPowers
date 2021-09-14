@@ -97,11 +97,11 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
                     {
 						if (backlash)
                         {
-							PlumbBob.SelectedActor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("BacklashFailed"), StyledNotification.NotificationStyle.kGameMessagePositive);
+							PlumbBob.SelectedActor.ShowTNSIfSelectable(WonderPowerManager.LocalizeString("BacklashFailure"), StyledNotification.NotificationStyle.kGameMessagePositive);
                         }
 						else
                         {
-							StyledNotification.Show(new(WonderPowerManager.LocalizeString("PowerFailed"), StyledNotification.NotificationStyle.kSystemMessage));
+							StyledNotification.Show(new(WonderPowerManager.LocalizeString("PowerFailure"), StyledNotification.NotificationStyle.kSystemMessage));
 							WonderPowerManager.Karma += Cost;
 							HudExtender.StartSpendEffects();
 						}

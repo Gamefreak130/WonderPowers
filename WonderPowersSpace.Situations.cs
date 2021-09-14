@@ -465,7 +465,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                     Vector3 pos = Lot.GetRandomPosition(true, true);
                     FireManager.AddFire(pos, true);
                 }
-                StyledNotification.Show(new(WonderPowerManager.LocalizeString("FireTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString("FireTNS", Lot.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
                 Parent.CheckForExit();
             }
         }
@@ -590,7 +590,7 @@ namespace Gamefreak130.WonderPowersSpace.Situations
                 {
                     Parent.mSimulatorObjects.Add(Simulator.AddObject(new OneShotFunction(CreateAngryGhost)));
                 }
-                StyledNotification.Show(new(WonderPowerManager.LocalizeString("GhostsTNS"), StyledNotification.NotificationStyle.kGameMessageNegative));
+                StyledNotification.Show(new(WonderPowerManager.LocalizeString("GhostsTNS", Lot.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
             }
 
             private void OnPanicStart(Sim actor, ReactionBroadcaster broadcaster)
