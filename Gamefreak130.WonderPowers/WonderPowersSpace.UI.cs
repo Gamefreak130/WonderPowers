@@ -186,7 +186,10 @@ namespace Gamefreak130.WonderPowersSpace.UI
 			mGoodPowerGrid.Clear();
 			mBadPowerGrid.Clear();
 			ResourceKey resKey = ResourceKey.CreateUILayoutKey("WonderPowerEntry", 0u);
-			foreach (WonderPower power in WonderPowerManager.WonderPowerList)
+			IEnumerable<WonderPower> powers = from power in WonderPowerManager.WonderPowerList
+											  orderby power.Cost
+											  select power;
+			foreach (WonderPower power in powers)
             {
 				Window window = UIManager.LoadLayout(resKey).GetWindowByExportID(1) as Window;
 				if (window is not null)
