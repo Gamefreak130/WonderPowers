@@ -1,10 +1,11 @@
-﻿using Sims3.SimIFace;
-using System;
+﻿using Gamefreak130.WonderPowersSpace.Booters;
 
-namespace Gamefreak130.SampleLightningPower.Booters
+namespace Gamefreak130.SampleLightningPowerSpace.Booters
 {
-    public class LightningPowerBooter
+    public class LightningPowerBooter : PowerBooter
     {
-        
+        public LightningPowerBooter() : base("Gamefreak130_SampleLightningPower")
+        {
+        }
     }
 }

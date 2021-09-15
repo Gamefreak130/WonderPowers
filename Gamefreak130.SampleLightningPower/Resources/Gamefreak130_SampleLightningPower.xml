@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<KarmaPowers>
+  <Power>
+    <ProductVersion>BaseGame</ProductVersion>
+    <PowerName></PowerName>
+    <IsBad></IsBad>
+    <Cost></Cost>
+    <EffectMethod></EffectMethod>
+  </Power>
+  <Power>
+    <ProductVersion>EP8</ProductVersion>
+    <PowerName>LightningStrike</PowerName>
+    <IsBad>True</IsBad>
+    <Cost>20</Cost>
+    <EffectMethod>Gamefreak130.SampleLightningPower, Gamefreak130.SampleLightningPower, Activate</EffectMethod>
+  </Power>
+</KarmaPowers>
