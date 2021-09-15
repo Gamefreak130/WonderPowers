@@ -1,0 +1,4 @@
+﻿<KEY>UI/WonderMode/KarmaMenu:LightningStrike</KEY>
+<STR>Lightning Strike</STR>
+<KEY>UI/WonderMode/KarmaMenu:LightningStrikeDescription</KEY>
+<STR>Electrocute a Sim with a bolt of lightning. It's positively shocking!</STR>

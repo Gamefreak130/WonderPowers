@@ -1,0 +1,4 @@
+﻿<KEY>UI/WonderMode/KarmaMenu:LightningStrike</KEY>
+<STR>UI/WonderMode/KarmaMenu:LightningStrike</STR>
+<KEY>UI/WonderMode/KarmaMenu:LightningStrikeDescription</KEY>
+<STR>UI/WonderMode/KarmaMenu:LightningStrikeDescription</STR>
