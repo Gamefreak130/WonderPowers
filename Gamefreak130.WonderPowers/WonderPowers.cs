@@ -43,7 +43,7 @@ namespace Gamefreak130
             {
                 TransmogrifyTraitMapping.Init();
             }
-            IsKidsMagicInstalled = ReflectionEx.IsAssemblyLoaded("Skydome_KidsMagic");
+            IsKidsMagicInstalled = ReflectionEx.IsAssemblyLoaded("Skydome_KidsMagic") || ReflectionEx.IsAssemblyLoaded("PuddingFace_EnhancedWitches");
             IsMasterControllerIntegrationInstalled = ReflectionEx.IsAssemblyLoaded("NRaasMasterControllerIntegration");
             foreach (ConstructorInfo ctor in AppDomain.CurrentDomain.GetAssemblies()
                                                                     .SelectMany(assembly => assembly.GetExportedTypes())
