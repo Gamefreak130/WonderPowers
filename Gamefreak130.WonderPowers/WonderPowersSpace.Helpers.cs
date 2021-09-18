@@ -57,7 +57,7 @@ namespace Gamefreak130.WonderPowersSpace.Helpers
 						}
 						if (IsBadPower && current.SimDescription.TraitManager.HasElement(TraitNames.Evil))
 						{
-							cost *= cost * TunableSettings.kGoodTraitKarmaDiscount;
+							cost *= TunableSettings.kEvilTraitKarmaDiscount;
 						}
 					}
 				}
